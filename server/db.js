@@ -8,7 +8,7 @@ const db = mysql.createConnection({
     database: process.env.DB_NAME,
 
     ssl: {
-        rejectUnauthorized: true
+        rejectUnauthorized: false
     }
 });
 
