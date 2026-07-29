@@ -29,7 +29,7 @@ const InvoiceForm = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [discount, setDiscount] = useState('');
   const [tax, setTax] = useState('');
-  const [invoiceNumber, setInvoiceNumber] = useState(1);
+  const [invoiceNumber, setInvoiceNumber] = useState("INV-0001");
   const [cashierName, setCashierName] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [items, setItems] = useState([
