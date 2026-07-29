@@ -10,6 +10,8 @@ app.use(cors());
 app.use(express.json());
 
 app.post("/api/invoices", (req, res) => {
+    console.log("POST /api/invoices called");
+    console.log(req.body);
 
     const {
         invoiceNumber,
@@ -42,12 +44,13 @@ app.post("/api/invoices", (req, res) => {
         ],
         (err, result) => {
 
-            if (err) {
-                console.log(err);
-                return res.status(500).json({
-                    message: "Error saving invoice"
-                });
-            }
+           if (err) {
+    console.error("Invoice Insert Error:", err);
+    return res.status(500).json({
+        success: false,
+        message: err.message
+    });
+}
 
             const invoiceId = result.insertId;
 

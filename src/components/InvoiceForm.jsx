@@ -59,7 +59,7 @@ const reviewInvoiceHandler = async (event) => {
 
   try {
     const response = await axios.post(
-      "https://invoice-backend-78hd.onrender.com",
+      "https://invoice-backend-78hd.onrender.com/api/invoices",
       invoiceData
     );
 
