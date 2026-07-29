@@ -29,7 +29,7 @@ const InvoiceForm = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [discount, setDiscount] = useState('');
   const [tax, setTax] = useState('');
-  const [invoiceNumber, setInvoiceNumber] = useState(1);
+  const [invoiceNumber, setInvoiceNumber] = useState("INV-0001");
   const [cashierName, setCashierName] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [items, setItems] = useState([
@@ -151,7 +151,7 @@ const reviewInvoiceHandler = async (event) => {
             <input
               required
               className="w-[130px] border rounded px-2 py-1"
-              type="number"
+              type="text"
               id="invoiceNumber"
               min="1"
               value={invoiceNumber}
