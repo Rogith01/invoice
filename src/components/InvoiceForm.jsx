@@ -1,9 +1,8 @@
-import React, { useState} from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from "axios";
 import { uid } from 'uid';
 import InvoiceItem from './InvoiceItem';
 import InvoiceModal from './InvoiceModal';
-import incrementString from '../helpers/incrementString';
 
 const date = new Date();
 const today = date.toLocaleDateString('en-GB', {
@@ -26,12 +25,14 @@ const itemOptions = [
 ];
 
 const InvoiceForm = () => {
+
   const [isOpen, setIsOpen] = useState(false);
   const [discount, setDiscount] = useState('');
   const [tax, setTax] = useState('');
   const [invoiceNumber, setInvoiceNumber] = useState("INV-0001");
   const [cashierName, setCashierName] = useState('');
   const [customerName, setCustomerName] = useState('');
+
   const [items, setItems] = useState([
     {
       id: uid(6),
@@ -43,37 +44,71 @@ const InvoiceForm = () => {
 
   const cashierOptions = ['Rogith', 'Guhan', 'Fayaz'];
 
-const reviewInvoiceHandler = async (event) => {
-  event.preventDefault();
+  // Fetch next invoice number from backend
+  const fetchInvoiceNumber = async () => {
 
-  const invoiceData = {
-    cashierName,
-    customerName,
-    subtotal,
-    discountRate,
-    taxRate,
-    total,
-    items,
+    try {
+
+      const response = await axios.get(
+        "https://invoice-backend-78hd.onrender.com/api/next-invoice-number"
+      );
+
+      if (response.data.success) {
+        setInvoiceNumber(response.data.invoiceNumber);
+      }
+
+    } catch (error) {
+      console.error("Error fetching invoice number:", error);
+    }
+
   };
 
-  try {
-    const response = await axios.post(
-      "https://invoice-backend-78hd.onrender.com/api/invoices",
-      invoiceData
-    );
+  // Load invoice number when page opens
+  useEffect(() => {
+    fetchInvoiceNumber();
+  }, []);
 
-    console.log(response.data);
+  const reviewInvoiceHandler = async (event) => {
 
-    setIsOpen(true);
+    event.preventDefault();
 
-  } catch (error) {
-    console.error("Error saving invoice:", error);
-    alert("Failed to save invoice.");
-  }
-};
+    const invoiceData = {
+      cashierName,
+      customerName,
+      subtotal,
+      discountRate,
+      taxRate,
+      total,
+      items,
+    };
 
-  const addNextInvoiceHandler = () => {
-    setInvoiceNumber((prevNumber) => incrementString(prevNumber));
+    try {
+
+      const response = await axios.post(
+        "https://invoice-backend-78hd.onrender.com/api/invoices",
+        invoiceData
+      );
+
+      console.log(response.data);
+
+      // Update invoice number returned from backend
+      setInvoiceNumber(response.data.invoiceNumber);
+
+      setIsOpen(true);
+
+    } catch (error) {
+
+      console.error("Error saving invoice:", error);
+      alert("Failed to save invoice.");
+
+    }
+
+  };
+
+  const addNextInvoiceHandler = async () => {
+
+    await fetchInvoiceNumber();
+
     setItems([
       {
         id: uid(6),
@@ -82,13 +117,16 @@ const reviewInvoiceHandler = async (event) => {
         price: '0.00',
       },
     ]);
+
     setCustomerName('');
     setCashierName('');
     setDiscount('');
     setTax('');
+
   };
 
   const addItemHandler = () => {
+
     setItems((prevItems) => [
       ...prevItems,
       {
@@ -98,6 +136,7 @@ const reviewInvoiceHandler = async (event) => {
         price: '0.00',
       },
     ]);
+
   };
 
   const deleteItemHandler = (id) => {
@@ -147,15 +186,13 @@ const reviewInvoiceHandler = async (event) => {
           </div>
           <div className="flex items-center space-x-2">
             <label htmlFor="invoiceNumber" className="font-bold">Invoice Number:</label>
-            <input
-              required
-              className="w-[130px] border rounded px-2 py-1"
-              type="text"
-              id="invoiceNumber"
-              min="1"
-              value={invoiceNumber}
-              onChange={(e) => setInvoiceNumber(e.target.value)}
-            />
+<input
+  className="w-[130px] border rounded px-2 py-1 bg-gray-100 cursor-not-allowed"
+  type="text"
+  id="invoiceNumber"
+  value={invoiceNumber}
+  readOnly
+/>
           </div>
         </div>
 
@@ -293,15 +330,15 @@ const reviewInvoiceHandler = async (event) => {
       <InvoiceModal
         isOpen={isOpen}
         setIsOpen={setIsOpen}
-        invoiceInfo={{
-          invoiceNumber,
-          cashierName,
-          customerName,
-          subtotal,
-          taxRate,
-          discountRate,
-          total,
-        }}
+invoiceInfo={{
+  invoiceNumber,
+  cashierName,
+  customerName,
+  subtotal,
+  discountRate,
+  taxRate,
+  total,
+}}
         items={items}
         onAddNextInvoice={addNextInvoiceHandler}
       />

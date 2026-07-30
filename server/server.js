@@ -9,6 +9,51 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+/* ======================================================
+   GET NEXT INVOICE NUMBER
+====================================================== */
+app.get("/api/next-invoice-number", (req, res) => {
+
+    const sql = `
+        SELECT invoice_number
+        FROM invoices
+        ORDER BY id DESC
+        LIMIT 1
+    `;
+
+    db.query(sql, (err, rows) => {
+
+        if (err) {
+            console.error(err);
+            return res.status(500).json({
+                success: false,
+                message: err.message
+            });
+        }
+
+        let invoiceNumber = "INV-0001";
+
+        if (rows.length > 0) {
+
+            const lastInvoice = rows[0].invoice_number;
+            const lastNumber = parseInt(lastInvoice.replace("INV-", ""));
+
+            invoiceNumber =
+                "INV-" + String(lastNumber + 1).padStart(4, "0");
+        }
+
+        res.json({
+            success: true,
+            invoiceNumber
+        });
+
+    });
+
+});
+
+/* ======================================================
+   SAVE INVOICE
+====================================================== */
 app.post("/api/invoices", (req, res) => {
 
     console.log("POST /api/invoices called");
@@ -24,7 +69,7 @@ app.post("/api/invoices", (req, res) => {
         items
     } = req.body;
 
-    // Get the last invoice number
+    // Get latest invoice number
     const getLastInvoice = `
         SELECT invoice_number
         FROM invoices
@@ -45,13 +90,16 @@ app.post("/api/invoices", (req, res) => {
         let invoiceNumber = "INV-0001";
 
         if (rows.length > 0) {
+
             const lastInvoice = rows[0].invoice_number;
             const lastNumber = parseInt(lastInvoice.replace("INV-", ""));
-            invoiceNumber = "INV-" + String(lastNumber + 1).padStart(4, "0");
+
+            invoiceNumber =
+                "INV-" + String(lastNumber + 1).padStart(4, "0");
         }
 
         // Insert invoice
-        const sql = `
+        const invoiceSql = `
             INSERT INTO invoices
             (
                 invoice_number,
@@ -63,11 +111,21 @@ app.post("/api/invoices", (req, res) => {
                 tax,
                 total
             )
-            VALUES (?, CURDATE(), ?, ?, ?, ?, ?, ?)
+            VALUES
+            (
+                ?,
+                CURDATE(),
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                ?
+            )
         `;
 
         db.query(
-            sql,
+            invoiceSql,
             [
                 invoiceNumber,
                 cashierName,
@@ -81,6 +139,7 @@ app.post("/api/invoices", (req, res) => {
 
                 if (err) {
                     console.error("Invoice Insert Error:", err);
+
                     return res.status(500).json({
                         success: false,
                         message: err.message
@@ -89,38 +148,72 @@ app.post("/api/invoices", (req, res) => {
 
                 const invoiceId = result.insertId;
 
-                // Insert invoice items
-                items.forEach(item => {
+                if (items && items.length > 0) {
 
-                    const itemSql = `
-                        INSERT INTO invoice_items
-                        (
-                            invoice_id,
-                            item_name,
-                            qty,
-                            price,
-                            amount
-                        )
-                        VALUES (?, ?, ?, ?, ?)
-                    `;
+                    let completed = 0;
 
-                    db.query(
-                        itemSql,
-                        [
-                            invoiceId,
-                            item.name,
-                            item.qty,
-                            item.price,
-                            item.qty * item.price
-                        ]
-                    );
-                });
+                    items.forEach((item) => {
 
-                res.json({
-                    success: true,
-                    message: "Invoice Saved Successfully",
-                    invoiceNumber: invoiceNumber
-                });
+                        const itemSql = `
+                            INSERT INTO invoice_items
+                            (
+                                invoice_id,
+                                item_name,
+                                qty,
+                                price,
+                                amount
+                            )
+                            VALUES
+                            (
+                                ?,
+                                ?,
+                                ?,
+                                ?,
+                                ?
+                            )
+                        `;
+
+                        db.query(
+                            itemSql,
+                            [
+                                invoiceId,
+                                item.name,
+                                item.qty,
+                                item.price,
+                                item.qty * item.price
+                            ],
+                            (err) => {
+
+                                if (err) {
+                                    console.error(err);
+                                }
+
+                                completed++;
+
+                                if (completed === items.length) {
+
+                                    return res.json({
+                                        success: true,
+                                        message: "Invoice Saved Successfully",
+                                        invoiceNumber
+                                    });
+
+                                }
+
+                            }
+                        );
+
+                    });
+
+                } else {
+
+                    return res.json({
+                        success: true,
+                        message: "Invoice Saved Successfully",
+                        invoiceNumber
+                    });
+
+                }
 
             }
         );
@@ -129,12 +222,18 @@ app.post("/api/invoices", (req, res) => {
 
 });
 
-// Test Route
+/* ======================================================
+   TEST ROUTE
+====================================================== */
+
 app.get("/", (req, res) => {
     res.send("Invoice Backend is Running...");
 });
 
-// Start Server
+/* ======================================================
+   START SERVER
+====================================================== */
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
