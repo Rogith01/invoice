@@ -27,8 +27,8 @@ const itemOptions = [
 const InvoiceForm = () => {
 
   const [isOpen, setIsOpen] = useState(false);
-  const [discount, setDiscount] = useState('');
-  const [tax, setTax] = useState('');
+  const [discount, setDiscount] = useState('2');
+  const [tax, setTax] = useState('5');
   const [invoiceNumber, setInvoiceNumber] = useState("INV-0001");
   const [cashierName, setCashierName] = useState('');
   const [customerName, setCustomerName] = useState('');
@@ -120,8 +120,8 @@ const InvoiceForm = () => {
 
     setCustomerName('');
     setCashierName('');
-    setDiscount('');
-    setTax('');
+    setDiscount('2');
+    setTax('5');
 
   };
 
