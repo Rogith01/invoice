@@ -47,7 +47,6 @@ const reviewInvoiceHandler = async (event) => {
   event.preventDefault();
 
   const invoiceData = {
-    invoiceNumber,
     cashierName,
     customerName,
     subtotal,
