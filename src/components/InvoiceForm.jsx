@@ -44,6 +44,29 @@ const InvoiceForm = () => {
   ]);
 
   const cashierOptions = ['Rogith', 'Guhan', 'Fayaz'];
+  const fetchCustomer = async (phone) => {
+
+  setPhoneNumber(phone);
+
+  if (phone.length !== 10) return;
+
+  try {
+
+    const res = await axios.get(
+      `https://invoice-backend-78hd.onrender.com/api/customer/${phone}`
+    );
+
+    if (res.data.success) {
+      setCustomerName(res.data.customer.customer_name);
+    } else {
+      setCustomerName("");
+    }
+
+  } catch (err) {
+    console.log(err);
+  }
+
+};
 
   // Fetch next invoice number from backend
   const fetchInvoiceNumber = async () => {
@@ -224,8 +247,8 @@ const InvoiceForm = () => {
 
   <input
     required
-    type="text"
-    id="phoneNumber"
+    type="number"
+    maxLength={10}
     className="border rounded px-2 py-1"
     placeholder="Enter phone number"
     value={phoneNumber}
