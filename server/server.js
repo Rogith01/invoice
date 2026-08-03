@@ -219,6 +219,7 @@ function saveInvoice(customerId , loyaltyPoints) {
                 customer_name,
                 subtotal,
                 discount,
+                loyalty_discount,
                 tax,
                 total
             )
@@ -226,6 +227,7 @@ function saveInvoice(customerId , loyaltyPoints) {
             (
                 ?,
                 CURDATE(),
+                ?,
                 ?,
                 ?,
                 ?,
@@ -245,6 +247,7 @@ function saveInvoice(customerId , loyaltyPoints) {
                 customerName,
                 subtotal,
                 discountRate,
+                redeemPoints ? loyaltyPoints : 0,
                 taxRate,
                 total
             ],

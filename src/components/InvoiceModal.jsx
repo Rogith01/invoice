@@ -178,6 +178,12 @@ const InvoiceModal = ({
                       <span>Rs:{invoiceInfo.discountRate.toFixed(2)}</span>
                     </div>
                     <div className="flex w-full justify-between">
+                    <span className="font-bold">Loyalty Discount:</span>
+                    <span>
+                      Rs:{invoiceInfo.loyaltyDiscount.toFixed(2)}
+                    </span>
+                  </div>
+                    <div className="flex w-full justify-between">
                       <span className="font-bold">Tax:</span>
                       <span>Rs:{invoiceInfo.taxRate.toFixed(2)}</span>
                     </div>

@@ -431,6 +431,7 @@ invoiceInfo={{
   subtotal,
   discountRate,
   taxRate,
+  loyaltyDiscount: redeemPoints ? availablePoints : 0,
   total,
 }}
         items={items}
