@@ -94,6 +94,7 @@ app.post("/api/invoices", (req, res) => {
 
     console.log("POST /api/invoices called");
     console.log(req.body);
+    console.log("Redeem Points:", redeemPoints);
 
     const {
         phoneNumber,
@@ -103,12 +104,13 @@ app.post("/api/invoices", (req, res) => {
         discountRate,
         taxRate,
         total,
-        items
+        items,
+        redeemPoints
     } = req.body;
 
         // Check if customer already exists
     const checkCustomerSql = `
-        SELECT id
+        SELECT id , loyalty_points
         FROM customers
         WHERE phone_number = ?
     `;
@@ -126,10 +128,11 @@ app.post("/api/invoices", (req, res) => {
         if (rows.length > 0) {
 
             const customerId = rows[0].id;
+            const loyaltyPoints = rows[0].loyalty_points;
 
             console.log("Existing Customer ID:", customerId);
 
-            saveInvoice(customerId);
+            saveInvoice(customerId, loyaltyPoints);
 
         } else {
 
@@ -168,14 +171,14 @@ app.post("/api/invoices", (req, res) => {
 
                     console.log("New Customer ID:", customerId);
 
-                    saveInvoice(customerId);
+                    saveInvoice(customerId,0);
 
                 }
             );
 
         }
 
-function saveInvoice(customerId) {
+function saveInvoice(customerId , loyaltyPoints) {
 
     // Get latest invoice number
     const getLastInvoice = `
@@ -300,18 +303,22 @@ function saveInvoice(customerId) {
                                 completed++;
 
                                 if (completed === items.length) {
-
-                                    const earnedPoints = Math.floor(total / 50);
-
+                                    const redeemedPoints = redeemPoints ? loyaltyPoints : 0;
+                                    const earnedPoints = Math.floor(total / 100);
+                                    const finalPoints =
+                                            loyaltyPoints - redeemedPoints + earnedPoints;
                                     const updatePointsSql = `
                                         UPDATE customers
-                                        SET loyalty_points = loyalty_points + ?
+                                        SET loyalty_points = ?
                                         WHERE id = ?
                                     `;
 
                                     db.query(
                                         updatePointsSql,
-                                        [earnedPoints, customerId],
+                                        [
+                                            finalPoints,
+                                            customerId
+                                        ],
                                         (err) => {
 
                                             if (err) {
@@ -322,7 +329,9 @@ function saveInvoice(customerId) {
                                                 success: true,
                                                 message: "Invoice Saved Successfully",
                                                 invoiceNumber,
-                                                earnedPoints
+                                                earnedPoints,
+                                                redeemedPoints,
+                                                finalPoints
                                             });
 
                                         }
@@ -336,30 +345,36 @@ function saveInvoice(customerId) {
                     });
 
                 } else {
-
-                    const earnedPoints = Math.floor(total / 50);
-
+                    const redeemedPoints = redeemPoints ? loyaltyPoints : 0;
+                    const earnedPoints = Math.floor(total / 100);
+                    const finalPoints =
+                    loyaltyPoints - redeemedPoints + earnedPoints;
                     const updatePointsSql = `
                         UPDATE customers
-                        SET loyalty_points = loyalty_points + ?
+                        SET loyalty_points = ?
                         WHERE id = ?
                     `;
 
-                    db.query(
-                        updatePointsSql,
-                        [earnedPoints, customerId],
-                        (err) => {
+                            db.query(
+                                updatePointsSql,
+                                [
+                                    finalPoints,
+                                    customerId
+                                ],
+                                (err) => {
 
-                            if (err) {
-                                console.error("Loyalty Points Error:", err);
-                            }
+                                    if (err) {
+                                        console.error("Loyalty Points Error:", err);
+                                    }
 
-                            return res.json({
-                                success: true,
-                                message: "Invoice Saved Successfully",
-                                invoiceNumber,
-                                earnedPoints
-                            });
+                                    return res.json({
+                                        success: true,
+                                        message: "Invoice Saved Successfully",
+                                        invoiceNumber,
+                                        earnedPoints,
+                                        redeemedPoints,
+                                        finalPoints
+                                    });
 
                         }
                     );

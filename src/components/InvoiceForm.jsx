@@ -34,6 +34,8 @@ const InvoiceForm = () => {
   const [customerName, setCustomerName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [loyaltyPoints, setLoyaltyPoints] = useState(0);
+  const [redeemPoints, setRedeemPoints] = useState(false);
+  const [availablePoints, setAvailablePoints] = useState(0);
 
   const [items, setItems] = useState([
     {
@@ -60,9 +62,12 @@ const InvoiceForm = () => {
     if (res.data.success) {
       setCustomerName(res.data.customer.customer_name);
       setLoyaltyPoints(res.data.customer.loyalty_points);
+      setAvailablePoints(res.data.customer.loyalty_points);
     } else {
       setCustomerName("");
       setLoyaltyPoints(0);
+      setAvailablePoints(0);
+      setRedeemPoints(false);
     }
 
   } catch (err) {
@@ -108,6 +113,7 @@ const InvoiceForm = () => {
       taxRate,
       total,
       items,
+      redeemPoints,
     };
 
     try {
@@ -121,7 +127,7 @@ const InvoiceForm = () => {
 
       // Update invoice number returned from backend
       setInvoiceNumber(response.data.invoiceNumber);
-
+      await fetchCustomer(phoneNumber);
       setIsOpen(true);
 
     } catch (error) {
@@ -150,6 +156,8 @@ const InvoiceForm = () => {
     setCustomerName('');
     setLoyaltyPoints(0);
     setCashierName('');
+    setRedeemPoints(false);
+    setAvailablePoints(0);
     setDiscount('2');
     setTax('5');
 
@@ -201,9 +209,16 @@ const InvoiceForm = () => {
     else return prev;
   }, 0);
 
-  const taxRate = (tax * subtotal) / 100;
-  const discountRate = (discount * subtotal) / 100;
-  const total = subtotal - discountRate + taxRate;
+const taxRate = (tax * subtotal) / 100;
+const discountRate = (discount * subtotal) / 100;
+
+const loyaltyDiscount = redeemPoints ? availablePoints : 0;
+
+const total =
+  subtotal -
+  discountRate -
+  loyaltyDiscount +
+  taxRate;
 
   return (
     <form className="relative flex flex-col gap-6 px-2 md:flex-row" onSubmit={reviewInvoiceHandler}>
@@ -287,6 +302,19 @@ const InvoiceForm = () => {
         className="border rounded px-2 py-1 bg-gray-100"
     />
 </div>
+<div className="flex items-center gap-2 mt-3">
+    <input
+        type="checkbox"
+        checked={redeemPoints}
+        onChange={(e) => setRedeemPoints(e.target.checked)}
+    />
+
+    <label>Redeem Loyalty Points</label>
+</div>
+<p className="text-green-600 font-semibold mt-2">
+    Discount from Points:
+    ₹{redeemPoints ? availablePoints : 0}
+</p>
         </div>
 
         {/* ITEM TABLE */}
@@ -358,6 +386,10 @@ const InvoiceForm = () => {
             <span className="font-bold">Discount:</span>
             <span>({discount || 0}%) Rs: {discountRate.toFixed(2)}</span>
           </div>
+            <div className="flex justify-between w-full">
+    <span className="font-bold">Loyalty Discount:</span>
+    <span>Rs: ₹{redeemPoints ? availablePoints : 0}</span>
+  </div>
           <div className="flex justify-between w-full">
             <span className="font-bold">Tax:</span>
             <span>({tax || 0}%) Rs: {taxRate.toFixed(2)}</span>
