@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from "axios";
 import { uid } from 'uid';
 import InvoiceItem from './InvoiceItem';
@@ -36,6 +36,7 @@ const InvoiceForm = () => {
   const [loyaltyPoints, setLoyaltyPoints] = useState(0);
   const [redeemPoints, setRedeemPoints] = useState(false);
   const [availablePoints, setAvailablePoints] = useState(0);
+  const reviewBtnRef = useRef(null);
 
   const [items, setItems] = useState([
     {
@@ -96,9 +97,25 @@ const InvoiceForm = () => {
   };
 
   // Load invoice number when page opens
-  useEffect(() => {
-    fetchInvoiceNumber();
-  }, []);
+useEffect(() => {
+  fetchInvoiceNumber();
+
+  const handleShortcut = (event) => {
+
+    if (event.key === "F4") {
+      event.preventDefault();
+      reviewBtnRef.current?.click();
+    }
+
+  };
+
+  window.addEventListener("keydown", handleShortcut);
+
+  return () => {
+    window.removeEventListener("keydown", handleShortcut);
+  };
+
+}, []);
 
   const reviewInvoiceHandler = async (event) => {
 
@@ -328,7 +345,7 @@ const total =
             </tr>
           </thead>
           <tbody>
-            {items.map((item) => (
+            {items.map((item,index) => (
               <InvoiceItem
                 key={item.id}
                 id={item.id}
@@ -339,6 +356,7 @@ const total =
                 onEdtiItem={edtiItemHandler}
                 itemOptions={itemOptions}
                 onAddItem={addItemHandler}
+                autoFocus={index === items.length - 1}
               />
             ))}
           </tbody>
@@ -403,6 +421,7 @@ const total =
           <button
             className="hidden md:block mt-4 w-full rounded bg-blue-600 py-2 text-white hover:bg-blue-700"
             type="submit"
+            ref={reviewBtnRef}
           >
             Review Invoice
           </button>

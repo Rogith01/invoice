@@ -1,57 +1,128 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 
-const InvoiceItem = ({ id, name, qty, price, onDeleteItem, onEdtiItem, itemOptions, onAddItem }) => {
+
+const InvoiceItem = ({
+  id,
+  name,
+  qty,
+  price,
+  onDeleteItem,
+  onEdtiItem,
+  itemOptions,
+  onAddItem,
+  autoFocus
+}) => {
+
+  const itemRef = useRef(null);
+  const qtyRef = useRef(null);
+  const priceRef = useRef(null);
+
+  useEffect(() => {
+    if(autoFocus && itemRef.current){
+      itemRef.current.focus();
+    }
+  }, [autoFocus]);
+
+
   const deleteItemHandler = (event) => {
     event.preventDefault();
     onDeleteItem(id);
   };
 
-  const handleChange = (event) => {
-    onEdtiItem(event);
-  };
 
-  const handleKeyPress = (event, field) => {
-    if (event.key === 'Enter') {
-      event.preventDefault();  // Prevent default Enter behavior
-      if (field === 'name' || field === 'qty' || field === 'price') {
-        onAddItem();  // Add a new item when Enter is pressed in any field
-      }
-    }
-  };
+const handleKeyDown = (event) => {
+
+  // Ctrl + Delete -> Delete current row
+  if (event.key === "Delete") {
+    event.preventDefault();
+    onDeleteItem(id);
+    return;
+  }
+
+  // Only handle Enter key
+  if (event.key !== "Enter") return;
+
+  event.preventDefault();
+
+  if (event.target.name === "name") {
+
+    qtyRef.current.focus();
+
+  }
+
+  else if (event.target.name === "qty") {
+
+    priceRef.current.focus();
+
+  }
+
+  else if (event.target.name === "price") {
+
+    onAddItem();
+
+  }
+
+};
+
 
   return (
     <tr>
+
       <td className="w-full">
+
         <select
+          ref={itemRef}
           className="w-full rounded border px-2 py-1"
           name="name"
           id={id}
           value={name}
-          onChange={handleChange}
-          onKeyDown={(e) => handleKeyPress(e, 'name')} // Add new item on Enter key press
+          onChange={onEdtiItem}
+          onKeyDown={handleKeyDown}
         >
-          <option value="">Select item</option>
-          {itemOptions.map((opt) => (
-            <option key={opt.name} value={opt.name}>
-              {opt.name}
-            </option>
-          ))}
+
+          <option value="">
+            Select item
+          </option>
+
+          {
+            itemOptions.map((opt)=>(
+              <option 
+                key={opt.name}
+                value={opt.name}
+              >
+                {opt.name}
+              </option>
+            ))
+          }
+
         </select>
+
       </td>
+
+
       <td className="min-w-[65px] md:min-w-[80px]">
-        <input
-          className="w-full rounded border px-2 py-1"
-          type="number"
-          min="1"
-          name="qty"
-          id={id}
-          value={qty}
-          onChange={handleChange}
-          onKeyDown={(e) => handleKeyPress(e, 'qty')} // Add new item on Enter key press
-        />
+
+      <input
+        ref={qtyRef}
+        className="w-full rounded border px-2 py-1"
+        type="number"
+        min="1"
+        name="qty"
+        id={id}
+        value={qty}
+        onChange={onEdtiItem}
+        onKeyDown={handleKeyDown}
+        onFocus={(e) => e.target.select()}
+        
+      />
+
       </td>
+
+
       <td className="relative min-w-[100px] md:min-w-[150px]">
+
         <input
+        ref={priceRef}
           className="w-full text-right rounded border px-2 py-1"
           type="number"
           min="0.01"
@@ -59,10 +130,14 @@ const InvoiceItem = ({ id, name, qty, price, onDeleteItem, onEdtiItem, itemOptio
           name="price"
           id={id}
           value={price}
-          onChange={handleChange}
-          onKeyDown={(e) => handleKeyPress(e, 'price')} // Add new item on Enter key press
+          onChange={onEdtiItem}
+          onKeyDown={handleKeyDown}
+          onFocus={(e) => e.target.select()}
         />
+
       </td>
+
+
       <td className="flex items-center justify-center">
         <button
           className="rounded-md bg-red-500 p-2 text-white shadow-sm hover:bg-red-600"
@@ -76,8 +151,11 @@ const InvoiceItem = ({ id, name, qty, price, onDeleteItem, onEdtiItem, itemOptio
           </svg>
         </button>
       </td>
+
+
     </tr>
   );
 };
+
 
 export default InvoiceItem;
