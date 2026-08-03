@@ -32,6 +32,7 @@ const InvoiceForm = () => {
   const [invoiceNumber, setInvoiceNumber] = useState("INV-0001");
   const [cashierName, setCashierName] = useState('');
   const [customerName, setCustomerName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
 
   const [items, setItems] = useState([
     {
@@ -73,6 +74,7 @@ const InvoiceForm = () => {
     event.preventDefault();
 
     const invoiceData = {
+      phoneNumber,
       cashierName,
       customerName,
       subtotal,
@@ -215,6 +217,21 @@ const InvoiceForm = () => {
               ))}
             </select>
           </div>
+          <div className="flex flex-col">
+  <label htmlFor="phoneNumber" className="text-sm font-bold">
+    Phone Number
+  </label>
+
+  <input
+    required
+    type="text"
+    id="phoneNumber"
+    className="border rounded px-2 py-1"
+    placeholder="Enter phone number"
+    value={phoneNumber}
+    onChange={(e) => setPhoneNumber(e.target.value)}
+  />
+</div>
           <div className="flex flex-col">
             <label htmlFor="customerName" className="text-sm font-bold">Customer:</label>
             <input

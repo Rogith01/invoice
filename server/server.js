@@ -34,17 +34,52 @@ app.get("/api/next-invoice-number", (req, res) => {
         let invoiceNumber = "INV-0001";
 
         if (rows.length > 0) {
-
             const lastInvoice = rows[0].invoice_number;
             const lastNumber = parseInt(lastInvoice.replace("INV-", ""));
-
-            invoiceNumber =
-                "INV-" + String(lastNumber + 1).padStart(4, "0");
+            invoiceNumber = "INV-" + String(lastNumber + 1).padStart(4, "0");
         }
 
         res.json({
             success: true,
             invoiceNumber
+        });
+
+    });
+
+});
+
+/* ======================================================
+   GET CUSTOMER BY PHONE   <-- ADD HERE
+====================================================== */
+
+app.get("/api/customer/:phone", (req, res) => {
+
+    const phone = req.params.phone;
+
+    const sql = `
+        SELECT *
+        FROM customers
+        WHERE phone_number = ?
+    `;
+
+    db.query(sql, [phone], (err, rows) => {
+
+        if (err) {
+            return res.status(500).json({
+                success: false,
+                message: err.message
+            });
+        }
+
+        if (rows.length > 0) {
+            return res.json({
+                success: true,
+                customer: rows[0]
+            });
+        }
+
+        res.json({
+            success: false
         });
 
     });
@@ -60,6 +95,7 @@ app.post("/api/invoices", (req, res) => {
     console.log(req.body);
 
     const {
+        phoneNumber,
         cashierName,
         customerName,
         subtotal,
@@ -68,6 +104,7 @@ app.post("/api/invoices", (req, res) => {
         total,
         items
     } = req.body;
+    
 
     // Get latest invoice number
     const getLastInvoice = `

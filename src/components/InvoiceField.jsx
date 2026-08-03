@@ -18,4 +18,5 @@ const InvoiceField = ({ onEditItem, cellData }) => {
   );
 };
 
+
 export default InvoiceField;
