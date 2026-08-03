@@ -143,6 +143,7 @@ const InvoiceForm = () => {
       },
     ]);
 
+    setPhoneNumber('');
     setCustomerName('');
     setCashierName('');
     setDiscount('2');
@@ -378,6 +379,7 @@ invoiceInfo={{
   invoiceNumber,
   cashierName,
   customerName,
+  phoneNumber,
   subtotal,
   discountRate,
   taxRate,

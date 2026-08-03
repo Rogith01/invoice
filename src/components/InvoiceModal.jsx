@@ -137,6 +137,8 @@ const InvoiceModal = ({
                     <span>{invoiceInfo.cashierName}</span>
                     <span className="font-bold">Customer:</span>
                     <span>{invoiceInfo.customerName}</span>
+                    <span className="font-bold">Phone:</span>
+                    <span>{invoiceInfo.phoneNumber}</span>
                   </div>
 
                   <table className="w-full text-left">
