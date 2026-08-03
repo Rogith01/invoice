@@ -94,7 +94,7 @@ app.post("/api/invoices", (req, res) => {
 
     console.log("POST /api/invoices called");
     console.log(req.body);
-    console.log("Redeem Points:", redeemPoints);
+    
 
     const {
         phoneNumber,
@@ -107,6 +107,7 @@ app.post("/api/invoices", (req, res) => {
         items,
         redeemPoints
     } = req.body;
+    console.log("Redeem Points:", redeemPoints);
 
         // Check if customer already exists
     const checkCustomerSql = `
