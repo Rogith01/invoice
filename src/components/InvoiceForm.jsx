@@ -33,6 +33,7 @@ const InvoiceForm = () => {
   const [cashierName, setCashierName] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [loyaltyPoints, setLoyaltyPoints] = useState(0);
 
   const [items, setItems] = useState([
     {
@@ -58,8 +59,10 @@ const InvoiceForm = () => {
 
     if (res.data.success) {
       setCustomerName(res.data.customer.customer_name);
+      setLoyaltyPoints(res.data.customer.loyalty_points);
     } else {
       setCustomerName("");
+      setLoyaltyPoints(0);
     }
 
   } catch (err) {
@@ -145,6 +148,7 @@ const InvoiceForm = () => {
 
     setPhoneNumber('');
     setCustomerName('');
+    setLoyaltyPoints(0);
     setCashierName('');
     setDiscount('2');
     setTax('5');
@@ -271,6 +275,18 @@ const InvoiceForm = () => {
               onChange={(e) => setCustomerName(e.target.value)}
             />
           </div>
+          <div className="flex flex-col">
+    <label className="text-sm font-bold">
+        Loyalty Points
+    </label>
+
+    <input
+        type="text"
+        value={loyaltyPoints}
+        readOnly
+        className="border rounded px-2 py-1 bg-gray-100"
+    />
+</div>
         </div>
 
         {/* ITEM TABLE */}
