@@ -49,7 +49,7 @@ app.get("/api/next-invoice-number", (req, res) => {
 });
 
 /* ======================================================
-   GET CUSTOMER BY PHONE   <-- ADD HERE
+   GET CUSTOMER BY PHONE
 ====================================================== */
 
 app.get("/api/customer/:phone", (req, res) => {
@@ -89,6 +89,7 @@ app.get("/api/customer/:phone", (req, res) => {
 /* ======================================================
    SAVE INVOICE
 ====================================================== */
+
 app.post("/api/invoices", (req, res) => {
 
     console.log("POST /api/invoices called");
@@ -104,7 +105,69 @@ app.post("/api/invoices", (req, res) => {
         total,
         items
     } = req.body;
-    
+
+    // Check if customer already exists
+    const checkCustomerSql = `
+        SELECT id
+        FROM customers
+        WHERE phone_number = ?
+    `;
+
+    db.query(checkCustomerSql, [phoneNumber], (err, rows) => {
+
+        if (err) {
+            return res.status(500).json({
+                success: false,
+                message: err.message
+            });
+        }
+
+        if (rows.length > 0) {
+
+            // Existing customer
+            saveInvoice();
+
+        } else {
+
+            // New customer
+            const insertCustomerSql = `
+                INSERT INTO customers
+                (
+                    customer_name,
+                    phone_number,
+                    loyalty_points
+                )
+                VALUES
+                (
+                    ?,
+                    ?,
+                    0
+                )
+            `;
+
+            db.query(
+                insertCustomerSql,
+                [
+                    customerName,
+                    phoneNumber
+                ],
+                (err) => {
+
+                    if (err) {
+                        return res.status(500).json({
+                            success: false,
+                            message: err.message
+                        });
+                    }
+
+                    saveInvoice();
+
+                }
+            );
+
+        }
+
+function saveInvoice() {
 
     // Get latest invoice number
     const getLastInvoice = `
@@ -127,15 +190,11 @@ app.post("/api/invoices", (req, res) => {
         let invoiceNumber = "INV-0001";
 
         if (rows.length > 0) {
-
             const lastInvoice = rows[0].invoice_number;
             const lastNumber = parseInt(lastInvoice.replace("INV-", ""));
-
-            invoiceNumber =
-                "INV-" + String(lastNumber + 1).padStart(4, "0");
+            invoiceNumber = "INV-" + String(lastNumber + 1).padStart(4, "0");
         }
 
-        // Insert invoice
         const invoiceSql = `
             INSERT INTO invoices
             (
@@ -257,7 +316,10 @@ app.post("/api/invoices", (req, res) => {
 
     });
 
-});
+} // <-- close saveInvoice() only
+    }); // End checkCustomerSql query
+
+}); // End POST /api/invoices
 
 /* ======================================================
    TEST ROUTE
