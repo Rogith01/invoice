@@ -106,7 +106,7 @@ app.post("/api/invoices", (req, res) => {
         items
     } = req.body;
 
-    // Check if customer already exists
+        // Check if customer already exists
     const checkCustomerSql = `
         SELECT id
         FROM customers
@@ -122,10 +122,14 @@ app.post("/api/invoices", (req, res) => {
             });
         }
 
+        // Existing customer
         if (rows.length > 0) {
 
-            // Existing customer
-            saveInvoice();
+            const customerId = rows[0].id;
+
+            console.log("Existing Customer ID:", customerId);
+
+            saveInvoice(customerId);
 
         } else {
 
@@ -151,7 +155,7 @@ app.post("/api/invoices", (req, res) => {
                     customerName,
                     phoneNumber
                 ],
-                (err) => {
+                (err, result) => {
 
                     if (err) {
                         return res.status(500).json({
@@ -160,14 +164,18 @@ app.post("/api/invoices", (req, res) => {
                         });
                     }
 
-                    saveInvoice();
+                    const customerId = result.insertId;
+
+                    console.log("New Customer ID:", customerId);
+
+                    saveInvoice(customerId);
 
                 }
             );
 
         }
 
-function saveInvoice() {
+function saveInvoice(customerId) {
 
     // Get latest invoice number
     const getLastInvoice = `
@@ -192,14 +200,17 @@ function saveInvoice() {
         if (rows.length > 0) {
             const lastInvoice = rows[0].invoice_number;
             const lastNumber = parseInt(lastInvoice.replace("INV-", ""));
-            invoiceNumber = "INV-" + String(lastNumber + 1).padStart(4, "0");
+            invoiceNumber =
+                "INV-" + String(lastNumber + 1).padStart(4, "0");
         }
 
+        // Insert invoice
         const invoiceSql = `
             INSERT INTO invoices
             (
                 invoice_number,
                 invoice_date,
+                customer_id,
                 cashier_name,
                 customer_name,
                 subtotal,
@@ -216,6 +227,7 @@ function saveInvoice() {
                 ?,
                 ?,
                 ?,
+                ?,
                 ?
             )
         `;
@@ -224,6 +236,7 @@ function saveInvoice() {
             invoiceSql,
             [
                 invoiceNumber,
+                customerId,
                 cashierName,
                 customerName,
                 subtotal,
@@ -316,7 +329,8 @@ function saveInvoice() {
 
     });
 
-} // <-- close saveInvoice() only
+} // End saveInvoice()
+
     }); // End checkCustomerSql query
 
 }); // End POST /api/invoices
