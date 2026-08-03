@@ -240,19 +240,23 @@ const InvoiceForm = () => {
               ))}
             </select>
           </div>
-          <div className="flex flex-col">
+         <div className="flex flex-col">
   <label htmlFor="phoneNumber" className="text-sm font-bold">
     Phone Number
   </label>
 
   <input
-    required
-    type="number"
-    maxLength={10}
+    type="text"
+    id="phoneNumber"
     className="border rounded px-2 py-1"
-    placeholder="Enter phone number"
     value={phoneNumber}
-    onChange={(e) => setPhoneNumber(e.target.value)}
+    onChange={(e) => {
+      setPhoneNumber(e.target.value);
+
+      if (e.target.value.length === 10) {
+        fetchCustomer(e.target.value);
+      }
+    }}
   />
 </div>
           <div className="flex flex-col">
