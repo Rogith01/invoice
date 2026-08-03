@@ -301,11 +301,32 @@ function saveInvoice(customerId) {
 
                                 if (completed === items.length) {
 
-                                    return res.json({
-                                        success: true,
-                                        message: "Invoice Saved Successfully",
-                                        invoiceNumber
-                                    });
+                                    const earnedPoints = Math.floor(total / 50);
+
+                                    const updatePointsSql = `
+                                        UPDATE customers
+                                        SET loyalty_points = loyalty_points + ?
+                                        WHERE id = ?
+                                    `;
+
+                                    db.query(
+                                        updatePointsSql,
+                                        [earnedPoints, customerId],
+                                        (err) => {
+
+                                            if (err) {
+                                                console.error("Loyalty Points Error:", err);
+                                            }
+
+                                            return res.json({
+                                                success: true,
+                                                message: "Invoice Saved Successfully",
+                                                invoiceNumber,
+                                                earnedPoints
+                                            });
+
+                                        }
+                                    );
 
                                 }
 
@@ -316,11 +337,32 @@ function saveInvoice(customerId) {
 
                 } else {
 
-                    return res.json({
-                        success: true,
-                        message: "Invoice Saved Successfully",
-                        invoiceNumber
-                    });
+                    const earnedPoints = Math.floor(total / 50);
+
+                    const updatePointsSql = `
+                        UPDATE customers
+                        SET loyalty_points = loyalty_points + ?
+                        WHERE id = ?
+                    `;
+
+                    db.query(
+                        updatePointsSql,
+                        [earnedPoints, customerId],
+                        (err) => {
+
+                            if (err) {
+                                console.error("Loyalty Points Error:", err);
+                            }
+
+                            return res.json({
+                                success: true,
+                                message: "Invoice Saved Successfully",
+                                invoiceNumber,
+                                earnedPoints
+                            });
+
+                        }
+                    );
 
                 }
 
