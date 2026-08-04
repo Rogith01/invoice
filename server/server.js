@@ -105,7 +105,8 @@ app.post("/api/invoices", (req, res) => {
         taxRate,
         total,
         items,
-        redeemPoints
+        redeemPoints,
+        paymentMethod
     } = req.body;
     console.log("Redeem Points:", redeemPoints);
 
@@ -221,13 +222,15 @@ function saveInvoice(customerId , loyaltyPoints) {
                 discount,
                 loyalty_discount,
                 tax,
-                total
+                total,
+                payment_Method
             )
             VALUES
             (
                 ?,
                 CURDATE(),
                 TIME(CONVERT_TZ(NOW(), '+00:00', '+05:30')),
+                ?,
                 ?,
                 ?,
                 ?,
@@ -250,7 +253,8 @@ function saveInvoice(customerId , loyaltyPoints) {
                 discountRate,
                 redeemPoints ? loyaltyPoints : 0,
                 taxRate,
-                total
+                total,
+                paymentMethod
             ],
             (err, result) => {
 

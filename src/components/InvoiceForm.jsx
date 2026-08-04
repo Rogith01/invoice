@@ -36,6 +36,7 @@ const InvoiceForm = () => {
   const [loyaltyPoints, setLoyaltyPoints] = useState(0);
   const [redeemPoints, setRedeemPoints] = useState(false);
   const [availablePoints, setAvailablePoints] = useState(0);
+  const [paymentMethod, setPaymentMethod] = useState("Cash");
   const reviewBtnRef = useRef(null);
   const [currentTime, setCurrentTime] = useState(
   new Date().toLocaleTimeString("en-GB", {
@@ -156,7 +157,8 @@ useEffect(() => {
       taxRate,
       total,
       items,
-      redeemPoints
+      redeemPoints,
+      paymentMethod,
     };
 
     try {
@@ -446,6 +448,18 @@ const total =
             <span className="font-bold">Total:</span>
             <span className="font-bold">Rs: {total.toFixed(2)}</span>
           </div>
+          <div className="w-full">
+  <label className="font-bold block mb-1">Payment Method</label>
+
+  <select
+    value={paymentMethod}
+    onChange={(e) => setPaymentMethod(e.target.value)}
+    className="w-full border rounded px-2 py-1"
+  >
+    <option value="Cash">Cash</option>
+    <option value="Online">Online</option>
+  </select>
+</div>
 
           {/* ✅ Review Invoice Button inside totals section (for desktop) */}
           <button
@@ -477,6 +491,7 @@ invoiceInfo={{
   cashierName,
   customerName,
   phoneNumber,
+  paymentMethod,
   subtotal,
   discountRate,
   taxRate,

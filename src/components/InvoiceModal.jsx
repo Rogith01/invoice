@@ -121,6 +121,8 @@ const printInvoiceHandler = useReactToPrint({
                     <span>{invoiceInfo.customerName}</span>
                     <span className="font-bold">Phone:</span>
                     <span>{invoiceInfo.phoneNumber}</span>
+                    <span className="font-bold">Payment:</span>
+                    <span>{invoiceInfo.paymentMethod}</span>
                   </div>
 
                   <table className="w-full text-left">
