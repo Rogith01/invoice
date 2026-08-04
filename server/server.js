@@ -120,7 +120,6 @@ app.post("/api/invoices", (req, res) => {
 
         if (err) {
             return res.status(500).json({
-                success: false,
                 message: err.message
             });
         }
@@ -214,6 +213,7 @@ function saveInvoice(customerId , loyaltyPoints) {
             (
                 invoice_number,
                 invoice_date,
+                invoice_time,
                 customer_id,
                 cashier_name,
                 customer_name,
@@ -227,6 +227,7 @@ function saveInvoice(customerId , loyaltyPoints) {
             (
                 ?,
                 CURDATE(),
+                CURTIME(),
                 ?,
                 ?,
                 ?,

@@ -10,11 +10,6 @@ const today = date.toLocaleDateString('en-GB', {
   day: 'numeric',
   year: 'numeric',
 });
-const currentTime = date.toLocaleTimeString("en-GB", {
-  hour: "2-digit",
-  minute: "2-digit",
-  second: "2-digit",
-});
 
 const itemOptions = [
   { name: 'Rice', price: '50.00' },
@@ -42,6 +37,13 @@ const InvoiceForm = () => {
   const [redeemPoints, setRedeemPoints] = useState(false);
   const [availablePoints, setAvailablePoints] = useState(0);
   const reviewBtnRef = useRef(null);
+  const [currentTime, setCurrentTime] = useState(
+  new Date().toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  })
+);
 
   const [items, setItems] = useState([
     {
@@ -113,6 +115,7 @@ useEffect(() => {
     }
 
   };
+  
 
   window.addEventListener("keydown", handleShortcut);
 
@@ -122,10 +125,28 @@ useEffect(() => {
 
 }, []);
 
+useEffect(() => {
+
+  const timer = setInterval(() => {
+
+    setCurrentTime(
+      new Date().toLocaleTimeString("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      })
+    );
+
+  }, 1000);
+
+
+  return () => clearInterval(timer);
+
+}, []);
+
   const reviewInvoiceHandler = async (event) => {
 
     event.preventDefault();
-
     const invoiceData = {
       phoneNumber,
       cashierName,
@@ -135,7 +156,7 @@ useEffect(() => {
       taxRate,
       total,
       items,
-      redeemPoints,
+      redeemPoints
     };
 
     try {

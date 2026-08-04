@@ -1,19 +1,9 @@
-import React, { Fragment, useRef } from 'react';
+import React, { Fragment, useRef, useState, useEffect  } from 'react';
 import { useReactToPrint } from "react-to-print";
 import { Dialog, Transition } from '@headlessui/react';
 import "../index.css";
 
-const date = new Date();
-const today = date.toLocaleDateString('en-GB', {
-  month: 'numeric',
-  day: 'numeric',
-  year: 'numeric',
-});
-const currentTime = date.toLocaleTimeString("en-GB", {
-  hour: "2-digit",
-  minute: "2-digit",
-  second: "2-digit",
-});
+
 const InvoiceModal = ({
   isOpen,
   setIsOpen,
@@ -21,6 +11,34 @@ const InvoiceModal = ({
   items,
   onAddNextInvoice,
 }) => {
+  const [today, setToday] = useState("");
+const [currentTime, setCurrentTime] = useState("");
+
+useEffect(() => {
+
+  if(isOpen){
+
+    const now = new Date();
+
+    setToday(
+      now.toLocaleDateString('en-GB', {
+        month: 'numeric',
+        day: 'numeric',
+        year: 'numeric',
+      })
+    );
+
+    setCurrentTime(
+      now.toLocaleTimeString("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      })
+    );
+
+  }
+
+}, [isOpen]);
   function closeModal() {
     setIsOpen(false);
   }
