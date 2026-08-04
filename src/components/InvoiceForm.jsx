@@ -288,7 +288,7 @@ const total =
           </div>
         </div>
 
-        <h1 className="text-center text-xl font-bold">XYZ SUPER MARKET</h1>
+        <h1 className="text-center text-xl font-bold">AK SUPER MARKET</h1>
 
         {/* CASHIER & CUSTOMER */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 pt-4">

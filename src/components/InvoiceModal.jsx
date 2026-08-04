@@ -105,7 +105,7 @@ const printInvoiceHandler = useReactToPrint({
                     }}
 >
                 <h1 className="text-center text-lg font-bold text-gray-900">
-                  TEA WORLD GINGEE<br />
+                  AK SUPER MARKET<br />
                 </h1>
                 <div className="mt-6">
                   <div className="mb-4 grid grid-cols-2">
@@ -178,7 +178,11 @@ const printInvoiceHandler = useReactToPrint({
                           : invoiceInfo.total.toFixed(2)}
                       </span>
                     </div>
-                    <h4>"Thank you,Visit again!"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</h4>
+                    <div className="w-full text-center">
+  <h4 className="font-semibold">
+    Thank you, Visit again!
+  </h4>
+</div>
                   </div>             
                 </div>         
               </div>
