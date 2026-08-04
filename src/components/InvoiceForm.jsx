@@ -10,6 +10,11 @@ const today = date.toLocaleDateString('en-GB', {
   day: 'numeric',
   year: 'numeric',
 });
+const currentTime = date.toLocaleTimeString("en-GB", {
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+});
 
 const itemOptions = [
   { name: 'Rice', price: '50.00' },
@@ -245,6 +250,10 @@ const total =
           <div className="flex space-x-2">
             <span className="font-bold">Current Date:</span>
             <span>{today}</span>
+          </div>
+            <div className="flex space-x-2">
+            <span className="font-bold">Current time:</span>
+            <span>{currentTime}</span>
           </div>
           <div className="flex items-center space-x-2">
             <label htmlFor="invoiceNumber" className="font-bold">Invoice Number:</label>
