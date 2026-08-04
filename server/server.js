@@ -227,7 +227,7 @@ function saveInvoice(customerId , loyaltyPoints) {
             (
                 ?,
                 CURDATE(),
-                CURTIME(),
+                TIME(CONVERT_TZ(NOW(), '+00:00', '+05:30')),
                 ?,
                 ?,
                 ?,
