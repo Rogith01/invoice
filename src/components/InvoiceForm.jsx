@@ -300,33 +300,39 @@ const total =
           </div>
         </div>
 
-  <div className="flex justify-between items-center gap-2 flex-wrap">
+ <div className="flex justify-between items-center">
 
-  {/* Left Side */}
-  <h1 className="text-xl md:text-2xl font-bold tracking-wide">
-    AK SUPER MARKET
-  </h1>
+    <h1 className="text-xl font-bold">
+        AK SUPER MARKET
+    </h1>
 
-  {/* Right Side */}
-  <div className="flex gap-2">
+    <div className="flex gap-2">
 
-    <button
-      type="button"
-      onClick={() => navigate("/products")}
-      className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs md:text-sm px-3 py-1.5 rounded-md shadow"
-    >
-      📦 Products
-    </button>
+        <button
+            type="button"
+            onClick={() => navigate("/dashboard")}
+            className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1.5 rounded"
+        >
+            Dashboard
+        </button>
 
-    <button
-      type="button"
-      onClick={() => navigate("/dashboard")}
-      className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs md:text-sm px-3 py-1.5 rounded-md shadow"
-    >
-      📊 Dashboard
-    </button>
+        <button
+            type="button"
+            onClick={() => navigate("/products")}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-3 py-1.5 rounded"
+        >
+            Products
+        </button>
 
-  </div>
+        <button
+            type="button"
+            onClick={() => navigate("/invoices")}
+            className="bg-green-600 hover:bg-green-700 text-white text-sm px-3 py-1.5 rounded"
+        >
+            Invoices
+        </button>
+
+    </div>
 
 </div>
 

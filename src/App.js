@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import InvoiceForm from "./components/InvoiceForm";
 import ProductManagement from "./components/ProductManagement";
 import Dashboard from "./components/Dashboard";
+import InvoiceHistory from "./components/InvoiceHistory";
 
 function App() {
   return (
@@ -28,6 +29,11 @@ function App() {
           <Route
             path="/products"
             element={<ProductManagement />}
+          />
+
+          <Route
+            path="/invoices"
+            element={<InvoiceHistory />}
           />
 
         </Routes>
