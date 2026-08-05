@@ -119,7 +119,7 @@ const addProduct = async () => {
 
                     <tr>
 
-                        <th className="border p-2">ID</th>
+                      
 
                         <th className="border p-2">Product</th>
 
@@ -137,9 +137,7 @@ const addProduct = async () => {
 
                     <tr key={product.id}>
 
-                        <td className="border p-2 text-center">
-                            {product.id}
-                        </td>
+
 
                         <td className="border p-2">
                             {product.product_name}
