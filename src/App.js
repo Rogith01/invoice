@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 
 import InvoiceForm from "./components/InvoiceForm";
 import ProductManagement from "./components/ProductManagement";
+import Dashboard from "./components/Dashboard";
 
 function App() {
   return (
@@ -11,8 +12,19 @@ function App() {
 
         <Routes>
 
-          <Route path="/" element={<InvoiceForm />} />
+          {/* Dashboard */}
+          <Route
+            path="/dashboard"
+            element={<Dashboard />}
+          />
 
+          {/* Billing */}
+          <Route
+            path="/"
+            element={<InvoiceForm />}
+          />
+
+          {/* Products */}
           <Route
             path="/products"
             element={<ProductManagement />}

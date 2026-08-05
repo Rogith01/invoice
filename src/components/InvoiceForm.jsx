@@ -300,19 +300,33 @@ const total =
           </div>
         </div>
 
-        <div className="flex justify-between items-center">
+  <div className="flex justify-between items-center gap-2 flex-wrap">
 
-  <h1 className="text-xl font-bold">
+  {/* Left Side */}
+  <h1 className="text-xl md:text-2xl font-bold tracking-wide">
     AK SUPER MARKET
   </h1>
 
-<button
-  type="button"
-  onClick={() => navigate("/products")}
-  className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-3 py-1.5 rounded"
->
-  Manage Products
-</button>
+  {/* Right Side */}
+  <div className="flex gap-2">
+
+    <button
+      type="button"
+      onClick={() => navigate("/products")}
+      className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs md:text-sm px-3 py-1.5 rounded-md shadow"
+    >
+      📦 Products
+    </button>
+
+    <button
+      type="button"
+      onClick={() => navigate("/dashboard")}
+      className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs md:text-sm px-3 py-1.5 rounded-md shadow"
+    >
+      📊 Dashboard
+    </button>
+
+  </div>
 
 </div>
 

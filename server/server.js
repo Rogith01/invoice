@@ -241,6 +241,88 @@ app.delete("/api/products/:id", (req, res) => {
 
 });
 /* ======================================================
+   DASHBOARD
+====================================================== */
+
+app.get("/api/dashboard", (req, res) => {
+
+    const dashboard = {};
+
+    // Today's Sales
+    db.query(
+        `
+        SELECT IFNULL(SUM(total),0) AS todaySales
+        FROM invoices
+        WHERE invoice_date = CURDATE()
+        `,
+        (err, rows) => {
+
+            if (err) return res.status(500).json(err);
+
+            dashboard.todaySales = rows[0].todaySales;
+
+            // Today's Orders
+            db.query(
+                `
+                SELECT COUNT(*) AS todayOrders
+                FROM invoices
+                WHERE invoice_date = CURDATE()
+                `,
+                (err, rows) => {
+
+                    if (err) return res.status(500).json(err);
+
+                    dashboard.todayOrders = rows[0].todayOrders;
+
+                    // Cash Sales
+                    db.query(
+                        `
+                        SELECT IFNULL(SUM(total),0) AS cashSales
+                        FROM invoices
+                        WHERE payment_Method='Cash'
+                        AND invoice_date = CURDATE()
+                        `,
+                        (err, rows) => {
+
+                            if (err) return res.status(500).json(err);
+
+                            dashboard.cashSales = rows[0].cashSales;
+
+                            // Online Sales
+                            db.query(
+                                `
+                                SELECT IFNULL(SUM(total),0) AS onlineSales
+                                FROM invoices
+                                WHERE payment_Method='Online'
+                                AND invoice_date = CURDATE()
+                                `,
+                                (err, rows) => {
+
+                                    if (err)
+                                        return res.status(500).json(err);
+
+                                    dashboard.onlineSales =
+                                        rows[0].onlineSales;
+
+                                    res.json({
+                                        success: true,
+                                        dashboard
+                                    });
+
+                                }
+                            );
+
+                        }
+                    );
+
+                }
+            );
+
+        }
+    );
+
+});
+/* ======================================================
    SAVE INVOICE
 ====================================================== */
 
