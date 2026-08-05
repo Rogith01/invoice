@@ -85,7 +85,36 @@ app.get("/api/customer/:phone", (req, res) => {
     });
 
 });
+/* ======================================================
+   GET ALL PRODUCTS
+====================================================== */
+app.get("/api/products", (req, res) => {
 
+    const sql = `
+        SELECT id, product_name, price
+        FROM products
+        ORDER BY product_name
+    `;
+
+    db.query(sql, (err, rows) => {
+
+        if (err) {
+            console.error("Products Error:", err);
+
+            return res.status(500).json({
+                success: false,
+                message: err.message
+            });
+        }
+
+        res.json({
+            success: true,
+            products: rows
+        });
+
+    });
+
+});
 /* ======================================================
    SAVE INVOICE
 ====================================================== */
