@@ -323,6 +323,47 @@ app.get("/api/dashboard", (req, res) => {
 
 });
 /* ======================================================
+   GET ALL INVOICES
+====================================================== */
+
+app.get("/api/invoices", (req, res) => {
+
+    const sql = `
+        SELECT
+            id,
+            invoice_number,
+            invoice_date,
+            invoice_time,
+            customer_name,
+            cashier_name,
+            total,
+            payment_Method
+        FROM invoices
+        ORDER BY id DESC
+    `;
+
+    db.query(sql, (err, rows) => {
+
+        if (err) {
+
+            console.error("Invoice History Error:", err);
+
+            return res.status(500).json({
+                success: false,
+                message: err.message
+            });
+
+        }
+
+        res.json({
+            success: true,
+            invoices: rows
+        });
+
+    });
+
+});
+/* ======================================================
    SAVE INVOICE
 ====================================================== */
 
