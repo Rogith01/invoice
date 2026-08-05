@@ -209,6 +209,38 @@ app.put("/api/products/:id", (req, res) => {
 
 });
 /* ======================================================
+   DELETE PRODUCT
+====================================================== */
+
+app.delete("/api/products/:id", (req, res) => {
+
+    const id = req.params.id;
+
+    const sql = `
+        DELETE FROM products
+        WHERE id = ?
+    `;
+
+    db.query(sql, [id], (err) => {
+
+        if (err) {
+
+            return res.status(500).json({
+                success: false,
+                message: err.message
+            });
+
+        }
+
+        res.json({
+            success: true,
+            message: "Product Deleted Successfully"
+        });
+
+    });
+
+});
+/* ======================================================
    SAVE INVOICE
 ====================================================== */
 
