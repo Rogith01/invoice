@@ -51,11 +51,12 @@ const Dashboard = () => {
                     Dashboard
                 </h1>
 
+
                 <button
                     onClick={() => navigate("/")}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded"
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-lg"
                 >
-                    Billing
+                    🧾 Billing
                 </button>
 
             </div>

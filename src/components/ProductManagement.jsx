@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const ProductManagement = () => {
@@ -7,6 +8,7 @@ const [products, setProducts] = useState([]);
 const [productName, setProductName] = useState("");
 const [price, setPrice] = useState("");
 const [editingId, setEditingId] = useState(null);
+const navigate = useNavigate();
 
 // ===============================
 // Fetch Products
@@ -156,9 +158,20 @@ const addProduct = async () => {
 
         <div className="max-w-6xl mx-auto mt-8 bg-white shadow-lg rounded-lg p-6">
 
-            <h1 className="text-3xl font-bold text-center mb-8">
-                Product Management
-            </h1>
+<div className="flex justify-between items-center mb-8">
+
+    <h1 className="text-3xl font-bold">
+        Product Management
+    </h1>
+
+    <button
+        onClick={() => navigate("/")}
+        className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-lg"
+    >
+        🧾 Billing
+    </button>
+
+</div>
 
             {/* Add Product Form */}
 
