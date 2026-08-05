@@ -11,18 +11,7 @@ const today = date.toLocaleDateString('en-GB', {
   year: 'numeric',
 });
 
-const itemOptions = [
-  { name: 'Rice', price: '50.00' },
-  { name: 'Sugar', price: '45.00' },
-  { name: 'Milk', price: '30.00' },
-  { name: 'Eggs', price: '5.00' },
-  { name: 'Bread', price: '25.00' },
-  { name: 'Tea', price: '10.00' },
-  { name: 'Coffee', price: '12.00' },
-  { name: 'Oil', price: '90.00' },
-  { name: 'Soap', price: '15.00' },
-  { name: 'Salt', price: '20.00' },
-];
+
 
 const InvoiceForm = () => {
 
@@ -37,6 +26,7 @@ const InvoiceForm = () => {
   const [redeemPoints, setRedeemPoints] = useState(false);
   const [availablePoints, setAvailablePoints] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState("Cash");
+  const [itemOptions, setItemOptions] = useState([]);
   const reviewBtnRef = useRef(null);
   const [currentTime, setCurrentTime] = useState(
   new Date().toLocaleTimeString("en-GB", {
@@ -84,7 +74,24 @@ const InvoiceForm = () => {
   }
 
 };
+const fetchProducts = async () => {
+  try {
+    const res = await axios.get(
+      "https://invoice-backend-78hd.onrender.com/api/products"
+    );
 
+    if (res.data.success) {
+      const products = res.data.products.map((p) => ({
+        name: p.product_name,
+        price: p.price,
+      }));
+
+      setItemOptions(products);
+    }
+  } catch (err) {
+    console.log(err);
+  }
+};
   // Fetch next invoice number from backend
   const fetchInvoiceNumber = async () => {
 
@@ -107,6 +114,7 @@ const InvoiceForm = () => {
   // Load invoice number when page opens
 useEffect(() => {
   fetchInvoiceNumber();
+  fetchProducts();
 
   const handleShortcut = (event) => {
 
