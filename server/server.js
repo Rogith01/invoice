@@ -116,6 +116,55 @@ app.get("/api/products", (req, res) => {
 
 });
 /* ======================================================
+   ADD PRODUCT
+====================================================== */
+
+app.post("/api/products", (req, res) => {
+
+    const { productName, price } = req.body;
+
+    const sql = `
+        INSERT INTO products
+        (
+            product_name,
+            price
+        )
+        VALUES
+        (
+            ?,
+            ?
+        )
+    `;
+
+    db.query(
+        sql,
+        [
+            productName,
+            price
+        ],
+        (err, result) => {
+
+            if (err) {
+
+                console.error("Add Product Error:", err);
+
+                return res.status(500).json({
+                    success: false,
+                    message: err.message
+                });
+
+            }
+
+            res.json({
+                success: true,
+                message: "Product Added Successfully"
+            });
+
+        }
+    );
+
+});
+/* ======================================================
    SAVE INVOICE
 ====================================================== */
 
