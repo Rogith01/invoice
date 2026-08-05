@@ -165,6 +165,50 @@ app.post("/api/products", (req, res) => {
 
 });
 /* ======================================================
+   UPDATE PRODUCT
+====================================================== */
+
+app.put("/api/products/:id", (req, res) => {
+
+    const { productName, price } = req.body;
+    const id = req.params.id;
+
+    const sql = `
+        UPDATE products
+        SET
+            product_name = ?,
+            price = ?
+        WHERE id = ?
+    `;
+
+    db.query(
+        sql,
+        [
+            productName,
+            price,
+            id
+        ],
+        (err) => {
+
+            if (err) {
+
+                return res.status(500).json({
+                    success: false,
+                    message: err.message
+                });
+
+            }
+
+            res.json({
+                success: true,
+                message: "Product Updated Successfully"
+            });
+
+        }
+    );
+
+});
+/* ======================================================
    SAVE INVOICE
 ====================================================== */
 

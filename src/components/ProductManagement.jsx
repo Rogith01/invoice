@@ -6,6 +6,7 @@ const ProductManagement = () => {
 const [products, setProducts] = useState([]);
 const [productName, setProductName] = useState("");
 const [price, setPrice] = useState("");
+const [editingId, setEditingId] = useState(null);
 
 // ===============================
 // Fetch Products
@@ -25,6 +26,15 @@ const fetchProducts = async () => {
     } catch (err) {
         console.log(err);
     }
+
+};
+const editProduct = (product) => {
+
+    setEditingId(product.id);
+
+    setProductName(product.product_name);
+
+    setPrice(product.price);
 
 };
 
@@ -47,6 +57,46 @@ const addProduct = async () => {
         return;
     }
 
+    // =============================
+    // UPDATE PRODUCT
+    // =============================
+    if (editingId) {
+
+        try {
+
+            const res = await axios.put(
+                `https://invoice-backend-78hd.onrender.com/api/products/${editingId}`,
+                {
+                    productName: productName.trim(),
+                    price
+                }
+            );
+
+            if (res.data.success) {
+
+                fetchProducts();
+
+                setEditingId(null);
+
+                setProductName("");
+
+                setPrice("");
+
+            }
+
+        } catch (err) {
+
+            console.log(err);
+
+        }
+
+        return;
+
+    }
+
+    // =============================
+    // ADD NEW PRODUCT
+    // =============================
     try {
 
         const res = await axios.post(
@@ -62,6 +112,7 @@ const addProduct = async () => {
             fetchProducts();
 
             setProductName("");
+
             setPrice("");
 
         }
@@ -106,7 +157,7 @@ const addProduct = async () => {
                     onClick={addProduct}
                     className="bg-green-600 hover:bg-green-700 text-white rounded px-4 py-2"
                 >
-                    Add Product
+                    {editingId ? "Update Product" : "Add Product"}
                 </button>
 
             </div>
@@ -149,11 +200,22 @@ const addProduct = async () => {
 
                         <td className="border p-2 text-center">
 
-                            <button
-                                className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
-                            >
-                                Delete
-                            </button>
+                         <div className="flex justify-center gap-2">
+
+                        <button
+                            onClick={() => editProduct(product)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded"
+                        >
+                            Edit
+                        </button>
+
+                        <button
+                            className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
+                        >
+                            Delete
+                        </button>
+
+                    </div>
 
                         </td>
 
