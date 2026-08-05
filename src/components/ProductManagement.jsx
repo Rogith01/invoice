@@ -139,7 +139,7 @@ const addProduct = async () => {
 
 
 
-                        <td className="border p-2">
+                        <td className="border p-2 text-center">
                             {product.product_name}
                         </td>
 
