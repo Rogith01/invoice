@@ -3,6 +3,7 @@ import axios from "axios";
 import { uid } from 'uid';
 import InvoiceItem from './InvoiceItem';
 import InvoiceModal from './InvoiceModal';
+import { useNavigate } from "react-router-dom";
 
 const date = new Date();
 const today = date.toLocaleDateString('en-GB', {
@@ -28,6 +29,7 @@ const InvoiceForm = () => {
   const [paymentMethod, setPaymentMethod] = useState("Cash");
   const [itemOptions, setItemOptions] = useState([]);
   const reviewBtnRef = useRef(null);
+  const navigate = useNavigate();
   const [currentTime, setCurrentTime] = useState(
   new Date().toLocaleTimeString("en-GB", {
     hour: "2-digit",
@@ -298,7 +300,21 @@ const total =
           </div>
         </div>
 
-        <h1 className="text-center text-xl font-bold">AK SUPER MARKET</h1>
+        <div className="flex justify-between items-center">
+
+  <h1 className="text-xl font-bold">
+    AK SUPER MARKET
+  </h1>
+
+<button
+  type="button"
+  onClick={() => navigate("/products")}
+  className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-3 py-1.5 rounded"
+>
+  Manage Products
+</button>
+
+</div>
 
         {/* CASHIER & CUSTOMER */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 pt-4">
