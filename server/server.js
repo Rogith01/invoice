@@ -364,6 +364,71 @@ app.get("/api/invoices", (req, res) => {
 
 });
 /* ======================================================
+   GET SINGLE INVOICE
+====================================================== */
+
+app.get("/api/invoices/:id", (req, res) => {
+
+    const invoiceId = req.params.id;
+
+    const invoiceSql = `
+        SELECT *
+        FROM invoices
+        WHERE id = ?
+    `;
+
+    db.query(invoiceSql, [invoiceId], (err, invoiceRows) => {
+
+        if (err) {
+
+            return res.status(500).json({
+                success: false,
+                message: err.message
+            });
+
+        }
+
+        if (invoiceRows.length === 0) {
+
+            return res.json({
+                success: false
+            });
+
+        }
+
+        const itemSql = `
+            SELECT *
+            FROM invoice_items
+            WHERE invoice_id = ?
+        `;
+
+        db.query(itemSql, [invoiceId], (err, itemRows) => {
+
+            if (err) {
+
+                return res.status(500).json({
+                    success: false,
+                    message: err.message
+                });
+
+            }
+
+            res.json({
+
+                success: true,
+
+                invoice: invoiceRows[0],
+
+                items: itemRows
+
+            });
+
+        });
+
+    });
+
+});
+/* ======================================================
    SAVE INVOICE
 ====================================================== */
 

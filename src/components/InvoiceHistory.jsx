@@ -2,8 +2,11 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+
+
 const InvoiceHistory = () => {
 
+    const [search, setSearch] = useState("");
     const navigate = useNavigate();
 
     const [invoices, setInvoices] = useState([]);
@@ -52,6 +55,17 @@ const InvoiceHistory = () => {
                 </button>
 
             </div>
+            <div className="mb-6">
+
+    <input
+        type="text"
+        placeholder="🔍 Search Invoice / Customer..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="w-full md:w-96 border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+    />
+
+</div>
 
             <table className="w-full border">
 
@@ -77,7 +91,18 @@ const InvoiceHistory = () => {
 
                 <tbody>
 
-                    {invoices.map((invoice) => (
+                    {invoices
+.filter((invoice) =>
+
+    invoice.invoice_number
+        .toLowerCase()
+        .includes(search.toLowerCase()) ||
+
+    invoice.customer_name
+        .toLowerCase()
+        .includes(search.toLowerCase())
+
+).map((invoice) => (
 
                         <tr key={invoice.id}>
 
