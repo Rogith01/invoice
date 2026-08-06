@@ -38,6 +38,50 @@ const UserManagement = () => {
         }
 
     };
+    // ===============================
+// Edit User
+// ===============================
+const editUser = (user) => {
+
+    setEditingId(user.id);
+
+    setUsername(user.username);
+
+    setPassword(user.password);
+
+    setRole(user.role);
+
+};
+// ===============================
+// Delete User
+// ===============================
+const deleteUser = async (id, username) => {
+
+    const confirmDelete = window.confirm(
+        `Delete "${username}" ?`
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+
+        const res = await axios.delete(
+            `https://invoice-backend-78hd.onrender.com/api/users/${id}`
+        );
+
+        if (res.data.success) {
+
+            fetchUsers();
+
+        }
+
+    } catch (err) {
+
+        console.log(err);
+
+    }
+
+};
 
     // ===============================
     // Load Users
@@ -174,12 +218,35 @@ const UserManagement = () => {
                     <option value="Cashier">Cashier</option>
                 </select>
 
-                <button
-                    onClick={saveUser}
-                    className="bg-green-600 hover:bg-green-700 text-white rounded px-4 py-2"
-                >
-                    {editingId ? "Update User" : "Add User"}
-                </button>
+<div className="flex gap-2">
+
+    <button
+        onClick={saveUser}
+        className="bg-green-600 hover:bg-green-700 text-white rounded px-4 py-2"
+    >
+        {editingId ? "Update User" : "Add User"}
+    </button>
+
+    {editingId && (
+        <button
+            onClick={() => {
+
+                setEditingId(null);
+
+                setUsername("");
+
+                setPassword("");
+
+                setRole("Cashier");
+
+            }}
+            className="bg-gray-500 hover:bg-gray-600 text-white rounded px-4 py-2"
+        >
+            Cancel
+        </button>
+    )}
+
+</div>
 
           </div>
 
@@ -191,10 +258,11 @@ const UserManagement = () => {
 
                 <tr>
 
-                    <th className="border p-2">Username</th>
+                        <th className="border p-2">Username</th>
 
-                    <th className="border p-2">Role</th>
+                        <th className="border p-2">Role</th>
 
+                        <th className="border p-2">Action</th>
                 </tr>
 
             </thead>
@@ -203,17 +271,45 @@ const UserManagement = () => {
 
                 {users.map((user) => (
 
-                    <tr key={user.id}>
+<tr key={user.id}>
 
-                        <td className="border p-2 text-center">
-                            {user.username}
-                        </td>
+    <td className="border p-2 text-center">
+        {user.username}
+    </td>
 
-                        <td className="border p-2 text-center">
-                            {user.role}
-                        </td>
+    <td className="border p-2 text-center">
+        {user.role}
+    </td>
 
-                    </tr>
+    <td className="border p-2">
+
+        <div className="flex justify-center gap-3">
+
+            {/* Edit */}
+
+            <button
+                onClick={() => editUser(user)}
+                className="text-blue-600 hover:text-blue-800"
+                title="Edit User"
+            >
+                ✏️
+            </button>
+
+            {/* Delete */}
+
+            <button
+                onClick={() => deleteUser(user.id, user.username)}
+                className="text-red-600 hover:text-red-800"
+                title="Delete User"
+            >
+                🗑
+            </button>
+
+        </div>
+
+    </td>
+
+</tr>
 
                 ))}
 
