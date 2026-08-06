@@ -248,23 +248,24 @@ app.get("/api/dashboard", (req, res) => {
 
     const dashboard = {};
 
-    // Today's Sales
+    // Total Sales
     db.query(
         `
-        SELECT IFNULL(SUM(total),0) AS todaySales
+        SELECT 
+        IFNULL(SUM(total),0) AS totalSales
         FROM invoices
-        WHERE invoice_date = CURDATE()
         `,
         (err, rows) => {
 
             if (err) return res.status(500).json(err);
 
-            dashboard.todaySales = rows[0].todaySales;
+            dashboard.totalSales = rows[0].totalSales;
 
-            // Today's Orders
+
+            // Today's Sales
             db.query(
                 `
-                SELECT COUNT(*) AS todayOrders
+                SELECT IFNULL(SUM(total),0) AS todaySales
                 FROM invoices
                 WHERE invoice_date = CURDATE()
                 `,
@@ -272,42 +273,61 @@ app.get("/api/dashboard", (req, res) => {
 
                     if (err) return res.status(500).json(err);
 
-                    dashboard.todayOrders = rows[0].todayOrders;
+                    dashboard.todaySales = rows[0].todaySales;
 
-                    // Cash Sales
+
+                    // Today's Orders
                     db.query(
                         `
-                        SELECT IFNULL(SUM(total),0) AS cashSales
+                        SELECT COUNT(*) AS todayOrders
                         FROM invoices
-                        WHERE payment_Method='Cash'
-                        AND invoice_date = CURDATE()
+                        WHERE invoice_date = CURDATE()
                         `,
                         (err, rows) => {
 
                             if (err) return res.status(500).json(err);
 
-                            dashboard.cashSales = rows[0].cashSales;
+                            dashboard.todayOrders = rows[0].todayOrders;
 
-                            // Online Sales
+
+                            // Cash Sales
                             db.query(
                                 `
-                                SELECT IFNULL(SUM(total),0) AS onlineSales
+                                SELECT IFNULL(SUM(total),0) AS cashSales
                                 FROM invoices
-                                WHERE payment_Method='Online'
+                                WHERE payment_Method='Cash'
                                 AND invoice_date = CURDATE()
                                 `,
                                 (err, rows) => {
 
-                                    if (err)
-                                        return res.status(500).json(err);
+                                    if (err) return res.status(500).json(err);
 
-                                    dashboard.onlineSales =
-                                        rows[0].onlineSales;
+                                    dashboard.cashSales = rows[0].cashSales;
 
-                                    res.json({
-                                        success: true,
-                                        dashboard
-                                    });
+
+                                    // Online Sales
+                                    db.query(
+                                        `
+                                        SELECT IFNULL(SUM(total),0) AS onlineSales
+                                        FROM invoices
+                                        WHERE payment_Method='Online'
+                                        AND invoice_date = CURDATE()
+                                        `,
+                                        (err, rows) => {
+
+                                            if (err)
+                                                return res.status(500).json(err);
+
+                                            dashboard.onlineSales = rows[0].onlineSales;
+
+
+                                            res.json({
+                                                success: true,
+                                                dashboard
+                                            });
+
+                                        }
+                                    );
 
                                 }
                             );

@@ -168,7 +168,7 @@ const printInvoiceHandler = useReactToPrint({
                     </span>
                   </div>
                     <div className="flex w-full justify-between">
-                      <span className="font-bold">Tax:</span>
+                      <span className="font-bold">Tax:</span> 
                       <span>Rs:{invoiceInfo.taxRate.toFixed(2)}</span>
                     </div>
                     <div className="flex w-full justify-between border-t border-black/10 py-2">

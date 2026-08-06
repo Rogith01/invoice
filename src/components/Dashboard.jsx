@@ -7,6 +7,7 @@ const Dashboard = () => {
     const navigate = useNavigate();
 
     const [dashboard, setDashboard] = useState({
+        totalSales: 0,
         todaySales: 0,
         todayOrders: 0,
         cashSales: 0,
@@ -62,6 +63,17 @@ const Dashboard = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="bg-white rounded-lg shadow p-6">
+
+                    <p className="text-gray-500">
+                        Total Sales
+                    </p>
+
+                    <h2 className="text-3xl font-bold mt-3 text-green-600">
+                        ₹{Number(dashboard.totalSales).toFixed(2)}
+                    </h2>
+
+                </div>
 
                 <div className="bg-white rounded-lg shadow p-6">
 

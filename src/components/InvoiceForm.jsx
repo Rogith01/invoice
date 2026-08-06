@@ -4,6 +4,7 @@ import { uid } from 'uid';
 import InvoiceItem from './InvoiceItem';
 import InvoiceModal from './InvoiceModal';
 import { useNavigate } from "react-router-dom";
+import "../index.css";
 
 const date = new Date();
 const today = date.toLocaleDateString('en-GB', {
