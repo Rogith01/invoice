@@ -38,6 +38,33 @@ const InvoiceHistory = () => {
 
     }, []);
 
+    const handleDelete = async (id) => {
+
+  const confirmDelete = window.confirm(
+    "Are you sure you want to delete this invoice?"
+  );
+
+  if (!confirmDelete) return;
+
+  try {
+
+    await axios.delete(
+      `https://invoice-backend-78hd.onrender.com/api/invoices/${id}`
+    );
+
+    alert("Invoice deleted successfully.");
+
+    fetchInvoices();
+
+  } catch (err) {
+
+    console.log(err);
+    alert("Failed to delete invoice.");
+
+  }
+
+};
+
     return (
 
         <div className="max-w-7xl mx-auto mt-8 bg-white shadow-lg rounded-lg p-6">
@@ -146,8 +173,17 @@ const InvoiceHistory = () => {
                                     onClick={() => navigate(`/invoice/${invoice.id}`)}
                                     className="text-blue-600 hover:text-blue-800 font-semibold"
                                 >
-                                    👁 View
+                                    👁 
                                 </button>
+                                <button
+                                    onClick={() => handleDelete(invoice.id)}
+                                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded ml-2"
+                                    >
+                                    Delete
+                                </button>
+
+                                
+                                
 
                             </td>
 

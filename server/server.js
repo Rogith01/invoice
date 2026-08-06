@@ -774,7 +774,54 @@ function saveInvoice(customerId , loyaltyPoints) {
     }); // End checkCustomerSql query
 
 }); // End POST /api/invoices
+// DELETE INVOICE
+app.delete("/api/invoices/:id", async (req, res) => {
 
+  const { id } = req.params;
+
+  const connection = await db.getConnection();
+
+  try {
+
+    await connection.beginTransaction();
+
+    // Delete invoice items first
+    await connection.query(
+      "DELETE FROM invoice_items WHERE invoice_id = ?",
+      [id]
+    );
+
+    // Delete invoice
+    await connection.query(
+      "DELETE FROM invoices WHERE id = ?",
+      [id]
+    );
+
+    await connection.commit();
+
+    res.json({
+      success: true,
+      message: "Invoice deleted successfully"
+    });
+
+  } catch (err) {
+
+    await connection.rollback();
+
+    console.log(err);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete invoice"
+    });
+
+  } finally {
+
+    connection.release();
+
+  }
+
+});
 /* ======================================================
    TEST ROUTE
 ====================================================== */
