@@ -262,6 +262,24 @@ app.get("/api/dashboard", (req, res) => {
             dashboard.totalSales = rows[0].totalSales;
 
 
+            // Top Product
+            db.query(
+                `
+                SELECT
+                item_name,
+                SUM(qty) AS total_quantity_sold
+                FROM invoice_items
+                GROUP BY item_name
+                ORDER BY total_quantity_sold DESC
+                LIMIT 1
+                `,
+                (err, rows) => {
+
+                    if (err) return res.status(500).json(err);
+
+                    dashboard.topSellingItem = rows.length > 0 ? rows[0] : null;
+
+
             // Today's Sales
             db.query(
                 `
@@ -339,6 +357,8 @@ app.get("/api/dashboard", (req, res) => {
             );
 
         }
+    );
+}
     );
 
 });

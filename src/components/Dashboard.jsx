@@ -8,6 +8,7 @@ const Dashboard = () => {
 
     const [dashboard, setDashboard] = useState({
         totalSales: 0,
+        topSellingItem:null,
         todaySales: 0,
         todayOrders: 0,
         cashSales: 0,
@@ -74,6 +75,18 @@ const Dashboard = () => {
                     </h2>
 
                 </div>
+                <div className="bg-white rounded-lg shadow p-6">
+
+                    <p className="text-gray-500">
+                        Top Selling Item
+                    </p>
+
+                    <h2 className="text-3xl font-bold mt-3 text-purple-600">
+                        {dashboard.topProduct?.item_name} 
+                        ({dashboard.topProduct?.total_quantity_sold})
+                    </h2>
+
+                </div>             
 
                 <div className="bg-white rounded-lg shadow p-6">
 
@@ -81,7 +94,7 @@ const Dashboard = () => {
                         Today's Sales
                     </p>
 
-                    <h2 className="text-3xl font-bold mt-3 text-green-600">
+                    <h2 className="text-3xl font-bold mt-3 text-blue-600">
                         ₹{Number(dashboard.todaySales).toFixed(2)}
                     </h2>
 
@@ -93,7 +106,7 @@ const Dashboard = () => {
                         Today's Orders
                     </p>
 
-                    <h2 className="text-3xl font-bold mt-3 text-blue-600">
+                    <h2 className="text-3xl font-bold mt-3 text-orange-600">
                         {dashboard.todayOrders}
                     </h2>
 
@@ -105,7 +118,7 @@ const Dashboard = () => {
                         Cash Sales
                     </p>
 
-                    <h2 className="text-3xl font-bold mt-3 text-purple-600">
+                    <h2 className="text-3xl font-bold mt-3 text-gold-600">
                         ₹{Number(dashboard.cashSales).toFixed(2)}
                     </h2>
 
@@ -117,7 +130,7 @@ const Dashboard = () => {
                         Online Sales
                     </p>
 
-                    <h2 className="text-3xl font-bold mt-3 text-orange-600">
+                    <h2 className="text-3xl font-bold mt-3 text-pink-600">
                         ₹{Number(dashboard.onlineSales).toFixed(2)}
                     </h2>
 
