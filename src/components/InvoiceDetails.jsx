@@ -84,24 +84,25 @@ return (
 
 <div className="mt-8">
     <div className="mb-4 grid grid-cols-2 gap-y-1 text-base">
-<span className="font-bold text-[15px]">Date :</span>
+<span className="font-bold text-[15px]">Date:</span>
 <span className="text-[15px]">{new Date(invoice.invoice_date).toLocaleDateString("en-GB")}</span>
 
-<span className="font-bold text-[15px]">Time :</span>
+<span className="font-bold text-[15px]">Time:</span>
 <span className="text-[15px]">{invoice.invoice_time}</span>
 
-<span className="font-bold text-[15px]">Invoice No :</span>
+<span className="font-bold text-[15px]">Invoice Number:</span>
 <span className="text-[15px]">{invoice.invoice_number}</span>
 
-<span className="font-bold text-[15px]">Cashier :</span>
+<span className="font-bold text-[15px]">Cashier:</span>
 <span className="text-[15px]">{invoice.cashier_name}</span>
 
-<span className="font-bold text-[15px]">Customer :</span>
+<span className="font-bold text-[15px]">Customer:</span>
 <span className="text-[15px]">{invoice.customer_name}</span>
 
+<span className="font-bold text-[15px]">Phone:</span>
+<span className="text-[15px]">{invoice.phone_number}</span>
 
-
-<span className="font-bold text-[15px]">Payment :</span>
+<span className="font-bold text-[15px]">Payment:</span>
 <span className="text-[15px]">{invoice.payment_method}</span>
 
     </div>
@@ -116,19 +117,19 @@ return (
             <tr className="border-y border-black/10 text-[15px]">
 
                 <th className="text-left py-2">
-                    Item
+                    ITEM
                 </th>
 
                 <th className="text-center py-2">
-                    Qty
+                    QTY
                 </th>
 
                 <th className="text-right py-2">
-                    Price
+                    PRICE
                 </th>
 
                 <th className="text-right py-2">
-                    Amount
+                    AMOUNT
                 </th>
 
             </tr>
