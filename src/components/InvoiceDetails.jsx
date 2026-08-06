@@ -15,29 +15,22 @@ const InvoiceDetails = () => {
 
     const printRef = useRef();
 
-    const fetchInvoice = async () => {
+const fetchInvoice = React.useCallback(async () => {
+    try {
+        const res = await axios.get(
+            `https://invoice-backend-78hd.onrender.com/api/invoices/${id}`
+        );
 
-        try {
-
-            const res = await axios.get(
-                `https://invoice-backend-78hd.onrender.com/api/invoices/${id}`
-            );
-
-            if (res.data.success) {
-
-                setInvoice(res.data.invoice);
-
-                setItems(res.data.items);
-
-            }
-
-        } catch (err) {
-
-            console.log(err);
-
+        if (res.data.success) {
+            setInvoice(res.data.invoice);
+            setItems(res.data.items);
         }
 
-    };
+    } catch (err) {
+        console.log(err);
+    }
+
+}, [id]);
 
     useEffect(() => {
 
