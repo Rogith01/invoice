@@ -181,11 +181,51 @@ const UserManagement = () => {
                     {editingId ? "Update User" : "Add User"}
                 </button>
 
-            </div>
+          </div>
 
-        </div>
+        {/* Users Table */}
 
-    );
+        <table className="w-full border mt-6">
+
+            <thead className="bg-gray-100">
+
+                <tr>
+
+                    <th className="border p-2">Username</th>
+
+                    <th className="border p-2">Role</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {users.map((user) => (
+
+                    <tr key={user.id}>
+
+                        <td className="border p-2 text-center">
+                            {user.username}
+                        </td>
+
+                        <td className="border p-2 text-center">
+                            {user.role}
+                        </td>
+
+                    </tr>
+
+                ))}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+);
+
+ 
 
 };
 
