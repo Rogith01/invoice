@@ -182,9 +182,6 @@ const InvoiceHistory = () => {
                                     Delete
                                 </button>
 
-                                
-                                
-
                             </td>
 
                         </tr>
