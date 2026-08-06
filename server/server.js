@@ -774,52 +774,54 @@ function saveInvoice(customerId , loyaltyPoints) {
     }); // End checkCustomerSql query
 
 }); // End POST /api/invoices
-// DELETE INVOICE
-app.delete("/api/invoices/:id", async (req, res) => {
+/* ======================================================
+   DELETE INVOICE
+====================================================== */
 
-  const { id } = req.params;
+app.delete("/api/invoices/:id", (req, res) => {
 
-  const connection = await db.getConnection();
-
-  try {
-
-    await connection.beginTransaction();
+    const invoiceId = req.params.id;
 
     // Delete invoice items first
-    await connection.query(
-      "DELETE FROM invoice_items WHERE invoice_id = ?",
-      [id]
+    db.query(
+        "DELETE FROM invoice_items WHERE invoice_id = ?",
+        [invoiceId],
+        (err) => {
+
+            if (err) {
+                console.log(err);
+
+                return res.status(500).json({
+                    success: false,
+                    message: err.message
+                });
+            }
+
+            // Now delete invoice
+            db.query(
+                "DELETE FROM invoices WHERE id = ?",
+                [invoiceId],
+                (err, result) => {
+
+                    if (err) {
+                        console.log(err);
+
+                        return res.status(500).json({
+                            success: false,
+                            message: err.message
+                        });
+                    }
+
+                    res.json({
+                        success: true,
+                        message: "Invoice deleted successfully"
+                    });
+
+                }
+            );
+
+        }
     );
-
-    // Delete invoice
-    await connection.query(
-      "DELETE FROM invoices WHERE id = ?",
-      [id]
-    );
-
-    await connection.commit();
-
-    res.json({
-      success: true,
-      message: "Invoice deleted successfully"
-    });
-
-  } catch (err) {
-
-    await connection.rollback();
-
-    console.log(err);
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to delete invoice"
-    });
-
-  } finally {
-
-    connection.release();
-
-  }
 
 });
 /* ======================================================
