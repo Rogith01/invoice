@@ -8,7 +8,6 @@ const Dashboard = () => {
 
     const [dashboard, setDashboard] = useState({
         totalSales: 0,
-        topSellingItem:null,
         todaySales: 0,
         todayOrders: 0,
         cashSales: 0,
@@ -75,18 +74,6 @@ const Dashboard = () => {
                     </h2>
 
                 </div>
-                <div className="bg-white rounded-lg shadow p-6">
-
-                    <p className="text-gray-500">
-                        Top Selling Item
-                    </p>
-
-                    <h2 className="text-3xl font-bold mt-3 text-purple-600">
-                        {dashboard.topProduct?.item_name} 
-                        ({dashboard.topProduct?.total_quantity_sold})
-                    </h2>
-
-                </div>             
 
                 <div className="bg-white rounded-lg shadow p-6">
 
