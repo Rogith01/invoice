@@ -159,7 +159,7 @@ useEffect(() => {
   const reviewInvoiceHandler = async (event) => {
 
     event.preventDefault();
-    const redeemedAmount = redeemPoints ? availablePoints : 0;
+    
     
     const invoiceData = {
       phoneNumber,
