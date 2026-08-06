@@ -329,17 +329,20 @@ app.get("/api/dashboard", (req, res) => {
 app.get("/api/invoices", (req, res) => {
 
     const sql = `
-        SELECT
-            id,
-            invoice_number,
-            invoice_date,
-            invoice_time,
-            customer_name,
-            cashier_name,
-            total,
-            payment_Method
-        FROM invoices
-        ORDER BY id DESC
+    SELECT
+        invoices.id,
+        invoices.invoice_number,
+        invoices.invoice_date,
+        invoices.invoice_time,
+        invoices.customer_name,
+        invoices.cashier_name,
+        customers.phone_number,
+        invoices.total,
+        invoices.payment_Method
+    FROM invoices
+    LEFT JOIN customers
+        ON invoices.customer_id = customers.id
+    ORDER BY invoices.id DESC
     `;
 
     db.query(sql, (err, rows) => {
