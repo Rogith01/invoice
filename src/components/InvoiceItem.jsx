@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-
+import Select from "react-select";
 
 
 const InvoiceItem = ({
@@ -79,6 +79,9 @@ const handleKeyDown = (event) => {
           value={name}
           onChange={onEdtiItem}
           onKeyDown={handleKeyDown}
+          menuPlacement="bottom"
+          menuPosition="fixed"
+          maxMenuHeight={250}
         >
 
           <option value="">

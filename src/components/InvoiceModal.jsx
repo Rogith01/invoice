@@ -171,15 +171,18 @@ const printInvoiceHandler = useReactToPrint({
                       <span className="font-bold">Tax:</span> 
                       <span>Rs:{invoiceInfo.taxRate.toFixed(2)}</span>
                     </div>
-                    <div className="flex w-full justify-between border-t border-black/10 py-2">
-                      <span className="font-bold">Grand Total:</span>
-                      <span className="font-bold">
-                        Rs:
-                        {invoiceInfo.total % 1 === 0
-                          ? invoiceInfo.total
-                          : invoiceInfo.total.toFixed(2)}
-                      </span>
-                    </div>
+<div className="flex w-full justify-between border-t border-black/10 py-2">
+  <span className="font-bold">Grand Total:</span>
+  <span className="font-bold">
+    Rs:
+    {(
+      invoiceInfo.subtotal -
+      invoiceInfo.discountRate -
+      invoiceInfo.loyaltyDiscount +
+      invoiceInfo.taxRate
+    ).toFixed(2)}
+  </span>
+</div>
                     <div className="w-full text-center">
   <h4 className="font-semibold">
     Thank you, Visit again!

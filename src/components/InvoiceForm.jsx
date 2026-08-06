@@ -159,6 +159,8 @@ useEffect(() => {
   const reviewInvoiceHandler = async (event) => {
 
     event.preventDefault();
+    const redeemedAmount = redeemPoints ? availablePoints : 0;
+    
     const invoiceData = {
       phoneNumber,
       cashierName,
@@ -183,8 +185,10 @@ useEffect(() => {
 
       // Update invoice number returned from backend
       setInvoiceNumber(response.data.invoiceNumber);
-      await fetchCustomer(phoneNumber);
+
       setIsOpen(true);
+
+      await fetchCustomer(phoneNumber);
 
     } catch (error) {
 
@@ -269,6 +273,8 @@ const taxRate = (tax * subtotal) / 100;
 const discountRate = (discount * subtotal) / 100;
 
 const loyaltyDiscount = redeemPoints ? availablePoints : 0;
+
+const redeemedAmount = loyaltyDiscount;
 
 const total =
   subtotal -
@@ -540,7 +546,7 @@ invoiceInfo={{
   subtotal,
   discountRate,
   taxRate,
-  loyaltyDiscount: redeemPoints ? availablePoints : 0,
+  loyaltyDiscount: redeemedAmount,
   total,
 }}
         items={items}
