@@ -21,7 +21,8 @@ const InvoiceForm = () => {
   const [discount, setDiscount] = useState('2');
   const [tax, setTax] = useState('5');
   const [invoiceNumber, setInvoiceNumber] = useState("INV-0001");
-  const [cashierName, setCashierName] = useState('');
+  const user = JSON.parse(localStorage.getItem("user"));
+  const [cashierName, setCashierName] = useState(user?.username || "");
   const [customerName, setCustomerName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [loyaltyPoints, setLoyaltyPoints] = useState(0);
@@ -31,7 +32,7 @@ const InvoiceForm = () => {
   const [itemOptions, setItemOptions] = useState([]);
   const reviewBtnRef = useRef(null);
   const navigate = useNavigate();
-    const user = JSON.parse(localStorage.getItem("user"));
+  
   const handleLogout = () => {
   localStorage.removeItem("user");
   window.location.reload();
@@ -53,7 +54,7 @@ const InvoiceForm = () => {
     },
   ]);
 
-  const cashierOptions = ['Rogith', 'Guhan', 'Fayaz'];
+  
   const fetchCustomer = async (phone) => {
 
   setPhoneNumber(phone);
@@ -220,7 +221,7 @@ useEffect(() => {
     setPhoneNumber('');
     setCustomerName('');
     setLoyaltyPoints(0);
-    setCashierName('');
+    setCashierName(user?.username || "");
     setRedeemPoints(false);
     setAvailablePoints(0);
     setDiscount('2');
@@ -380,18 +381,13 @@ const total =
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 pt-4">
           <div className="flex flex-col">
             <label htmlFor="cashierName" className="text-sm font-bold">Cashier:</label>
-            <select
-              required
-              id="cashierName"
-              className="border rounded px-2 py-1"
-              value={cashierName}
-              onChange={(e) => setCashierName(e.target.value)}
-            >
-              <option value="">Select cashier</option>
-              {cashierOptions.map((name) => (
-                <option key={name} value={name}>{name}</option>
-              ))}
-            </select>
+<input
+    type="text"
+    id="cashierName"
+    value={cashierName}
+    readOnly
+    className="border rounded px-2 py-1 bg-gray-100 cursor-not-allowed"
+/>
           </div>
          <div className="flex flex-col">
   <label htmlFor="phoneNumber" className="text-sm font-bold">
