@@ -2,6 +2,8 @@ import { Routes, Route } from "react-router-dom";
 import { useState } from "react";
 
 import Login from "./components/Login";
+import ProtectedRoute from "./components/ProtectedRoute";
+
 import InvoiceForm from "./components/InvoiceForm";
 import ProductManagement from "./components/ProductManagement";
 import Dashboard from "./components/Dashboard";
@@ -26,34 +28,54 @@ function App() {
 
         <Routes>
 
-          {/* Dashboard */}
-          <Route
-            path="/dashboard"
-            element={<Dashboard />}
-          />
-
-          {/* Billing */}
+          {/* Billing - Admin + Cashier */}
           <Route
             path="/"
-            element={<InvoiceForm />}
+            element={
+              <ProtectedRoute allowedRoles={["Admin", "Cashier"]}>
+                <InvoiceForm />
+              </ProtectedRoute>
+            }
           />
 
-          {/* Products */}
+          {/* Dashboard - Admin Only */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={["Admin"]}>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Products - Admin Only */}
           <Route
             path="/products"
-            element={<ProductManagement />}
+            element={
+              <ProtectedRoute allowedRoles={["Admin"]}>
+                <ProductManagement />
+              </ProtectedRoute>
+            }
           />
 
-          {/* Invoice History */}
+          {/* Invoice History - Admin + Cashier */}
           <Route
             path="/invoices"
-            element={<InvoiceHistory />}
+            element={
+              <ProtectedRoute allowedRoles={["Admin", "Cashier"]}>
+                <InvoiceHistory />
+              </ProtectedRoute>
+            }
           />
 
-          {/* Invoice Details */}
+          {/* Invoice Details - Admin + Cashier */}
           <Route
             path="/invoice/:id"
-            element={<InvoiceDetails />}
+            element={
+              <ProtectedRoute allowedRoles={["Admin", "Cashier"]}>
+                <InvoiceDetails />
+              </ProtectedRoute>
+            }
           />
 
         </Routes>

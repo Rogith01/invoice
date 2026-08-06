@@ -31,6 +31,7 @@ const InvoiceForm = () => {
   const [itemOptions, setItemOptions] = useState([]);
   const reviewBtnRef = useRef(null);
   const navigate = useNavigate();
+    const user = JSON.parse(localStorage.getItem("user"));
   const handleLogout = () => {
   localStorage.removeItem("user");
   window.location.reload();
@@ -311,47 +312,57 @@ const total =
           </div>
         </div>
 
- <div className="flex justify-between items-center">
+<div className="flex justify-between items-center">
 
-    <h1 className="text-xl font-bold">
-        AK SUPER MARKET
-    </h1>
+  <h1 className="text-xl font-bold">
+    AK SUPER MARKET
+  </h1>
 
-   <div className="flex gap-2">
+  <div className="flex gap-2">
 
-    <button
+    {/* Dashboard - Admin Only */}
+    {user?.role === "Admin" && (
+      <button
         type="button"
         onClick={() => navigate("/dashboard")}
         className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1.5 rounded"
-    >
+      >
         Dashboard
-    </button>
+      </button>
+    )}
 
-    <button
+    {/* Products - Admin Only */}
+    {user?.role === "Admin" && (
+      <button
         type="button"
         onClick={() => navigate("/products")}
         className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-3 py-1.5 rounded"
-    >
+      >
         Products
-    </button>
+      </button>
+    )}
 
-    <button
+    {/* Invoice History - Admin Only */}
+    {user?.role === "Admin" && (
+      <button
         type="button"
         onClick={() => navigate("/invoices")}
         className="bg-green-600 hover:bg-green-700 text-white text-sm px-3 py-1.5 rounded"
-    >
+      >
         Invoices
-    </button>
+      </button>
+    )}
 
+    {/* Logout - Everyone */}
     <button
-        type="button"
-        onClick={handleLogout}
-        className="bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1.5 rounded"
+      type="button"
+      onClick={handleLogout}
+      className="bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1.5 rounded"
     >
-        Logout
+      Logout
     </button>
 
-</div>
+  </div>
 
 </div>
 
