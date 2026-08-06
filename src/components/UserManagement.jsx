@@ -1,0 +1,192 @@
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+
+const UserManagement = () => {
+
+    const navigate = useNavigate();
+
+    const [users, setUsers] = useState([]);
+
+    const [username, setUsername] = useState("");
+
+    const [password, setPassword] = useState("");
+
+    const [role, setRole] = useState("Cashier");
+
+    const [editingId, setEditingId] = useState(null);
+
+    // ===============================
+    // Fetch Users
+    // ===============================
+    const fetchUsers = async () => {
+
+        try {
+
+            const res = await axios.get(
+                "https://invoice-backend-78hd.onrender.com/api/users"
+            );
+
+            if (res.data.success) {
+                setUsers(res.data.users);
+            }
+
+        } catch (err) {
+
+            console.log(err);
+
+        }
+
+    };
+
+    // ===============================
+    // Load Users
+    // ===============================
+    useEffect(() => {
+
+        fetchUsers();
+
+    }, []);
+
+    // ===============================
+    // Add / Update User
+    // ===============================
+    const saveUser = async () => {
+
+        if (!username.trim() || !password.trim()) {
+            alert("Please enter Username and Password");
+            return;
+        }
+
+        // UPDATE
+        if (editingId) {
+
+            try {
+
+                const res = await axios.put(
+                    `https://invoice-backend-78hd.onrender.com/api/users/${editingId}`,
+                    {
+                        username,
+                        password,
+                        role
+                    }
+                );
+
+                if (res.data.success) {
+
+                    fetchUsers();
+
+                    setEditingId(null);
+
+                    setUsername("");
+
+                    setPassword("");
+
+                    setRole("Cashier");
+
+                }
+
+            } catch (err) {
+
+                console.log(err);
+
+            }
+
+            return;
+
+        }
+
+        // ADD NEW USER
+        try {
+
+            const res = await axios.post(
+                "https://invoice-backend-78hd.onrender.com/api/users",
+                {
+                    username,
+                    password,
+                    role
+                }
+            );
+
+            if (res.data.success) {
+
+                fetchUsers();
+
+                setUsername("");
+
+                setPassword("");
+
+                setRole("Cashier");
+
+            }
+
+        } catch (err) {
+
+            console.log(err);
+
+        }
+
+    };
+
+    return (
+
+        <div className="max-w-6xl mx-auto mt-8 bg-white shadow-lg rounded-lg p-6">
+
+            <div className="flex justify-between items-center mb-8">
+
+                <h1 className="text-3xl font-bold">
+                    User Management
+                </h1>
+
+                <button
+                    onClick={() => navigate("/")}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-lg"
+                >
+                    🧾 Billing
+                </button>
+
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+
+                <input
+                    type="text"
+                    placeholder="Username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="border rounded px-3 py-2"
+                />
+
+                <input
+                    type="text"
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="border rounded px-3 py-2"
+                />
+
+                <select
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                    className="border rounded px-3 py-2"
+                >
+                    <option value="Admin">Admin</option>
+                    <option value="Cashier">Cashier</option>
+                </select>
+
+                <button
+                    onClick={saveUser}
+                    className="bg-green-600 hover:bg-green-700 text-white rounded px-4 py-2"
+                >
+                    {editingId ? "Update User" : "Add User"}
+                </button>
+
+            </div>
+
+        </div>
+
+    );
+
+};
+
+export default UserManagement;

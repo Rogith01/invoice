@@ -352,6 +352,16 @@ const total =
         Invoices
       </button>
     )}
+{/* User Management - Admin Only */}
+{user?.role === "Admin" && (
+  <button
+    type="button"
+    onClick={() => navigate("/users")}
+    className="bg-purple-600 hover:bg-purple-700 text-white text-sm px-3 py-1.5 rounded"
+  >
+    Users
+  </button>
+)}
 
     {/* Logout - Everyone */}
     <button

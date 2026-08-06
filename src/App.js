@@ -9,6 +9,7 @@ import ProductManagement from "./components/ProductManagement";
 import Dashboard from "./components/Dashboard";
 import InvoiceHistory from "./components/InvoiceHistory";
 import InvoiceDetails from "./components/InvoiceDetails";
+import UserManagement from "./components/UserManagement";
 
 function App() {
 
@@ -54,6 +55,16 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={["Admin"]}>
                 <ProductManagement />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* User Management - Admin Only */}
+          <Route
+            path="/users"
+            element={
+              <ProtectedRoute allowedRoles={["Admin"]}>
+                <UserManagement />
               </ProtectedRoute>
             }
           />

@@ -241,6 +241,170 @@ app.delete("/api/products/:id", (req, res) => {
 
 });
 /* ======================================================
+   GET ALL USERS
+====================================================== */
+
+app.get("/api/users", (req, res) => {
+
+    const sql = `
+        SELECT
+            id,
+            username,
+            password,
+            role
+        FROM users
+        ORDER BY id
+    `;
+
+    db.query(sql, (err, rows) => {
+
+        if (err) {
+            return res.status(500).json({
+                success: false,
+                message: err.message
+            });
+        }
+
+        res.json({
+            success: true,
+            users: rows
+        });
+
+    });
+
+});
+/* ======================================================
+   ADD USER
+====================================================== */
+
+app.post("/api/users", (req, res) => {
+
+    const {
+        username,
+        password,
+        role
+    } = req.body;
+
+    const sql = `
+        INSERT INTO users
+        (
+            username,
+            password,
+            role
+        )
+        VALUES
+        (
+            ?,
+            ?,
+            ?
+        )
+    `;
+
+    db.query(
+        sql,
+        [
+            username,
+            password,
+            role
+        ],
+        (err) => {
+
+            if (err) {
+
+                return res.status(500).json({
+                    success: false,
+                    message: err.message
+                });
+
+            }
+
+            res.json({
+                success: true
+            });
+
+        }
+    );
+
+});
+/* ======================================================
+   UPDATE USER
+====================================================== */
+
+app.put("/api/users/:id", (req, res) => {
+
+    const { username, password, role } = req.body;
+    const id = req.params.id;
+
+    const sql = `
+        UPDATE users
+        SET
+            username = ?,
+            password = ?,
+            role = ?
+        WHERE id = ?
+    `;
+
+    db.query(
+        sql,
+        [
+            username,
+            password,
+            role,
+            id
+        ],
+        (err) => {
+
+            if (err) {
+
+                return res.status(500).json({
+                    success: false,
+                    message: err.message
+                });
+
+            }
+
+            res.json({
+                success: true,
+                message: "User Updated Successfully"
+            });
+
+        }
+    );
+
+});
+/* ======================================================
+   DELETE USER
+====================================================== */
+
+app.delete("/api/users/:id", (req, res) => {
+
+    const id = req.params.id;
+
+    const sql = `
+        DELETE FROM users
+        WHERE id = ?
+    `;
+
+    db.query(sql, [id], (err) => {
+
+        if (err) {
+
+            return res.status(500).json({
+                success: false,
+                message: err.message
+            });
+
+        }
+
+        res.json({
+            success: true,
+            message: "User Deleted Successfully"
+        });
+
+    });
+
+});
+/* ======================================================
    DASHBOARD
 ====================================================== */
 
