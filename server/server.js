@@ -371,11 +371,15 @@ app.get("/api/invoices/:id", (req, res) => {
 
     const invoiceId = req.params.id;
 
-    const invoiceSql = `
-        SELECT *
-        FROM invoices
-        WHERE id = ?
-    `;
+const invoiceSql = `
+    SELECT
+        invoices.*,
+        customers.phone_number
+    FROM invoices
+    LEFT JOIN customers
+        ON invoices.customer_id = customers.id
+    WHERE invoices.id = ?
+`;
 
     db.query(invoiceSql, [invoiceId], (err, invoiceRows) => {
 

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 
 
+
 const InvoiceHistory = () => {
 
     const [search, setSearch] = useState("");
@@ -75,15 +76,19 @@ const InvoiceHistory = () => {
 
                         <th className="border p-2">Invoice</th>
 
+                        <th className="border p-2">Cashier</th>
+
                         <th className="border p-2">Customer</th>
 
-                        <th className="border p-2">Cashier</th>
+                        <th className="border p-2">Phone</th>
 
                         <th className="border p-2">Date</th>
 
                         <th className="border p-2">Payment</th>
 
                         <th className="border p-2">Total</th>
+
+                        <th className="border p-2">Action</th>
 
                     </tr>
 
@@ -111,12 +116,17 @@ const InvoiceHistory = () => {
                             </td>
 
                             <td className="border p-2 text-center">
+                                {invoice.cashier_name}
+                            </td>
+
+                            <td className="border p-2 text-center">
                                 {invoice.customer_name}
                             </td>
 
                             <td className="border p-2 text-center">
-                                {invoice.cashier_name}
+                                {invoice.phone_number}
                             </td>
+
 
                             <td className="border p-2 text-center">
                                 {new Date(invoice.invoice_date).toLocaleDateString("en-GB")}
@@ -128,6 +138,17 @@ const InvoiceHistory = () => {
 
                             <td className="border p-2 text-center">
                                 ₹{Number(invoice.total).toFixed(2)}
+                            </td>
+
+                            <td className="border p-2 text-center">
+
+                                <button
+                                    onClick={() => navigate(`/invoice/${invoice.id}`)}
+                                    className="text-blue-600 hover:text-blue-800 font-semibold"
+                                >
+                                    👁 View
+                                </button>
+
                             </td>
 
                         </tr>

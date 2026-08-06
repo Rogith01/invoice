@@ -4,6 +4,7 @@ import InvoiceForm from "./components/InvoiceForm";
 import ProductManagement from "./components/ProductManagement";
 import Dashboard from "./components/Dashboard";
 import InvoiceHistory from "./components/InvoiceHistory";
+import InvoiceDetails from "./components/InvoiceDetails";
 
 function App() {
   return (
@@ -34,6 +35,10 @@ function App() {
           <Route
             path="/invoices"
             element={<InvoiceHistory />}
+          />
+          <Route
+              path="/invoice/:id"
+              element={<InvoiceDetails />}
           />
 
         </Routes>
