@@ -36,7 +36,7 @@ const fetchInvoice = React.useCallback(async () => {
 
         fetchInvoice();
 
-    }, []);
+    }, [fetchInvoice]);
 
     const printInvoiceHandler = useReactToPrint({
 
