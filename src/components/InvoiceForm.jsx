@@ -31,6 +31,10 @@ const InvoiceForm = () => {
   const [itemOptions, setItemOptions] = useState([]);
   const reviewBtnRef = useRef(null);
   const navigate = useNavigate();
+  const handleLogout = () => {
+  localStorage.removeItem("user");
+  window.location.reload();
+};
   const [currentTime, setCurrentTime] = useState(
   new Date().toLocaleTimeString("en-GB", {
     hour: "2-digit",
@@ -313,33 +317,41 @@ const total =
         AK SUPER MARKET
     </h1>
 
-    <div className="flex gap-2">
+   <div className="flex gap-2">
 
-        <button
-            type="button"
-            onClick={() => navigate("/dashboard")}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1.5 rounded"
-        >
-            Dashboard
-        </button>
+    <button
+        type="button"
+        onClick={() => navigate("/dashboard")}
+        className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1.5 rounded"
+    >
+        Dashboard
+    </button>
 
-        <button
-            type="button"
-            onClick={() => navigate("/products")}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-3 py-1.5 rounded"
-        >
-            Products
-        </button>
+    <button
+        type="button"
+        onClick={() => navigate("/products")}
+        className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-3 py-1.5 rounded"
+    >
+        Products
+    </button>
 
-        <button
-            type="button"
-            onClick={() => navigate("/invoices")}
-            className="bg-green-600 hover:bg-green-700 text-white text-sm px-3 py-1.5 rounded"
-        >
-            Invoices
-        </button>
+    <button
+        type="button"
+        onClick={() => navigate("/invoices")}
+        className="bg-green-600 hover:bg-green-700 text-white text-sm px-3 py-1.5 rounded"
+    >
+        Invoices
+    </button>
 
-    </div>
+    <button
+        type="button"
+        onClick={handleLogout}
+        className="bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1.5 rounded"
+    >
+        Logout
+    </button>
+
+</div>
 
 </div>
 

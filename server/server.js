@@ -833,46 +833,43 @@ app.post("/api/login", (req, res) => {
     const { username, password } = req.body;
 
     const sql = `
-        SELECT *
+        SELECT id,
+               username,
+               role
         FROM users
         WHERE username = ?
         AND password = ?
     `;
 
-    db.query(
-        sql,
-        [username, password],
-        (err, rows) => {
+    db.query(sql, [username, password], (err, rows) => {
 
-            if (err) {
+        if (err) {
 
-                return res.status(500).json({
-                    success: false,
-                    message: err.message
-                });
-
-            }
-
-            if (rows.length === 0) {
-
-                return res.json({
-                    success: false,
-                    message: "Invalid Username or Password"
-                });
-
-            }
-
-            res.json({
-                success: true,
-                user: {
-                    id: rows[0].id,
-                    username: rows[0].username,
-                    role: rows[0].role
-                }
+            return res.status(500).json({
+                success: false,
+                message: err.message
             });
 
         }
-    );
+
+        if (rows.length === 0) {
+
+            return res.json({
+                success: false,
+                message: "Invalid Username or Password"
+            });
+
+        }
+
+        res.json({
+
+            success: true,
+
+            user: rows[0]
+
+        });
+
+    });
 
 });
 /* ======================================================
