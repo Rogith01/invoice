@@ -809,6 +809,43 @@ app.get("/api/dashboard", (req, res) => {
 
 });
 /* ======================================================
+   DAILY SALES ANALYSIS
+====================================================== */
+
+app.get("/api/dashboard/daily-sales", (req, res) => {
+
+    const sql = `
+        SELECT
+            DATE(invoice_date) AS saleDate,
+            IFNULL(SUM(total), 0) AS sales,
+            COUNT(*) AS orders
+        FROM invoices
+        GROUP BY DATE(invoice_date)
+        ORDER BY saleDate ASC
+    `;
+
+    db.query(sql, (err, rows) => {
+
+        if (err) {
+
+            console.error("Daily Sales Error:", err);
+
+            return res.status(500).json({
+                success: false,
+                message: err.message
+            });
+
+        }
+
+        res.json({
+            success: true,
+            dailySales: rows
+        });
+
+    });
+
+});
+/* ======================================================
    GET ALL INVOICES
 ====================================================== */
 
