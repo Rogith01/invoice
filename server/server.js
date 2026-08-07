@@ -9,6 +9,47 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
+// ======================================================
+// JWT AUTHENTICATION MIDDLEWARE
+// ======================================================
+
+const authenticateToken = (req, res, next) => {
+
+    const authHeader = req.headers["authorization"];
+
+    const token = authHeader && authHeader.split(" ")[1];
+
+    if (!token) {
+
+        return res.status(401).json({
+            success: false,
+            message: "Access token required"
+        });
+
+    }
+
+    jwt.verify(
+        token,
+        process.env.JWT_SECRET,
+        (err, user) => {
+
+            if (err) {
+
+                return res.status(403).json({
+                    success: false,
+                    message: "Invalid or expired token"
+                });
+
+            }
+
+            req.user = user;
+
+            next();
+
+        }
+    );
+
+};
 
 /* ======================================================
    GET NEXT INVOICE NUMBER
@@ -943,52 +984,70 @@ function saveInvoice(customerId , loyaltyPoints) {
    DELETE INVOICE
 ====================================================== */
 
-app.delete("/api/invoices/:id", (req, res) => {
+app.delete(
+    "/api/invoices/:id",
+    authenticateToken,
+    (req, res) => {
 
-    const invoiceId = req.params.id;
+        // Admin only
+        if (req.user.role !== "Admin") {
 
-    // Delete invoice items first
-    db.query(
-        "DELETE FROM invoice_items WHERE invoice_id = ?",
-        [invoiceId],
-        (err) => {
+            return res.status(403).json({
+                success: false,
+                message: "Only Admin can delete invoices"
+            });
 
-            if (err) {
-                console.log(err);
+        }
 
-                return res.status(500).json({
-                    success: false,
-                    message: err.message
-                });
-            }
+        const invoiceId = req.params.id;
 
-            // Now delete invoice
-            db.query(
-                "DELETE FROM invoices WHERE id = ?",
-                [invoiceId],
-                (err, result) => {
+        // Delete invoice items first
+        db.query(
+            "DELETE FROM invoice_items WHERE invoice_id = ?",
+            [invoiceId],
+            (err) => {
 
-                    if (err) {
-                        console.log(err);
+                if (err) {
 
-                        return res.status(500).json({
-                            success: false,
-                            message: err.message
-                        });
-                    }
+                    console.log(err);
 
-                    res.json({
-                        success: true,
-                        message: "Invoice deleted successfully"
+                    return res.status(500).json({
+                        success: false,
+                        message: err.message
                     });
 
                 }
-            );
 
-        }
-    );
+                // Now delete invoice
+                db.query(
+                    "DELETE FROM invoices WHERE id = ?",
+                    [invoiceId],
+                    (err, result) => {
 
-});
+                        if (err) {
+
+                            console.log(err);
+
+                            return res.status(500).json({
+                                success: false,
+                                message: err.message
+                            });
+
+                        }
+
+                        res.json({
+                            success: true,
+                            message: "Invoice deleted successfully"
+                        });
+
+                    }
+                );
+
+            }
+        );
+
+    }
+);
 /* ======================================================
    LOGIN
 ====================================================== */

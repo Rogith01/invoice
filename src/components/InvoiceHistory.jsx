@@ -48,33 +48,57 @@ const InvoiceHistory = () => {
     // ===============================
     // Delete Invoice - Admin Only
     // ===============================
-    const handleDelete = async (id) => {
 
-        const confirmDelete = window.confirm(
-            "Are you sure you want to delete this invoice?"
+const handleDelete = async (id) => {
+
+    const confirmDelete = window.confirm(
+        "Are you sure you want to delete this invoice?"
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+
+        // Get JWT token saved during login
+        const token = sessionStorage.getItem("token");
+
+        await axios.delete(
+            `https://invoice-backend-78hd.onrender.com/api/invoices/${id}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
         );
 
-        if (!confirmDelete) return;
+        alert("Invoice deleted successfully.");
 
-        try {
+        // Refresh invoice list
+        fetchInvoices();
 
-            await axios.delete(
-                `https://invoice-backend-78hd.onrender.com/api/invoices/${id}`
-            );
+    } catch (err) {
 
-            alert("Invoice deleted successfully.");
+        console.log(err);
 
-            fetchInvoices();
+        if (err.response?.status === 401) {
 
-        } catch (err) {
+            alert("Please login again.");
 
-            console.log(err);
+        } else if (err.response?.status === 403) {
+
+            alert("Only Admin can delete invoices.");
+
+        } else {
 
             alert("Failed to delete invoice.");
 
         }
 
-    };
+    }
+
+};
+
+
 
     // ===============================
     // Filter Invoices
