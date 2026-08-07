@@ -71,35 +71,30 @@ const handleKeyDown = (event) => {
 
       <td className="w-full">
 
-        <select
-          ref={itemRef}
-          className="w-full rounded border px-2 py-1"
-          name="name"
-          id={id}
-          value={name}
-          onChange={onEdtiItem}
-          onKeyDown={handleKeyDown}
-          menuPlacement="bottom"
-          menuPosition="fixed"
-          maxMenuHeight={250}
-        >
+<select
+  ref={itemRef}
+  className="w-full rounded border px-2 py-1"
+  name="name"
+  id={id}
+  value={name}
+  onChange={onEdtiItem}
+  onKeyDown={handleKeyDown}
+>
+  <option value="">
+    Select item
+  </option>
 
-          <option value="">
-            Select item
-          </option>
-
-          {
-            itemOptions.map((opt)=>(
-              <option 
-                key={opt.name}
-                value={opt.name}
-              >
-                {opt.name}
-              </option>
-            ))
-          }
-
-        </select>
+  {itemOptions
+    .filter((opt) => opt.stock > 0)
+    .map((opt) => (
+      <option
+        key={opt.id}
+        value={opt.name}
+      >
+        {opt.name} - ({opt.stock})
+      </option>
+    ))}
+</select>
 
       </td>
 

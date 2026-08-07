@@ -85,14 +85,16 @@ const fetchProducts = async () => {
 
     if (res.data.success) {
       const products = res.data.products.map((p) => ({
+        id: p.id,
         name: p.product_name,
-        price: p.price,
+        price: Number(p.price),
+        stock: Number(p.stock_quantity) || 0,
       }));
 
       setItemOptions(products);
     }
   } catch (err) {
-    console.log(err);
+    console.error("Error fetching products:", err);
   }
 };
   // Fetch next invoice number from backend
