@@ -10,6 +10,7 @@ import InvoiceHistory from "./components/InvoiceHistory";
 import InvoiceDetails from "./components/InvoiceDetails";
 import UserManagement from "./components/UserManagement";
 import Navbar from "./components/Navbar";
+import Inventory from "./components/Inventory";
 
 function App() {
 
@@ -92,6 +93,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/inventory" element={<Inventory />} />
 
         </Routes>
 

@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -45,6 +46,7 @@ const Navbar = () => {
 
                         {user?.role === "Admin" && (
                             <>
+
                                 <Link
                                     to="/dashboard"
                                     className="hover:text-gray-300"
@@ -60,11 +62,19 @@ const Navbar = () => {
                                 </Link>
 
                                 <Link
+                                    to="/inventory"
+                                    className="hover:text-gray-300"
+                                >
+                                    Inventory
+                                </Link>
+
+                                <Link
                                     to="/users"
                                     className="hover:text-gray-300"
                                 >
                                     Users
                                 </Link>
+
                             </>
                         )}
 
@@ -169,6 +179,14 @@ const Navbar = () => {
 
                             <Link
                                 className="p-3 border-b hover:bg-slate-600"
+                                to="/inventory"
+                                onClick={() => setMenuOpen(false)}
+                            >
+                                Inventory
+                            </Link>
+
+                            <Link
+                                className="p-3 border-b hover:bg-slate-600"
                                 to="/users"
                                 onClick={() => setMenuOpen(false)}
                             >
@@ -217,6 +235,7 @@ const Navbar = () => {
         </nav>
 
     );
+
 };
 
 export default Navbar;

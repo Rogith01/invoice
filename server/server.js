@@ -133,7 +133,7 @@ app.get("/api/customer/:phone", (req, res) => {
 app.get("/api/products", (req, res) => {
 
     const sql = `
-        SELECT id, product_name, price
+        SELECT id, product_name, price , stock_quantity
         FROM products
         ORDER BY product_name
     `;
@@ -244,6 +244,71 @@ app.put("/api/products/:id", (req, res) => {
             res.json({
                 success: true,
                 message: "Product Updated Successfully"
+            });
+
+        }
+    );
+
+});
+// ======================================================
+// ADD / RESTOCK PRODUCT
+// ======================================================
+
+app.put("/api/products/:id/restock", (req, res) => {
+
+    const productId = req.params.id;
+    const { quantity } = req.body;
+
+    // Validate quantity
+    if (!quantity || Number(quantity) <= 0) {
+
+        return res.status(400).json({
+            success: false,
+            message: "Please enter a valid stock quantity"
+        });
+
+    }
+
+    const stockToAdd = Number(quantity);
+
+    // Add new stock to existing stock
+    const sql = `
+        UPDATE products
+        SET stock_quantity = COALESCE(stock_quantity, 0) + ?
+        WHERE id = ?
+    `;
+
+    db.query(
+        sql,
+        [
+            stockToAdd,
+            productId
+        ],
+        (err, result) => {
+
+            if (err) {
+
+                console.error("Restock Error:", err);
+
+                return res.status(500).json({
+                    success: false,
+                    message: err.message
+                });
+
+            }
+
+            if (result.affectedRows === 0) {
+
+                return res.status(404).json({
+                    success: false,
+                    message: "Product not found"
+                });
+
+            }
+
+            res.json({
+                success: true,
+                message: "Stock added successfully"
             });
 
         }
