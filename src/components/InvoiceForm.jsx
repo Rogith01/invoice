@@ -186,11 +186,14 @@ useEffect(() => {
       console.log(response.data);
 
       // Update invoice number returned from backend
-      setInvoiceNumber(response.data.invoiceNumber);
+setInvoiceNumber(response.data.invoiceNumber);
 
-      setIsOpen(true);
+// Refresh product stock in billing UI
+await fetchProducts();
 
-      await fetchCustomer(phoneNumber);
+setIsOpen(true);
+
+await fetchCustomer(phoneNumber);
 
     } catch (error) {
 
