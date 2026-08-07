@@ -454,38 +454,55 @@ app.get("/api/dashboard", (req, res) => {
 
     const dashboard = {};
 
-    // Total Sales
+    // ==================================================
+    // 1. TOTAL SALES
+    // ==================================================
+
     db.query(
         `
-        SELECT 
-        IFNULL(SUM(total),0) AS totalSales
+        SELECT IFNULL(SUM(total), 0) AS totalSales
         FROM invoices
         `,
         (err, rows) => {
 
-            if (err) return res.status(500).json(err);
+            if (err) {
+                console.error("Total Sales Error:", err);
+                return res.status(500).json({
+                    success: false,
+                    message: err.message
+                });
+            }
 
             dashboard.totalSales = rows[0].totalSales;
 
 
+            // ==================================================
+            // 2. TODAY'S SALES
+            // ==================================================
 
-
-
-            // Today's Sales
             db.query(
                 `
-                SELECT IFNULL(SUM(total),0) AS todaySales
+                SELECT IFNULL(SUM(total), 0) AS todaySales
                 FROM invoices
                 WHERE invoice_date = CURDATE()
                 `,
                 (err, rows) => {
 
-                    if (err) return res.status(500).json(err);
+                    if (err) {
+                        console.error("Today's Sales Error:", err);
+                        return res.status(500).json({
+                            success: false,
+                            message: err.message
+                        });
+                    }
 
                     dashboard.todaySales = rows[0].todaySales;
 
 
-                    // Today's Orders
+                    // ==================================================
+                    // 3. TODAY'S ORDERS
+                    // ==================================================
+
                     db.query(
                         `
                         SELECT COUNT(*) AS todayOrders
@@ -494,46 +511,286 @@ app.get("/api/dashboard", (req, res) => {
                         `,
                         (err, rows) => {
 
-                            if (err) return res.status(500).json(err);
+                            if (err) {
+                                console.error("Today's Orders Error:", err);
+                                return res.status(500).json({
+                                    success: false,
+                                    message: err.message
+                                });
+                            }
 
                             dashboard.todayOrders = rows[0].todayOrders;
 
 
-                            // Cash Sales
+                            // ==================================================
+                            // 4. TODAY'S CASH SALES
+                            // ==================================================
+
                             db.query(
                                 `
-                                SELECT IFNULL(SUM(total),0) AS cashSales
+                                SELECT IFNULL(SUM(total), 0) AS cashSales
                                 FROM invoices
-                                WHERE payment_Method='Cash'
+                                WHERE payment_Method = 'Cash'
                                 AND invoice_date = CURDATE()
                                 `,
                                 (err, rows) => {
 
-                                    if (err) return res.status(500).json(err);
+                                    if (err) {
+                                        console.error("Cash Sales Error:", err);
+                                        return res.status(500).json({
+                                            success: false,
+                                            message: err.message
+                                        });
+                                    }
 
                                     dashboard.cashSales = rows[0].cashSales;
 
 
-                                    // Online Sales
+                                    // ==================================================
+                                    // 5. TODAY'S ONLINE SALES
+                                    // ==================================================
+
                                     db.query(
                                         `
-                                        SELECT IFNULL(SUM(total),0) AS onlineSales
+                                        SELECT IFNULL(SUM(total), 0) AS onlineSales
                                         FROM invoices
-                                        WHERE payment_Method='Online'
+                                        WHERE payment_Method = 'Online'
                                         AND invoice_date = CURDATE()
                                         `,
                                         (err, rows) => {
 
-                                            if (err)
-                                                return res.status(500).json(err);
+                                            if (err) {
+                                                console.error("Online Sales Error:", err);
+                                                return res.status(500).json({
+                                                    success: false,
+                                                    message: err.message
+                                                });
+                                            }
 
                                             dashboard.onlineSales = rows[0].onlineSales;
 
 
-                                            res.json({
-                                                success: true,
-                                                dashboard
-                                            });
+                                            // ==================================================
+                                            // 6. TOP SELLING PRODUCT
+                                            // ==================================================
+
+                                            db.query(
+                                                `
+                                                SELECT
+                                                    item_name,
+                                                    SUM(qty) AS total_quantity_sold
+                                                FROM invoice_items
+                                                GROUP BY item_name
+                                                ORDER BY total_quantity_sold DESC
+                                                LIMIT 1
+                                                `,
+                                                (err, rows) => {
+
+                                                    if (err) {
+                                                        console.error("Top Product Error:", err);
+                                                        return res.status(500).json({
+                                                            success: false,
+                                                            message: err.message
+                                                        });
+                                                    }
+
+                                                    dashboard.topProduct =
+                                                        rows.length > 0
+                                                            ? rows[0]
+                                                            : null;
+
+
+                                                    // ==================================================
+                                                    // 7. TOP CUSTOMER
+                                                    // ==================================================
+
+                                                    db.query(
+                                                        `
+                                                        SELECT
+                                                            customer_name,
+                                                            COUNT(*) AS total_orders,
+                                                            SUM(total) AS total_spent
+                                                        FROM invoices
+                                                        WHERE customer_name IS NOT NULL
+                                                        AND customer_name != ''
+                                                        GROUP BY customer_name
+                                                        ORDER BY total_spent DESC
+                                                        LIMIT 1
+                                                        `,
+                                                        (err, rows) => {
+
+                                                            if (err) {
+                                                                console.error("Top Customer Error:", err);
+                                                                return res.status(500).json({
+                                                                    success: false,
+                                                                    message: err.message
+                                                                });
+                                                            }
+
+                                                            dashboard.topCustomer =
+                                                                rows.length > 0
+                                                                    ? rows[0]
+                                                                    : null;
+
+
+                                                            // ==================================================
+                                                            // 8. TOP CASHIER
+                                                            // ==================================================
+
+                                                            db.query(
+                                                                `
+                                                                SELECT
+                                                                    cashier_name,
+                                                                    COUNT(*) AS total_orders,
+                                                                    SUM(total) AS total_sales
+                                                                FROM invoices
+                                                                WHERE cashier_name IS NOT NULL
+                                                                AND cashier_name != ''
+                                                                GROUP BY cashier_name
+                                                                ORDER BY total_sales DESC
+                                                                LIMIT 1
+                                                                `,
+                                                                (err, rows) => {
+
+                                                                    if (err) {
+                                                                        console.error("Top Cashier Error:", err);
+                                                                        return res.status(500).json({
+                                                                            success: false,
+                                                                            message: err.message
+                                                                        });
+                                                                    }
+
+                                                                    dashboard.topCashier =
+                                                                        rows.length > 0
+                                                                            ? rows[0]
+                                                                            : null;
+
+
+                                                                    // ==================================================
+                                                                    // 9. TOTAL PRODUCTS
+                                                                    // ==================================================
+
+                                                                    db.query(
+                                                                        `
+                                                                        SELECT COUNT(*) AS totalProducts
+                                                                        FROM products
+                                                                        `,
+                                                                        (err, rows) => {
+
+                                                                            if (err) {
+                                                                                console.error("Total Products Error:", err);
+                                                                                return res.status(500).json({
+                                                                                    success: false,
+                                                                                    message: err.message
+                                                                                });
+                                                                            }
+
+                                                                            dashboard.totalProducts =
+                                                                                rows[0].totalProducts;
+
+
+                                                                            // ==================================================
+                                                                            // 10. TOTAL CUSTOMERS
+                                                                            // ==================================================
+
+                                                                            db.query(
+                                                                                `
+                                                                                SELECT COUNT(*) AS totalCustomers
+                                                                                FROM customers
+                                                                                `,
+                                                                                (err, rows) => {
+
+                                                                                    if (err) {
+                                                                                        console.error("Total Customers Error:", err);
+                                                                                        return res.status(500).json({
+                                                                                            success: false,
+                                                                                            message: err.message
+                                                                                        });
+                                                                                    }
+
+                                                                                    dashboard.totalCustomers =
+                                                                                        rows[0].totalCustomers;
+
+
+                                                                                    // ==================================================
+                                                                                    // 11. THIS MONTH'S SALES
+                                                                                    // ==================================================
+
+                                                                                    db.query(
+                                                                                        `
+                                                                                        SELECT IFNULL(SUM(total), 0) AS monthlySales
+                                                                                        FROM invoices
+                                                                                        WHERE YEAR(invoice_date) = YEAR(CURDATE())
+                                                                                        AND MONTH(invoice_date) = MONTH(CURDATE())
+                                                                                        `,
+                                                                                        (err, rows) => {
+
+                                                                                            if (err) {
+                                                                                                console.error("Monthly Sales Error:", err);
+                                                                                                return res.status(500).json({
+                                                                                                    success: false,
+                                                                                                    message: err.message
+                                                                                                });
+                                                                                            }
+
+                                                                                            dashboard.monthlySales =
+                                                                                                rows[0].monthlySales;
+
+
+                                                                                            // ==================================================
+                                                                                            // 12. THIS MONTH'S ORDERS
+                                                                                            // ==================================================
+
+                                                                                            db.query(
+                                                                                                `
+                                                                                                SELECT COUNT(*) AS monthlyOrders
+                                                                                                FROM invoices
+                                                                                                WHERE YEAR(invoice_date) = YEAR(CURDATE())
+                                                                                                AND MONTH(invoice_date) = MONTH(CURDATE())
+                                                                                                `,
+                                                                                                (err, rows) => {
+
+                                                                                                    if (err) {
+                                                                                                        console.error("Monthly Orders Error:", err);
+                                                                                                        return res.status(500).json({
+                                                                                                            success: false,
+                                                                                                            message: err.message
+                                                                                                        });
+                                                                                                    }
+
+                                                                                                    dashboard.monthlyOrders =
+                                                                                                        rows[0].monthlyOrders;
+
+
+                                                                                                    // ==================================================
+                                                                                                    // FINAL RESPONSE
+                                                                                                    // ==================================================
+
+                                                                                                    res.json({
+                                                                                                        success: true,
+                                                                                                        dashboard
+                                                                                                    });
+
+                                                                                                }
+                                                                                            );
+
+                                                                                        }
+                                                                                    );
+
+                                                                                }
+                                                                            );
+
+                                                                        }
+                                                                    );
+
+                                                                }
+                                                            );
+
+                                                        }
+                                                    );
+
+                                                }
+                                            );
 
                                         }
                                     );
@@ -549,10 +806,8 @@ app.get("/api/dashboard", (req, res) => {
 
         }
     );
-}
-    );
 
-
+});
 /* ======================================================
    GET ALL INVOICES
 ====================================================== */

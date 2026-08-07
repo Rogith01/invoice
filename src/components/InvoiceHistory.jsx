@@ -248,21 +248,23 @@ const filteredInvoices = invoices.filter((invoice) =>
                                     </button>
 
 
+
                                     {/* Delete - Admin Only */}
 
                                     {user?.role === "Admin" && (
 
                                         <button
-                                            onClick={() =>
-                                                handleDelete(invoice.id)
-                                            }
-                                            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded ml-2"
+                                            onClick={() => handleDelete(invoice.id)}
+                                            className="text-red-600 hover:text-red-800 ml-3 text-xl"
                                             title="Delete Invoice"
+                                            aria-label="Delete Invoice"
                                         >
-                                            Delete
+                                            🗑️
                                         </button>
 
                                     )}
+
+
 
                                 </td>
 
