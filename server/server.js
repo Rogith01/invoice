@@ -1,5 +1,6 @@
 require("dotenv").config();
 const express = require("express");
+const jwt = require("jsonwebtoken");
 const cors = require("cors");
 const db = require("./db");
 
@@ -997,9 +998,10 @@ app.post("/api/login", (req, res) => {
     const { username, password } = req.body;
 
     const sql = `
-        SELECT id,
-               username,
-               role
+        SELECT
+            id,
+            username,
+            role
         FROM users
         WHERE username = ?
         AND password = ?
@@ -1025,11 +1027,28 @@ app.post("/api/login", (req, res) => {
 
         }
 
+        const user = rows[0];
+
+        // Create JWT token
+        const token = jwt.sign(
+            {
+                id: user.id,
+                username: user.username,
+                role: user.role
+            },
+            process.env.JWT_SECRET,
+            {
+                expiresIn: "8h"
+            }
+        );
+
         res.json({
 
             success: true,
 
-            user: rows[0]
+            token: token,
+
+            user: user
 
         });
 

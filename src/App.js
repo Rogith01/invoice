@@ -3,13 +3,13 @@ import { useState } from "react";
 
 import Login from "./components/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
-
 import InvoiceForm from "./components/InvoiceForm";
 import ProductManagement from "./components/ProductManagement";
 import Dashboard from "./components/Dashboard";
 import InvoiceHistory from "./components/InvoiceHistory";
 import InvoiceDetails from "./components/InvoiceDetails";
 import UserManagement from "./components/UserManagement";
+import Navbar from "./components/Navbar";
 
 function App() {
 
@@ -23,11 +23,15 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
 
-      <div className="mx-auto max-w-7xl">
 
-        <Routes>
+  <div className="min-h-screen bg-gray-100">
+
+    <Navbar />
+
+  <div className="mx-auto max-w-7xl pt-6 px-4">
+
+      <Routes>
 
           {/* Billing - Admin + Cashier */}
           <Route

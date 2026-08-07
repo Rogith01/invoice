@@ -313,69 +313,6 @@ const total =
           </div>
         </div>
 
-<div className="flex justify-between items-center">
-
-  <h1 className="text-xl font-bold">
-    AK SUPER MARKET
-  </h1>
-
-  <div className="flex gap-2">
-
-    {/* Dashboard - Admin Only */}
-    {user?.role === "Admin" && (
-      <button
-        type="button"
-        onClick={() => navigate("/dashboard")}
-        className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1.5 rounded"
-      >
-        Dashboard
-      </button>
-    )}
-
-    {/* Products - Admin Only */}
-    {user?.role === "Admin" && (
-      <button
-        type="button"
-        onClick={() => navigate("/products")}
-        className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-3 py-1.5 rounded"
-      >
-        Products
-      </button>
-    )}
-
-    {/* Invoice History - Admin Only */}
-    {user?.role === "Admin" && (
-      <button
-        type="button"
-        onClick={() => navigate("/invoices")}
-        className="bg-green-600 hover:bg-green-700 text-white text-sm px-3 py-1.5 rounded"
-      >
-        Invoices
-      </button>
-    )}
-{/* User Management - Admin Only */}
-{user?.role === "Admin" && (
-  <button
-    type="button"
-    onClick={() => navigate("/users")}
-    className="bg-purple-600 hover:bg-purple-700 text-white text-sm px-3 py-1.5 rounded"
-  >
-    Users
-  </button>
-)}
-
-    {/* Logout - Everyone */}
-    <button
-      type="button"
-      onClick={handleLogout}
-      className="bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1.5 rounded"
-    >
-      Logout
-    </button>
-
-  </div>
-
-</div>
 
         {/* CASHIER & CUSTOMER */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 pt-4">
