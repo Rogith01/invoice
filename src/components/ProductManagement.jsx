@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const ProductManagement = () => {
@@ -8,7 +7,7 @@ const [products, setProducts] = useState([]);
 const [productName, setProductName] = useState("");
 const [price, setPrice] = useState("");
 const [editingId, setEditingId] = useState(null);
-const navigate = useNavigate();
+
 
 // ===============================
 // Fetch Products

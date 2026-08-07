@@ -3,7 +3,6 @@ import axios from "axios";
 import { uid } from 'uid';
 import InvoiceItem from './InvoiceItem';
 import InvoiceModal from './InvoiceModal';
-import { useNavigate } from "react-router-dom";
 import "../index.css";
 
 const date = new Date();
@@ -31,12 +30,7 @@ const InvoiceForm = () => {
   const [paymentMethod, setPaymentMethod] = useState("Cash");
   const [itemOptions, setItemOptions] = useState([]);
   const reviewBtnRef = useRef(null);
-  const navigate = useNavigate();
-  
-  const handleLogout = () => {
-  sessionStorage.removeItem("user");
-  window.location.reload();
-};
+
   const [currentTime, setCurrentTime] = useState(
   new Date().toLocaleTimeString("en-GB", {
     hour: "2-digit",
