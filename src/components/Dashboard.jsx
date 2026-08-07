@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+
 
 const Dashboard = () => {
 
-    const navigate = useNavigate();
+
 
     const [dashboard, setDashboard] = useState({
         totalSales: 0,
