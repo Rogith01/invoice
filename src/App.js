@@ -14,7 +14,7 @@ import UserManagement from "./components/UserManagement";
 function App() {
 
   const [user, setUser] = useState(
-    JSON.parse(localStorage.getItem("user"))
+    JSON.parse(sessionStorage.getItem("user"))
   );
 
   // Show login page if not logged in

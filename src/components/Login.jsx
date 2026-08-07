@@ -18,7 +18,7 @@ const Login = ({ onLogin }) => {
       );
 
       if (res.data.success) {
-        localStorage.setItem("user", JSON.stringify(res.data.user));
+        sessionStorage.setItem("user", JSON.stringify(res.data.user));
 
         onLogin(res.data.user);
       } else {

@@ -1,7 +1,7 @@
 import { Navigate } from "react-router-dom";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(sessionStorage.getItem("user"));
 
   // Not logged in
   if (!user) {

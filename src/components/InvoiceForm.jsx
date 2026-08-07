@@ -21,7 +21,7 @@ const InvoiceForm = () => {
   const [discount, setDiscount] = useState('2');
   const [tax, setTax] = useState('5');
   const [invoiceNumber, setInvoiceNumber] = useState("INV-0001");
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(sessionStorage.getItem("user"));
   const [cashierName, setCashierName] = useState(user?.username || "");
   const [customerName, setCustomerName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -34,7 +34,7 @@ const InvoiceForm = () => {
   const navigate = useNavigate();
   
   const handleLogout = () => {
-  localStorage.removeItem("user");
+  sessionStorage.removeItem("user");
   window.location.reload();
 };
   const [currentTime, setCurrentTime] = useState(
