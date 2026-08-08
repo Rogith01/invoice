@@ -368,7 +368,7 @@ const Inventory = () => {
                                                 {/* # */}
 
                                                 <td className="border p-3 text-center">
-                                                    {index + 1}
+                                                    {stockMovements.length - index}
                                                 </td>
 
                                                 {/* PRODUCT */}
@@ -1042,7 +1042,7 @@ const Inventory = () => {
             )}
 
         </div>
-        
+
     );
 
 };
