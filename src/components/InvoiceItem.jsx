@@ -73,7 +73,7 @@ const handleKeyDown = (event) => {
 
 <select
   ref={itemRef}
-  className="w-full rounded border px-2 py-1"
+  className="w-full rounded border px-4 py-1"
   name="name"
   id={id}
   value={name}
@@ -91,7 +91,7 @@ const handleKeyDown = (event) => {
         key={opt.id}
         value={opt.name}
       >
-        {opt.name} - ({opt.stock})
+        {opt.name} 
       </option>
     ))}
 </select>

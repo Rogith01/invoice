@@ -310,8 +310,9 @@ const Inventory = () => {
                                                 <button
                                                     onClick={() =>
                                                         openRestock(product)
+
                                                     }
-                                                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold"
+                                                    className="inline-block px-3 py-1 rounded-full text-sm bg-green-500 text-white-1000"
                                                 >
                                                     ➕ Add Stock
                                                 </button>
