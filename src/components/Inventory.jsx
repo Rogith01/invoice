@@ -31,6 +31,12 @@ const Inventory = () => {
     const [adjusting, setAdjusting] = useState(false);
 
     // ==========================================
+    // STOCK STATUS MODAL
+    // ==========================================
+
+    const [stockStatusModal, setStockStatusModal] = useState(null);
+
+    // ==========================================
     // FETCH PRODUCTS
     // ==========================================
 
@@ -93,6 +99,40 @@ const Inventory = () => {
     }, []);
 
     // ==========================================
+    // STOCK SUMMARY
+    // ==========================================
+
+    const totalProducts = products.length;
+
+    const lowStockProducts = products.filter((product) => {
+        const stock = Number(product.stock_quantity ?? 0);
+
+        return stock > 0 && stock <= 10;
+    });
+
+    const outOfStockProducts = products.filter((product) => {
+        const stock = Number(product.stock_quantity ?? 0);
+
+        return stock === 0;
+    });
+
+    // ==========================================
+    // OPEN STOCK STATUS MODAL
+    // ==========================================
+
+    const openStockStatus = (type) => {
+        setStockStatusModal(type);
+    };
+
+    // ==========================================
+    // CLOSE STOCK STATUS MODAL
+    // ==========================================
+
+    const closeStockStatus = () => {
+        setStockStatusModal(null);
+    };
+
+    // ==========================================
     // OPEN RESTOCK
     // ==========================================
 
@@ -132,9 +172,8 @@ const Inventory = () => {
                 },
                 {
                     headers: {
-                        Authorization: `Bearer ${sessionStorage.getItem(
-                            "token"
-                        )}`,
+                        Authorization:
+                            `Bearer ${sessionStorage.getItem("token")}`,
                     },
                 }
             );
@@ -187,7 +226,6 @@ const Inventory = () => {
     const handleAdjustment = async () => {
         const quantity = Number(adjustmentQuantity);
 
-        // Quantity must be an integer and cannot be 0
         if (!Number.isInteger(quantity) || quantity === 0) {
             alert(
                 "Enter a valid adjustment quantity.\nExample: -5 or +5"
@@ -195,7 +233,6 @@ const Inventory = () => {
             return;
         }
 
-        // Reason required
         if (!adjustmentReason.trim()) {
             alert("Please enter a reason for the adjustment.");
             return;
@@ -207,7 +244,6 @@ const Inventory = () => {
 
         const newStock = currentStock + quantity;
 
-        // Prevent negative stock
         if (newStock < 0) {
             alert(
                 `Stock cannot become negative.\n\nCurrent stock: ${currentStock}\nAdjustment: ${quantity}\nNew stock: ${newStock}`
@@ -226,9 +262,8 @@ const Inventory = () => {
                 },
                 {
                     headers: {
-                        Authorization: `Bearer ${sessionStorage.getItem(
-                            "token"
-                        )}`,
+                        Authorization:
+                            `Bearer ${sessionStorage.getItem("token")}`,
                     },
                 }
             );
@@ -243,10 +278,7 @@ const Inventory = () => {
                 fetchProducts();
             }
         } catch (err) {
-            console.log(
-                "Stock Adjustment Error:",
-                err
-            );
+            console.log("Stock Adjustment Error:", err);
 
             alert(
                 err.response?.data?.message ||
@@ -256,6 +288,24 @@ const Inventory = () => {
             setAdjusting(false);
         }
     };
+
+    // ==========================================
+    // PRODUCTS TO DISPLAY IN STATUS MODAL
+    // ==========================================
+
+    const getStatusProducts = () => {
+        if (stockStatusModal === "low") {
+            return lowStockProducts;
+        }
+
+        if (stockStatusModal === "out") {
+            return outOfStockProducts;
+        }
+
+        return [];
+    };
+
+    const statusProducts = getStatusProducts();
 
     // ==========================================
     // RETURN
@@ -280,7 +330,7 @@ const Inventory = () => {
                     </p>
                 </div>
 
-                {/* STOCK HISTORY BUTTON */}
+                {/* STOCK MOVEMENT */}
 
                 <button
                     onClick={() => {
@@ -289,10 +339,88 @@ const Inventory = () => {
                     }}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold"
                 >
-                    📋 Stock History
+                    📋 Stock Movement
                 </button>
 
             </div>
+
+
+            {/* ========================================== */}
+            {/* INVENTORY SUMMARY CARDS */}
+            {/* ========================================== */}
+
+            {!loading && (
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+
+                    {/* TOTAL PRODUCTS */}
+
+                    <div
+                        className="bg-white rounded-xl shadow-md p-5 border-l-4 border-blue-500"
+                    >
+
+                        <p className="text-gray-500 text-sm font-semibold">
+                            Total Products
+                        </p>
+
+                        <p className="text-3xl font-bold text-gray-800 mt-2">
+                            {totalProducts}
+                        </p>
+
+                        <p className="text-sm text-gray-400 mt-1">
+                            Products in inventory
+                        </p>
+
+                    </div>
+
+
+                    {/* LOW STOCK */}
+
+                    <button
+                        onClick={() => openStockStatus("low")}
+                        className="bg-white rounded-xl shadow-md p-5 border-l-4 border-yellow-500 text-left hover:shadow-lg hover:bg-yellow-50 transition"
+                    >
+
+                        <p className="text-gray-500 text-sm font-semibold">
+                            Low Stock
+                        </p>
+
+                        <p className="text-3xl font-bold text-yellow-600 mt-2">
+                            {lowStockProducts.length}
+                        </p>
+
+                        <p className="text-sm text-gray-400 mt-1">
+                            Click to view products →
+                        </p>
+
+                    </button>
+
+
+                    {/* OUT OF STOCK */}
+
+                    <button
+                        onClick={() => openStockStatus("out")}
+                        className="bg-white rounded-xl shadow-md p-5 border-l-4 border-red-500 text-left hover:shadow-lg hover:bg-red-50 transition"
+                    >
+
+                        <p className="text-gray-500 text-sm font-semibold">
+                            Out of Stock
+                        </p>
+
+                        <p className="text-3xl font-bold text-red-600 mt-2">
+                            {outOfStockProducts.length}
+                        </p>
+
+                        <p className="text-sm text-gray-400 mt-1">
+                            Click to view products →
+                        </p>
+
+                    </button>
+
+                </div>
+
+            )}
+
 
             {/* ========================================== */}
             {/* LOADING */}
@@ -311,8 +439,6 @@ const Inventory = () => {
                     <div className="overflow-x-auto">
 
                         <table className="w-full border-collapse">
-
-                            {/* TABLE HEADER */}
 
                             <thead className="bg-gray-100">
 
@@ -346,119 +472,104 @@ const Inventory = () => {
 
                             </thead>
 
-                            {/* TABLE BODY */}
 
                             <tbody>
 
-                                {products.map(
-                                    (product, index) => {
+                                {products.map((product, index) => {
 
-                                        const stock =
-                                            Number(
-                                                product.stock_quantity ?? 0
-                                            );
+                                    const stock = Number(
+                                        product.stock_quantity ?? 0
+                                    );
 
-                                        return (
+                                    return (
 
-                                            <tr
-                                                key={product.id}
-                                                className="hover:bg-gray-50"
-                                            >
+                                        <tr
+                                            key={product.id}
+                                            className="hover:bg-gray-50"
+                                        >
 
-                                                {/* # */}
+                                            <td className="border p-3 text-center">
+                                                {index + 1}
+                                            </td>
 
-                                                <td className="border p-3 text-center">
-                                                    {stockMovements.length - index}
-                                                </td>
+                                            <td className="border p-4 font-semibold text-center">
+                                                {product.product_name}
+                                            </td>
 
-                                                {/* PRODUCT */}
+                                            <td className="border p-4 text-center">
+                                                ₹
+                                                {Number(
+                                                    product.price
+                                                ).toFixed(2)}
+                                            </td>
 
-                                                <td className="border p-4 font-semibold text-center">
-                                                    {product.product_name}
-                                                </td>
+                                            <td className="border p-4 font-semibold text-center">
+                                                {stock}
+                                            </td>
 
-                                                {/* PRICE */}
+                                            <td className="border p-4 text-center">
 
-                                                <td className="border p-4 text-center">
-                                                    ₹
-                                                    {Number(
-                                                        product.price
-                                                    ).toFixed(2)}
-                                                </td>
+                                                {stock === 0 ? (
 
-                                                {/* CURRENT STOCK */}
+                                                    <span className="inline-block px-3 py-1 rounded-full text-sm bg-red-100 text-red-700">
+                                                        Out of Stock
+                                                    </span>
 
-                                                <td className="border p-4 font-semibold text-center">
-                                                    {stock}
-                                                </td>
+                                                ) : stock <= 10 ? (
 
-                                                {/* STATUS */}
+                                                    <span className="inline-block px-3 py-1 rounded-full text-sm bg-yellow-100 text-yellow-700">
+                                                        Low Stock
+                                                    </span>
 
-                                                <td className="border p-4 text-center">
+                                                ) : (
 
-                                                    {stock === 0 ? (
+                                                    <span className="inline-block px-3 py-1 rounded-full text-sm bg-green-100 text-green-700">
+                                                        In Stock
+                                                    </span>
 
-                                                        <span className="inline-block px-3 py-1 rounded-full text-sm bg-red-100 text-red-700">
-                                                            Out of Stock
-                                                        </span>
+                                                )}
 
-                                                    ) : stock <= 10 ? (
+                                            </td>
 
-                                                        <span className="inline-block px-3 py-1 rounded-full text-sm bg-yellow-100 text-yellow-700">
-                                                            Low Stock
-                                                        </span>
+                                            <td className="border p-4 text-center">
 
-                                                    ) : (
+                                                <div className="flex justify-center gap-2">
 
-                                                        <span className="inline-block px-3 py-1 rounded-full text-sm bg-green-100 text-green-700">
-                                                            In Stock
-                                                        </span>
+                                                    {/* ADD STOCK */}
 
-                                                    )}
+                                                    <button
+                                                        onClick={() =>
+                                                            openRestock(
+                                                                product
+                                                            )
+                                                        }
+                                                        className="px-3 py-1 rounded-full text-sm bg-green-500 text-white hover:bg-green-600"
+                                                    >
+                                                        ➕ Add Stock
+                                                    </button>
 
-                                                </td>
 
-                                                {/* ACTION */}
+                                                    {/* ADJUST */}
 
-                                                <td className="border p-4 text-center">
+                                                    <button
+                                                        onClick={() =>
+                                                            openAdjustment(
+                                                                product
+                                                            )
+                                                        }
+                                                        className="px-3 py-1 rounded-full text-sm bg-orange-500 text-white hover:bg-orange-600"
+                                                    >
+                                                        ⚙️ Adjust
+                                                    </button>
 
-                                                    <div className="flex justify-center gap-2">
+                                                </div>
 
-                                                        {/* ADD STOCK */}
+                                            </td>
 
-                                                        <button
-                                                            onClick={() =>
-                                                                openRestock(
-                                                                    product
-                                                                )
-                                                            }
-                                                            className="px-3 py-1 rounded-full text-sm bg-green-500 text-white hover:bg-green-600"
-                                                        >
-                                                            ➕ Add Stock
-                                                        </button>
+                                        </tr>
 
-                                                        {/* ADJUST STOCK */}
-
-                                                        <button
-                                                            onClick={() =>
-                                                                openAdjustment(
-                                                                    product
-                                                                )
-                                                            }
-                                                            className="px-3 py-1 rounded-full text-sm bg-orange-500 text-white hover:bg-orange-600"
-                                                        >
-                                                            ⚙️ Adjust
-                                                        </button>
-
-                                                    </div>
-
-                                                </td>
-
-                                            </tr>
-
-                                        );
-                                    }
-                                )}
+                                    );
+                                })}
 
                             </tbody>
 
@@ -470,6 +581,206 @@ const Inventory = () => {
 
             )}
 
+
+            {/* ================================================= */}
+            {/* LOW / OUT OF STOCK MODAL */}
+            {/* ================================================= */}
+
+            {stockStatusModal && (
+
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+
+                    <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-hidden">
+
+                        {/* HEADER */}
+
+                        <div className="flex justify-between items-center p-5 border-b">
+
+                            <div>
+
+                                <h2 className="text-xl font-bold text-gray-800">
+
+                                    {stockStatusModal === "low"
+                                        ? "Low Stock Products"
+                                        : "Out of Stock Products"}
+
+                                </h2>
+
+                                <p className="text-sm text-gray-500 mt-1">
+
+                                    {stockStatusModal === "low"
+                                        ? `${lowStockProducts.length} product(s) need restocking`
+                                        : `${outOfStockProducts.length} product(s) are out of stock`}
+
+                                </p>
+
+                            </div>
+
+
+                            <button
+                                onClick={closeStockStatus}
+                                className="text-gray-500 hover:text-gray-800 text-2xl"
+                            >
+                                ×
+                            </button>
+
+                        </div>
+
+
+                        {/* CONTENT */}
+
+                        <div className="p-5 overflow-y-auto max-h-[65vh]">
+
+                            {statusProducts.length === 0 ? (
+
+                                <div className="text-center py-10">
+
+                                    <p className="text-gray-500">
+                                        {stockStatusModal === "low"
+                                            ? "🎉 No low stock products."
+                                            : "🎉 No out of stock products."}
+                                    </p>
+
+                                </div>
+
+                            ) : (
+
+                                <div className="overflow-x-auto">
+
+                                    <table className="w-full border-collapse">
+
+                                        <thead className="bg-gray-100">
+
+                                            <tr>
+
+                                                <th className="border p-3">
+                                                    #
+                                                </th>
+
+                                                <th className="border p-3">
+                                                    Product
+                                                </th>
+
+                                                <th className="border p-3">
+                                                    Price
+                                                </th>
+
+                                                <th className="border p-3">
+                                                    Current Stock
+                                                </th>
+
+                                                <th className="border p-3">
+                                                    Action
+                                                </th>
+
+                                            </tr>
+
+                                        </thead>
+
+
+                                        <tbody>
+
+                                            {statusProducts.map(
+                                                (product, index) => {
+
+                                                    const stock =
+                                                        Number(
+                                                            product.stock_quantity ??
+                                                                0
+                                                        );
+
+                                                    return (
+
+                                                        <tr
+                                                            key={product.id}
+                                                            className="hover:bg-gray-50"
+                                                        >
+
+                                                            <td className="border p-3 text-center">
+                                                                {index + 1}
+                                                            </td>
+
+                                                            <td className="border p-3 font-semibold">
+                                                                {
+                                                                    product.product_name
+                                                                }
+                                                            </td>
+
+                                                            <td className="border p-3 text-center">
+                                                                ₹
+                                                                {Number(
+                                                                    product.price
+                                                                ).toFixed(2)}
+                                                            </td>
+
+                                                            <td className="border p-3 text-center font-bold">
+
+                                                                <span
+                                                                    className={
+                                                                        stock ===
+                                                                        0
+                                                                            ? "text-red-600"
+                                                                            : "text-yellow-600"
+                                                                    }
+                                                                >
+                                                                    {stock}
+                                                                </span>
+
+                                                            </td>
+
+                                                            <td className="border p-3 text-center">
+
+                                                                <button
+                                                                    onClick={() => {
+                                                                        closeStockStatus();
+                                                                        openRestock(
+                                                                            product
+                                                                        );
+                                                                    }}
+                                                                    className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-lg text-sm font-semibold"
+                                                                >
+                                                                    ➕ Add Stock
+                                                                </button>
+
+                                                            </td>
+
+                                                        </tr>
+
+                                                    );
+                                                }
+                                            )}
+
+                                        </tbody>
+
+                                    </table>
+
+                                </div>
+
+                            )}
+
+                        </div>
+
+
+                        {/* FOOTER */}
+
+                        <div className="border-t p-4 flex justify-end">
+
+                            <button
+                                onClick={closeStockStatus}
+                                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-5 py-2 rounded-lg font-semibold"
+                            >
+                                Close
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            )}
+
+
             {/* ================================================= */}
             {/* RESTOCK MODAL */}
             {/* ================================================= */}
@@ -479,8 +790,6 @@ const Inventory = () => {
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
 
                     <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-
-                        {/* HEADER */}
 
                         <div className="flex justify-between items-center mb-5">
 
@@ -497,7 +806,6 @@ const Inventory = () => {
 
                         </div>
 
-                        {/* PRODUCT */}
 
                         <div className="bg-gray-100 rounded-lg p-4 mb-5">
 
@@ -521,7 +829,6 @@ const Inventory = () => {
 
                         </div>
 
-                        {/* QUANTITY */}
 
                         <label className="block text-sm font-semibold text-gray-700 mb-2">
                             Quantity to Add
@@ -541,7 +848,6 @@ const Inventory = () => {
                             className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
 
-                        {/* NEW STOCK PREVIEW */}
 
                         {Number(restockQuantity) > 0 && (
 
@@ -566,7 +872,6 @@ const Inventory = () => {
 
                         )}
 
-                        {/* BUTTONS */}
 
                         <div className="flex gap-3 mt-6">
 
@@ -600,6 +905,7 @@ const Inventory = () => {
 
             )}
 
+
             {/* ================================================= */}
             {/* STOCK ADJUSTMENT MODAL */}
             {/* ================================================= */}
@@ -610,11 +916,10 @@ const Inventory = () => {
 
                     <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
 
-                        {/* HEADER */}
-
                         <div className="flex justify-between items-center mb-5">
 
                             <div>
+
                                 <h2 className="text-xl font-bold text-gray-800">
                                     Stock Adjustment
                                 </h2>
@@ -622,6 +927,7 @@ const Inventory = () => {
                                 <p className="text-sm text-gray-500">
                                     Correct damaged, lost or extra stock
                                 </p>
+
                             </div>
 
                             <button
@@ -633,7 +939,6 @@ const Inventory = () => {
 
                         </div>
 
-                        {/* PRODUCT INFO */}
 
                         <div className="bg-gray-100 rounded-lg p-4 mb-5">
 
@@ -657,7 +962,6 @@ const Inventory = () => {
 
                         </div>
 
-                        {/* ADJUSTMENT QUANTITY */}
 
                         <label className="block text-sm font-semibold text-gray-700 mb-2">
                             Adjustment Quantity
@@ -681,7 +985,6 @@ const Inventory = () => {
                             Use a positive number to add stock.
                         </p>
 
-                        {/* REASON */}
 
                         <label className="block text-sm font-semibold text-gray-700 mt-5 mb-2">
                             Reason
@@ -727,12 +1030,9 @@ const Inventory = () => {
 
                         </select>
 
-                        {/* NEW STOCK PREVIEW */}
 
                         {adjustmentQuantity &&
-                            Number(
-                                adjustmentQuantity
-                            ) !== 0 && (
+                            Number(adjustmentQuantity) !== 0 && (
 
                                 <div
                                     className={`mt-4 rounded-lg p-3 text-center ${
@@ -770,7 +1070,6 @@ const Inventory = () => {
 
                             )}
 
-                        {/* BUTTONS */}
 
                         <div className="flex gap-3 mt-6">
 
@@ -787,9 +1086,7 @@ const Inventory = () => {
                                 disabled={
                                     adjusting ||
                                     !adjustmentQuantity ||
-                                    Number(
-                                        adjustmentQuantity
-                                    ) === 0 ||
+                                    Number(adjustmentQuantity) === 0 ||
                                     !adjustmentReason
                                 }
                                 className="flex-1 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg font-semibold"
@@ -807,6 +1104,7 @@ const Inventory = () => {
 
             )}
 
+
             {/* ================================================= */}
             {/* STOCK HISTORY MODAL */}
             {/* ================================================= */}
@@ -817,11 +1115,10 @@ const Inventory = () => {
 
                     <div className="bg-white rounded-xl shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden">
 
-                        {/* HEADER */}
-
                         <div className="flex justify-between items-center p-5 border-b">
 
                             <div>
+
                                 <h2 className="text-xl font-bold text-gray-800">
                                     Stock History
                                 </h2>
@@ -829,13 +1126,12 @@ const Inventory = () => {
                                 <p className="text-sm text-gray-500">
                                     View all stock movements
                                 </p>
+
                             </div>
 
                             <button
                                 onClick={() =>
-                                    setShowStockHistory(
-                                        false
-                                    )
+                                    setShowStockHistory(false)
                                 }
                                 className="text-gray-500 hover:text-gray-800 text-2xl"
                             >
@@ -844,7 +1140,6 @@ const Inventory = () => {
 
                         </div>
 
-                        {/* CONTENT */}
 
                         <div className="p-5 overflow-auto max-h-[70vh]">
 
@@ -854,8 +1149,7 @@ const Inventory = () => {
                                     Loading stock history...
                                 </div>
 
-                            ) : stockMovements.length ===
-                              0 ? (
+                            ) : stockMovements.length === 0 ? (
 
                                 <div className="text-center py-10 text-gray-500">
                                     No stock movements found.
@@ -911,6 +1205,7 @@ const Inventory = () => {
 
                                         </thead>
 
+
                                         <tbody>
 
                                             {stockMovements.map(
@@ -927,8 +1222,7 @@ const Inventory = () => {
                                                     >
 
                                                         <td className="border p-3 text-center">
-                                                            {index +
-                                                                1}
+                                                            {index + 1}
                                                         </td>
 
                                                         <td className="border p-3 font-semibold">
@@ -1018,7 +1312,6 @@ const Inventory = () => {
 
                         </div>
 
-                        {/* FOOTER */}
 
                         <div className="border-t p-4 flex justify-end">
 
@@ -1042,9 +1335,7 @@ const Inventory = () => {
             )}
 
         </div>
-
     );
-
 };
 
 export default Inventory;
