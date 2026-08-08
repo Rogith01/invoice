@@ -254,7 +254,7 @@ app.put("/api/products/:id", (req, res) => {
 // ADD / RESTOCK PRODUCT
 // ======================================================
 
-app.put("/api/products/:id/restock", (req, res) => {
+app.put("/api/products/:id/restock", authenticateToken, (req, res) => {
 
     const productId = req.params.id;
     const { quantity } = req.body;
@@ -271,24 +271,27 @@ app.put("/api/products/:id/restock", (req, res) => {
 
     const stockToAdd = Number(quantity);
 
-    // Add new stock to existing stock
-    const sql = `
-        UPDATE products
-        SET stock_quantity = COALESCE(stock_quantity, 0) + ?
+    // ======================================================
+    // GET CURRENT PRODUCT
+    // ======================================================
+
+    const getProductSql = `
+        SELECT
+            id,
+            product_name,
+            stock_quantity
+        FROM products
         WHERE id = ?
     `;
 
     db.query(
-        sql,
-        [
-            stockToAdd,
-            productId
-        ],
-        (err, result) => {
+        getProductSql,
+        [productId],
+        (err, rows) => {
 
             if (err) {
 
-                console.error("Restock Error:", err);
+                console.error("Get Product Error:", err);
 
                 return res.status(500).json({
                     success: false,
@@ -297,7 +300,8 @@ app.put("/api/products/:id/restock", (req, res) => {
 
             }
 
-            if (result.affectedRows === 0) {
+            // Product not found
+            if (rows.length === 0) {
 
                 return res.status(404).json({
                     success: false,
@@ -306,10 +310,128 @@ app.put("/api/products/:id/restock", (req, res) => {
 
             }
 
-            res.json({
-                success: true,
-                message: "Stock added successfully"
-            });
+            const product = rows[0];
+
+            const stockBefore =
+                Number(product.stock_quantity) || 0;
+
+            const stockAfter =
+                stockBefore + stockToAdd;
+
+
+            // ======================================================
+            // UPDATE PRODUCT STOCK
+            // ======================================================
+
+            const updateStockSql = `
+                UPDATE products
+                SET stock_quantity = ?
+                WHERE id = ?
+            `;
+
+            db.query(
+                updateStockSql,
+                [
+                    stockAfter,
+                    productId
+                ],
+                (err) => {
+
+                    if (err) {
+
+                        console.error(
+                            "Restock Update Error:",
+                            err
+                        );
+
+                        return res.status(500).json({
+                            success: false,
+                            message: err.message
+                        });
+
+                    }
+
+
+                    // ======================================================
+                    // RECORD STOCK MOVEMENT
+                    // ======================================================
+
+                    const movementSql = `
+                        INSERT INTO stock_movements
+                        (
+                            product_id,
+                            product_name,
+                            movement_type,
+                            quantity,
+                            stock_before,
+                            stock_after,
+                            reference_type,
+                            reference_id,
+                            performed_by
+                        )
+                        VALUES
+                        (
+                            ?,
+                            ?,
+                            'STOCK_IN',
+                            ?,
+                            ?,
+                            ?,
+                            'RESTOCK',
+                            NULL,
+                            ?
+                        )
+                    `;
+
+                    db.query(
+                        movementSql,
+                        [
+                            productId,
+                            product.product_name,
+                            stockToAdd,
+                            stockBefore,
+                            stockAfter,
+                            req.user.username
+                        ],
+                        (err) => {
+
+                            if (err) {
+
+                                console.error(
+                                    "Stock Movement Error:",
+                                    err
+                                );
+
+                                return res.status(500).json({
+                                    success: false,
+                                    message: err.message
+                                });
+
+                            }
+
+
+                            // ======================================================
+                            // FINAL RESPONSE
+                            // ======================================================
+
+                            res.json({
+
+                                success: true,
+
+                                message:
+                                    "Stock added successfully",
+
+                                stockBefore,
+                                stockAdded: stockToAdd,
+                                stockAfter
+
+                            });
+
+                        }
+                    );
+
+                }
+            );
 
         }
     );

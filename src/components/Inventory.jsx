@@ -101,16 +101,17 @@ const Inventory = () => {
         try {
 
             setRestocking(true);
-
-            const res = await axios.put(
-
-                `https://invoice-backend-78hd.onrender.com/api/products/${restockProduct.id}/restock`,
-
-                {
-                    quantity: quantity
-                }
-
-            );
+const res = await axios.put(
+    `https://invoice-backend-78hd.onrender.com/api/products/${restockProduct.id}/restock`,
+    {
+        quantity: quantity
+    },
+    {
+        headers: {
+            Authorization: `Bearer ${sessionStorage.getItem("token")}`
+        }
+    }
+);
 
 
             if (res.data.success) {
