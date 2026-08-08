@@ -6,13 +6,21 @@ const Inventory = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // Product currently being restocked
+    // ==========================================
+    // RESTOCK STATES
+    // ==========================================
+
     const [restockProduct, setRestockProduct] = useState(null);
-
-    // Quantity to add
     const [restockQuantity, setRestockQuantity] = useState("");
-
     const [restocking, setRestocking] = useState(false);
+
+    // ==========================================
+    // STOCK HISTORY STATES
+    // ==========================================
+
+    const [showStockHistory, setShowStockHistory] = useState(false);
+    const [stockMovements, setStockMovements] = useState([]);
+    const [historyLoading, setHistoryLoading] = useState(false);
 
 
     // ==========================================
@@ -40,6 +48,49 @@ const Inventory = () => {
         } finally {
 
             setLoading(false);
+
+        }
+
+    };
+
+
+    // ==========================================
+    // FETCH STOCK HISTORY
+    // ==========================================
+
+    const fetchStockHistory = async () => {
+
+        try {
+
+            setHistoryLoading(true);
+
+            const res = await axios.get(
+                "https://invoice-backend-78hd.onrender.com/api/stock-movements",
+                {
+                    headers: {
+                        Authorization: `Bearer ${sessionStorage.getItem("token")}`
+                    }
+                }
+            );
+
+            if (res.data.success) {
+
+                setStockMovements(res.data.movements);
+
+            }
+
+        } catch (err) {
+
+            console.log("Stock History Error:", err);
+
+            alert(
+                err.response?.data?.message ||
+                "Failed to load stock history."
+            );
+
+        } finally {
+
+            setHistoryLoading(false);
 
         }
 
@@ -97,21 +148,26 @@ const Inventory = () => {
 
         }
 
-
         try {
 
             setRestocking(true);
-const res = await axios.put(
-    `https://invoice-backend-78hd.onrender.com/api/products/${restockProduct.id}/restock`,
-    {
-        quantity: quantity
-    },
-    {
-        headers: {
-            Authorization: `Bearer ${sessionStorage.getItem("token")}`
-        }
-    }
-);
+
+            const res = await axios.put(
+
+                `https://invoice-backend-78hd.onrender.com/api/products/${restockProduct.id}/restock`,
+
+                {
+                    quantity: quantity
+                },
+
+                {
+                    headers: {
+                        Authorization:
+                            `Bearer ${sessionStorage.getItem("token")}`
+                    }
+                }
+
+            );
 
 
             if (res.data.success) {
@@ -120,10 +176,8 @@ const res = await axios.put(
                     `${quantity} stock added to ${restockProduct.product_name}`
                 );
 
-                // Close popup
                 closeRestock();
 
-                // Refresh inventory
                 fetchProducts();
 
             }
@@ -150,26 +204,48 @@ const res = await axios.put(
 
         <div className="max-w-7xl mx-auto p-4 md:p-6">
 
-            {/* ============================= */}
+            {/* ========================================== */}
             {/* HEADER */}
-            {/* ============================= */}
+            {/* ========================================== */}
 
-            <div className="mb-8">
+            <div className="mb-8 flex justify-between items-start">
 
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
-                    Inventory
-                </h1>
+                <div>
 
-                <p className="text-gray-500 mt-1">
-                    Manage your supermarket stock
-                </p>
+                    <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
+                        Inventory
+                    </h1>
+
+                    <p className="text-gray-500 mt-1">
+                        Manage your supermarket stock
+                    </p>
+
+                </div>
+
+
+                {/* ========================================== */}
+                {/* STOCK HISTORY BUTTON */}
+                {/* ========================================== */}
+
+                <button
+                    onClick={() => {
+
+                        setShowStockHistory(true);
+
+                        fetchStockHistory();
+
+                    }}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold"
+                >
+                    📋 Stock History
+                </button>
 
             </div>
 
 
-            {/* ============================= */}
+            {/* ========================================== */}
             {/* LOADING */}
-            {/* ============================= */}
+            {/* ========================================== */}
 
             {loading ? (
 
@@ -184,10 +260,6 @@ const res = await axios.put(
                     <div className="overflow-x-auto">
 
                         <table className="w-full border-collapse">
-
-                            {/* ============================= */}
-                            {/* TABLE HEADER */}
-                            {/* ============================= */}
 
                             <thead className="bg-gray-100">
 
@@ -222,17 +294,14 @@ const res = await axios.put(
                             </thead>
 
 
-                            {/* ============================= */}
-                            {/* TABLE BODY */}
-                            {/* ============================= */}
-
                             <tbody>
 
                                 {products.map((product, index) => {
 
-                                    const stock = Number(
-                                        product.stock_quantity ?? 0
-                                    );
+                                    const stock =
+                                        Number(
+                                            product.stock_quantity ?? 0
+                                        );
 
 
                                     return (
@@ -311,9 +380,8 @@ const res = await axios.put(
                                                 <button
                                                     onClick={() =>
                                                         openRestock(product)
-
                                                     }
-                                                    className="inline-block px-3 py-1 rounded-full text-sm bg-green-500 text-white-1000"
+                                                    className="inline-block px-3 py-1 rounded-full text-sm bg-green-500 text-white hover:bg-green-600"
                                                 >
                                                     ➕ Add Stock
                                                 </button>
@@ -347,7 +415,8 @@ const res = await axios.put(
 
                     <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
 
-                        {/* Header */}
+
+                        {/* HEADER */}
 
                         <div className="flex justify-between items-center mb-5">
 
@@ -365,7 +434,7 @@ const res = await axios.put(
                         </div>
 
 
-                        {/* Product */}
+                        {/* PRODUCT */}
 
                         <div className="bg-gray-100 rounded-lg p-4 mb-5">
 
@@ -390,7 +459,7 @@ const res = await axios.put(
                         </div>
 
 
-                        {/* Quantity */}
+                        {/* QUANTITY */}
 
                         <label className="block text-sm font-semibold text-gray-700 mb-2">
                             Quantity to Add
@@ -409,7 +478,7 @@ const res = await axios.put(
                         />
 
 
-                        {/* New Stock Preview */}
+                        {/* NEW STOCK PREVIEW */}
 
                         {Number(restockQuantity) > 0 && (
 
@@ -421,9 +490,12 @@ const res = await axios.put(
 
                                 <p className="text-xl font-bold text-green-600">
 
-                                    {Number(
-                                        restockProduct.stock_quantity ?? 0
-                                    ) + Number(restockQuantity)}
+                                    {
+                                        Number(
+                                            restockProduct.stock_quantity ?? 0
+                                        ) +
+                                        Number(restockQuantity)
+                                    }
 
                                 </p>
 
@@ -432,7 +504,7 @@ const res = await axios.put(
                         )}
 
 
-                        {/* Buttons */}
+                        {/* BUTTONS */}
 
                         <div className="flex gap-3 mt-6">
 
@@ -459,6 +531,235 @@ const res = await axios.put(
                                     ? "Adding..."
                                     : "Add Stock"}
 
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            )}
+
+
+            {/* ========================================== */}
+            {/* STOCK HISTORY MODAL */}
+            {/* ========================================== */}
+
+            {showStockHistory && (
+
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+
+                    <div className="bg-white rounded-xl shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden">
+
+
+                        {/* HEADER */}
+
+                        <div className="flex justify-between items-center p-5 border-b">
+
+                            <div>
+
+                                <h2 className="text-xl font-bold text-gray-800">
+                                    Stock History
+                                </h2>
+
+                                <p className="text-sm text-gray-500">
+                                    View all stock movements
+                                </p>
+
+                            </div>
+
+
+                            <button
+                                onClick={() =>
+                                    setShowStockHistory(false)
+                                }
+                                className="text-gray-500 hover:text-gray-800 text-2xl"
+                            >
+                                ×
+                            </button>
+
+                        </div>
+
+
+                        {/* CONTENT */}
+
+                        <div className="p-5 overflow-auto max-h-[70vh]">
+
+                            {historyLoading ? (
+
+                                <div className="text-center py-10 text-gray-500">
+                                    Loading stock history...
+                                </div>
+
+                            ) : stockMovements.length === 0 ? (
+
+                                <div className="text-center py-10 text-gray-500">
+                                    No stock movements found.
+                                </div>
+
+                            ) : (
+
+                                <div className="overflow-x-auto">
+
+                                    <table className="w-full border-collapse">
+
+                                        <thead className="bg-gray-100">
+
+                                            <tr>
+
+                                                <th className="border p-3">
+                                                    #
+                                                </th>
+
+                                                <th className="border p-3">
+                                                    Product
+                                                </th>
+
+                                                <th className="border p-3">
+                                                    Type
+                                                </th>
+
+                                                <th className="border p-3">
+                                                    Quantity
+                                                </th>
+
+                                                <th className="border p-3">
+                                                    Before
+                                                </th>
+
+                                                <th className="border p-3">
+                                                    After
+                                                </th>
+
+                                                <th className="border p-3">
+                                                    Reference
+                                                </th>
+
+                                                <th className="border p-3">
+                                                    Performed By
+                                                </th>
+
+                                                <th className="border p-3">
+                                                    Date
+                                                </th>
+
+                                            </tr>
+
+                                        </thead>
+
+
+                                        <tbody>
+
+                                            {stockMovements.map(
+                                                (movement, index) => (
+
+                                                    <tr
+                                                        key={movement.id}
+                                                        className="hover:bg-gray-50"
+                                                    >
+
+                                                        <td className="border p-3 text-center">
+                                                            {index + 1}
+                                                        </td>
+
+
+                                                        <td className="border p-3 font-semibold">
+                                                            {movement.product_name}
+                                                        </td>
+
+
+                                                        <td className="border p-3 text-center">
+
+                                                            {movement.movement_type ===
+                                                            "STOCK_IN" ? (
+
+                                                                <span className="px-3 py-1 rounded-full text-sm bg-green-100 text-green-700">
+                                                                    STOCK IN
+                                                                </span>
+
+                                                            ) : movement.movement_type ===
+                                                              "STOCK_OUT" ? (
+
+                                                                <span className="px-3 py-1 rounded-full text-sm bg-red-100 text-red-700">
+                                                                    STOCK OUT
+                                                                </span>
+
+                                                            ) : (
+
+                                                                <span className="px-3 py-1 rounded-full text-sm bg-yellow-100 text-yellow-700">
+                                                                    ADJUSTMENT
+                                                                </span>
+
+                                                            )}
+
+                                                        </td>
+
+
+                                                        <td className="border p-3 text-center font-semibold">
+                                                            {movement.quantity}
+                                                        </td>
+
+
+                                                        <td className="border p-3 text-center">
+                                                            {movement.stock_before}
+                                                        </td>
+
+
+                                                        <td className="border p-3 text-center font-semibold">
+                                                            {movement.stock_after}
+                                                        </td>
+
+
+                                                        <td className="border p-3 text-center">
+                                                            {movement.reference_type ||
+                                                                "-"}
+                                                        </td>
+
+
+                                                        <td className="border p-3 text-center">
+                                                            {movement.performed_by ||
+                                                                "-"}
+                                                        </td>
+
+
+                                                        <td className="border p-3 text-center whitespace-nowrap">
+
+                                                            {new Date(
+                                                                movement.created_at
+                                                            ).toLocaleString(
+                                                                "en-IN"
+                                                            )}
+
+                                                        </td>
+
+                                                    </tr>
+
+                                                )
+                                            )}
+
+                                        </tbody>
+
+                                    </table>
+
+                                </div>
+
+                            )}
+
+                        </div>
+
+
+                        {/* FOOTER */}
+
+                        <div className="border-t p-4 flex justify-end">
+
+                            <button
+                                onClick={() =>
+                                    setShowStockHistory(false)
+                                }
+                                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-5 py-2 rounded-lg font-semibold"
+                            >
+                                Close
                             </button>
 
                         </div>

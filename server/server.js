@@ -437,6 +437,57 @@ app.put("/api/products/:id/restock", authenticateToken, (req, res) => {
     );
 
 });
+// ======================================================
+// GET STOCK MOVEMENT HISTORY
+// ======================================================
+
+app.get(
+    "/api/stock-movements",
+    authenticateToken,
+    (req, res) => {
+
+        const sql = `
+            SELECT
+                id,
+                product_id,
+                product_name,
+                movement_type,
+                quantity,
+                stock_before,
+                stock_after,
+                reference_type,
+                reference_id,
+                performed_by,
+                created_at
+            FROM stock_movements
+            ORDER BY created_at DESC
+        `;
+
+        db.query(sql, (err, rows) => {
+
+            if (err) {
+
+                console.error(
+                    "Stock Movements Error:",
+                    err
+                );
+
+                return res.status(500).json({
+                    success: false,
+                    message: err.message
+                });
+
+            }
+
+            res.json({
+                success: true,
+                movements: rows
+            });
+
+        });
+
+    }
+);
 /* ======================================================
    DELETE PRODUCT
 ====================================================== */
