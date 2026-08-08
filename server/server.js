@@ -438,6 +438,229 @@ app.put("/api/products/:id/restock", authenticateToken, (req, res) => {
 
 });
 // ======================================================
+// STOCK ADJUSTMENT
+// ======================================================
+
+app.put(
+    "/api/products/:id/adjust-stock",
+    authenticateToken,
+    (req, res) => {
+
+        // Admin only
+        if (req.user.role !== "Admin") {
+            return res.status(403).json({
+                success: false,
+                message: "Only Admin can adjust stock"
+            });
+        }
+
+        const productId = req.params.id;
+
+        const {
+            quantity,
+            reason
+        } = req.body;
+
+        const adjustment = Number(quantity);
+
+        // Validate adjustment
+        if (!Number.isInteger(adjustment) || adjustment === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Adjustment quantity must be a non-zero whole number"
+            });
+        }
+
+        if (!reason || !reason.trim()) {
+            return res.status(400).json({
+                success: false,
+                message: "Please provide a reason for the adjustment"
+            });
+        }
+
+
+        // ======================================================
+        // GET CURRENT STOCK
+        // ======================================================
+
+        const getProductSql = `
+            SELECT
+                id,
+                product_name,
+                stock_quantity
+            FROM products
+            WHERE id = ?
+        `;
+
+        db.query(
+            getProductSql,
+            [productId],
+            (err, rows) => {
+
+                if (err) {
+                    console.error("Adjustment Product Error:", err);
+
+                    return res.status(500).json({
+                        success: false,
+                        message: err.message
+                    });
+                }
+
+                if (rows.length === 0) {
+                    return res.status(404).json({
+                        success: false,
+                        message: "Product not found"
+                    });
+                }
+
+                const product = rows[0];
+
+                const stockBefore =
+                    Number(product.stock_quantity) || 0;
+
+                const stockAfter =
+                    stockBefore + adjustment;
+
+
+                // Prevent negative stock
+                if (stockAfter < 0) {
+
+                    return res.status(400).json({
+                        success: false,
+                        message:
+                            `Stock cannot become negative. ` +
+                            `Current stock: ${stockBefore}`
+                    });
+
+                }
+
+
+                // ======================================================
+                // UPDATE PRODUCT STOCK
+                // ======================================================
+
+                const updateStockSql = `
+                    UPDATE products
+                    SET stock_quantity = ?
+                    WHERE id = ?
+                `;
+
+                db.query(
+                    updateStockSql,
+                    [
+                        stockAfter,
+                        productId
+                    ],
+                    (err) => {
+
+                        if (err) {
+
+                            console.error(
+                                "Adjustment Update Error:",
+                                err
+                            );
+
+                            return res.status(500).json({
+                                success: false,
+                                message: err.message
+                            });
+
+                        }
+
+
+                        // ======================================================
+                        // RECORD STOCK MOVEMENT
+                        // ======================================================
+
+                        const movementSql = `
+                            INSERT INTO stock_movements
+                            (
+                                product_id,
+                                product_name,
+                                movement_type,
+                                quantity,
+                                stock_before,
+                                stock_after,
+                                reference_type,
+                                performed_by
+                            )
+                            VALUES
+                            (
+                                ?,
+                                ?,
+                                'ADJUSTMENT',
+                                ?,
+                                ?,
+                                ?,
+                                ?,
+                                ?
+                            )
+                        `;
+
+                        db.query(
+                            movementSql,
+                            [
+                                product.id,
+                                product.product_name,
+
+                                // Store absolute adjustment amount
+                                Math.abs(adjustment),
+
+                                stockBefore,
+                                stockAfter,
+
+                                reason.trim(),
+
+                                req.user.username
+                            ],
+                            (err) => {
+
+                                if (err) {
+
+                                    console.error(
+                                        "Adjustment History Error:",
+                                        err
+                                    );
+
+                                    return res.status(500).json({
+                                        success: false,
+                                        message: err.message
+                                    });
+
+                                }
+
+
+                                // ======================================================
+                                // FINAL RESPONSE
+                                // ======================================================
+
+                                res.json({
+                                    success: true,
+                                    message:
+                                        "Stock adjusted successfully",
+
+                                    productName:
+                                        product.product_name,
+
+                                    stockBefore,
+                                    adjustment,
+                                    stockAfter,
+
+                                    reason: reason.trim()
+                                });
+
+                            }
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+    }
+);
+// ======================================================
 // GET STOCK MOVEMENT HISTORY
 // ======================================================
 
