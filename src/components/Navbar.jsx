@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-const Navbar = () => {
+const Navbar = ({ onLogout }) => {
 
     const navigate = useNavigate();
 
@@ -10,13 +10,6 @@ const Navbar = () => {
 
     const [menuOpen, setMenuOpen] = useState(false);
 
-    const logout = () => {
-
-        sessionStorage.removeItem("user");
-
-        window.location.reload();
-
-    };
 
     return (
 
@@ -109,7 +102,7 @@ const Navbar = () => {
                         {/* Logout */}
 
                         <button
-                            onClick={logout}
+                            onClick={onLogout}
                             className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded"
                         >
                             Logout
@@ -222,7 +215,7 @@ const Navbar = () => {
                     {/* Logout */}
 
                     <button
-                        onClick={logout}
+                        onClick={onLogout}
                         className="text-left p-3 hover:bg-red-700"
                     >
                         Logout

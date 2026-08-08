@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { useState } from "react";
 
 import Login from "./components/Login";
@@ -18,86 +18,144 @@ function App() {
     JSON.parse(sessionStorage.getItem("user"))
   );
 
-  // Show login page if not logged in
-  if (!user) {
-    return <Login onLogin={setUser} />;
-  }
+  // Login handler
+  const handleLogin = (loggedInUser) => {
+    setUser(loggedInUser);
+  };
+
+  // Logout handler
+  const handleLogout = () => {
+    sessionStorage.removeItem("user");
+    sessionStorage.removeItem("token");
+    setUser(null);
+  };
+
+  // If user is not logged in, show only login routes
+
+if (!user) {
+  return (
+    <Routes>
+
+      <Route
+        path="/login"
+        element={<Login onLogin={handleLogin} />}
+      />
+
+      <Route
+        path="*"
+        element={<Navigate to="/login" replace />}
+      />
+
+    </Routes>
+  );
+}
 
   return (
+    <div>
 
-
-  <div className="min-h-screen bg-gray-100">
-
-    <Navbar />
-
-  <div className="mx-auto max-w-7xl pt-6 px-4">
+      {/* Navbar */}
+      <Navbar onLogout={handleLogout} />
 
       <Routes>
 
-          {/* Billing - Admin + Cashier */}
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute allowedRoles={["Admin", "Cashier"]}>
-                <InvoiceForm />
-              </ProtectedRoute>
-            }
-          />
+        {/* ========================= */}
+        {/* BILLING */}
+        {/* ========================= */}
 
-          {/* Dashboard - Admin Only */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute allowedRoles={["Admin"]}>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "Cashier"]}>
+              <InvoiceForm />
+            </ProtectedRoute>
+          }
+        />
 
-          {/* Products - Admin Only */}
-          <Route
-            path="/products"
-            element={
-              <ProtectedRoute allowedRoles={["Admin"]}>
-                <ProductManagement />
-              </ProtectedRoute>
-            }
-          />
+        {/* ========================= */}
+        {/* DASHBOARD */}
+        {/* ========================= */}
 
-          {/* User Management - Admin Only */}
-          <Route
-            path="/users"
-            element={
-              <ProtectedRoute allowedRoles={["Admin"]}>
-                <UserManagement />
-              </ProtectedRoute>
-            }
-          />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={["Admin"]}>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
 
-          {/* Invoice History - Admin + Cashier */}
-          <Route
-            path="/invoices"
-            element={
-              <ProtectedRoute allowedRoles={["Admin", "Cashier"]}>
-                <InvoiceHistory />
-              </ProtectedRoute>
-            }
-          />
+        {/* ========================= */}
+        {/* PRODUCTS */}
+        {/* ========================= */}
 
-          {/* Invoice Details - Admin + Cashier */}
-          <Route
-            path="/invoice/:id"
-            element={
-              <ProtectedRoute allowedRoles={["Admin", "Cashier"]}>
-                <InvoiceDetails />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/inventory" element={<Inventory />} />
+        <Route
+          path="/products"
+          element={
+            <ProtectedRoute allowedRoles={["Admin"]}>
+              <ProductManagement />
+            </ProtectedRoute>
+          }
+        />
 
-        </Routes>
+        {/* ========================= */}
+        {/* INVENTORY */}
+        {/* ========================= */}
 
-      </div>
+        <Route
+          path="/inventory"
+          element={
+            <ProtectedRoute allowedRoles={["Admin"]}>
+              <Inventory />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ========================= */}
+        {/* USERS */}
+        {/* ========================= */}
+
+        <Route
+          path="/users"
+          element={
+            <ProtectedRoute allowedRoles={["Admin"]}>
+              <UserManagement />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ========================= */}
+        {/* INVOICE HISTORY */}
+        {/* ========================= */}
+
+        <Route
+          path="/invoices"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "Cashier"]}>
+              <InvoiceHistory />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ========================= */}
+        {/* INVOICE DETAILS */}
+        {/* ========================= */}
+
+        <Route
+          path="/invoice/:id"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "Cashier"]}>
+              <InvoiceDetails />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Unknown URL → Billing */}
+        <Route
+          path="*"
+          element={<Navigate to="/" replace />}
+        />
+
+      </Routes>
 
     </div>
   );
