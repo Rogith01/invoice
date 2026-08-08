@@ -101,19 +101,35 @@ const handleKeyDown = (event) => {
 
       <td className="min-w-[65px] md:min-w-[80px]">
 
-      <input
-        ref={qtyRef}
-        className="w-full rounded border px-2 py-1"
-        type="number"
-        min="1"
-        name="qty"
-        id={id}
-        value={qty}
-        onChange={onEdtiItem}
-        onKeyDown={handleKeyDown}
-        onFocus={(e) => e.target.select()}
-        
-      />
+<input
+  ref={qtyRef}
+  className="w-full rounded border px-2 py-1"
+  type="number"
+  min="1"
+  max={
+    itemOptions.find((opt) => opt.name === name)?.stock || 1
+  }
+  name="qty"
+  id={id}
+  value={qty}
+  onChange={(e) => {
+    const selectedProduct = itemOptions.find(
+      (opt) => opt.name === name
+    );
+
+    const stock = selectedProduct?.stock || 0;
+    const enteredQty = Number(e.target.value);
+
+    if (enteredQty > stock) {
+      alert(`Only ${stock} stock available for ${name}`);
+      return;
+    }
+
+    onEdtiItem(e);
+  }}
+  onKeyDown={handleKeyDown}
+  onFocus={(e) => e.target.select()}
+/>
 
       </td>
 
