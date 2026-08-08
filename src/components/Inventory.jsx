@@ -4,6 +4,7 @@ import axios from "axios";
 const Inventory = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState("");
 
     // ==========================================
     // RESTOCK STATES
@@ -328,6 +329,21 @@ const Inventory = () => {
                     <p className="text-gray-500 mt-1">
                         Manage your supermarket stock
                     </p>
+                    <div className="mt-4 relative max-w-md">
+
+                    <input
+                        type="text"
+                        placeholder="Search product..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full border border-gray-300 rounded-lg px-4 py-3 pl-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                        🔍
+                    </span>
+
+                    </div>
                 </div>
 
                 {/* STOCK MOVEMENT */}
@@ -475,7 +491,8 @@ const Inventory = () => {
 
                             <tbody>
 
-                                {products.map((product, index) => {
+                                {products.filter((product) =>product.product_name.toLowerCase().includes(searchTerm.toLowerCase())
+                                ).map((product, index) => {
 
                                     const stock = Number(
                                         product.stock_quantity ?? 0
