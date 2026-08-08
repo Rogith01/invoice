@@ -1590,47 +1590,104 @@ app.post("/api/invoices", (req, res) => {
                                         `;
 
 
-                                        db.query(
-                                            updateStockSql,
-                                            [
-                                                Number(item.qty),
-                                                item.name
-                                            ],
-                                            (err) => {
+                                      db.query(
+    updateStockSql,
+    [
+        Number(item.qty),
+        item.name
+    ],
+    (err) => {
 
-                                                if (err) {
+        if (err) {
 
-                                                    console.error(
-                                                        "Stock Update Error:",
-                                                        err
-                                                    );
+            console.error(
+                "Stock Update Error:",
+                err
+            );
 
-                                                    return res.status(500).json({
-                                                        success: false,
-                                                        message: err.message
-                                                    });
+            return res.status(500).json({
+                success: false,
+                message: err.message
+            });
 
-                                                }
+        }
 
+        // ======================================================
+        // RECORD STOCK OUT / SALE
+        // ======================================================
 
-                                                completed++;
+        const stockMovementSql = `
+            INSERT INTO stock_movements
+            (
+                product_id,
+                product_name,
+                movement_type,
+                quantity,
+                previous_stock,
+                new_stock,
+                reference_type,
+                reference_id,
+                performed_by
+            )
+            SELECT
+                id,
+                product_name,
+                'STOCK_OUT',
+                ?,
+                stock_quantity + ?,
+                stock_quantity,
+                'SALE',
+                ?,
+                ?
+            FROM products
+            WHERE product_name = ?
+        `;
 
+        db.query(
+            stockMovementSql,
+            [
+                Number(item.qty),
+                Number(item.qty),
+                invoiceId,
+                cashierName,
+                item.name
+            ],
+            (err) => {
 
-                                                // ======================================================
-                                                // ALL ITEMS COMPLETED
-                                                // ======================================================
+                if (err) {
 
-                                                if (
-                                                    completed ===
-                                                    validItems.length
-                                                ) {
+                    console.error(
+                        "Stock Movement Error:",
+                        err
+                    );
 
-                                                    updateLoyaltyPoints();
+                    return res.status(500).json({
+                        success: false,
+                        message: err.message
+                    });
 
-                                                }
+                }
 
-                                            }
-                                        );
+                completed++;
+
+                // ======================================================
+                // ALL ITEMS COMPLETED
+                // ======================================================
+
+                if (
+                    completed ===
+                    validItems.length
+                ) {
+
+                    updateLoyaltyPoints();
+
+                }
+
+            }
+        );
+
+    }
+);
 
                                     }
                                 );
