@@ -1616,32 +1616,32 @@ app.post("/api/invoices", (req, res) => {
         // RECORD STOCK OUT / SALE
         // ======================================================
 
-        const stockMovementSql = `
-            INSERT INTO stock_movements
-            (
-                product_id,
-                product_name,
-                movement_type,
-                quantity,
-                previous_stock,
-                new_stock,
-                reference_type,
-                reference_id,
-                performed_by
-            )
-            SELECT
-                id,
-                product_name,
-                'STOCK_OUT',
-                ?,
-                stock_quantity + ?,
-                stock_quantity,
-                'SALE',
-                ?,
-                ?
-            FROM products
-            WHERE product_name = ?
-        `;
+const stockMovementSql = `
+    INSERT INTO stock_movements
+    (
+        product_id,
+        product_name,
+        movement_type,
+        quantity,
+        stock_before,
+        stock_after,
+        reference_type,
+        reference_id,
+        performed_by
+    )
+    SELECT
+        id,
+        product_name,
+        'STOCK_OUT',
+        ?,
+        stock_quantity + ?,
+        stock_quantity,
+        'SALE',
+        ?,
+        ?
+    FROM products
+    WHERE product_name = ?
+`;
 
         db.query(
             stockMovementSql,
