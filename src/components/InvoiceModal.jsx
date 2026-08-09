@@ -183,10 +183,8 @@ const printInvoiceHandler = useReactToPrint({
     ).toFixed(2)}
   </span>
 </div>
-                    <div className="w-full text-center">
-  <h4 className="font-semibold">
-    Thank you, Visit again!
-  </h4>
+<div className="w-full text-center">
+<p className="font-semibold"> Thank you for shopping with us! </p> <p> Visit us again ❤️ </p>
 </div>
                   </div>             
                 </div>         
