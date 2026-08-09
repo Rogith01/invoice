@@ -127,6 +127,64 @@ app.get("/api/customer/:phone", (req, res) => {
     });
 
 });
+// ======================================================
+// GET ALL CUSTOMERS
+// ======================================================
+
+app.get("/api/customers", authenticateToken, (req, res) => {
+
+    const sql = `
+        SELECT
+            c.id,
+            c.customer_name,
+            c.phone_number,
+            c.loyalty_points,
+
+            COUNT(i.id) AS total_orders,
+
+            COALESCE(SUM(i.total), 0) AS total_spent,
+
+            MAX(i.invoice_date) AS last_purchase
+
+        FROM customers c
+
+        LEFT JOIN invoices i
+            ON c.id = i.customer_id
+
+        GROUP BY
+            c.id,
+            c.customer_name,
+            c.phone_number,
+            c.loyalty_points
+
+        ORDER BY
+            c.id DESC
+    `;
+
+    db.query(sql, (err, rows) => {
+
+        if (err) {
+
+            console.error(
+                "Customers Error:",
+                err
+            );
+
+            return res.status(500).json({
+                success: false,
+                message: err.message
+            });
+
+        }
+
+        res.json({
+            success: true,
+            customers: rows
+        });
+
+    });
+
+});
 /* ======================================================
    GET ALL PRODUCTS
 ====================================================== */
