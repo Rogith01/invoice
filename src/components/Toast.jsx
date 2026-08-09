@@ -22,7 +22,7 @@ const Toast = ({ message, type = "success", onClose }) => {
             clearTimeout(timer);
         };
 
-    }, [message]);
+    }, [message, onClose]);
 
 
     // ==========================================

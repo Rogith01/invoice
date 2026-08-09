@@ -1,4 +1,9 @@
-import React, {useState,useEffect,useRef,useCallback,} from "react";
+import React, {
+    useState,
+    useEffect,
+    useRef,
+    useCallback,
+} from "react";
 import axios from "axios";
 import { uid } from "uid";
 import InvoiceItem from "./InvoiceItem";
@@ -114,31 +119,32 @@ const InvoiceForm = () => {
     // SHOW TOAST
     // ==========================================
 
-    const showToast = (message, type = "success") => {
-        setToast({
-            message,
-            type,
-        });
-    };
+    const showToast = useCallback(
+        (message, type = "success") => {
+            setToast({
+                message,
+                type,
+            });
+        },
+        []
+    );
 
     // ==========================================
     // CLOSE TOAST
     // ==========================================
 
-    const closeToast = () => {
+    const closeToast = useCallback(() => {
         setToast({
             message: "",
             type: "success",
         });
-    };
+    }, []);
 
     // ==========================================
     // FETCH CUSTOMER
     // ==========================================
 
     const fetchCustomer = async (phone) => {
-
-        
 
         // Only search when 10 digits are entered
         if (phone.length !== 10) {
@@ -238,7 +244,6 @@ const InvoiceForm = () => {
                     }));
 
                 setItemOptions(products);
-
             }
 
         } catch (err) {
@@ -253,7 +258,8 @@ const InvoiceForm = () => {
                 "error"
             );
         }
-    }, []);
+
+    }, [showToast]);
 
     // ==========================================
     // FETCH NEXT INVOICE NUMBER
@@ -273,7 +279,6 @@ const InvoiceForm = () => {
                 setInvoiceNumber(
                     response.data.invoiceNumber
                 );
-
             }
 
         } catch (error) {
@@ -288,35 +293,43 @@ const InvoiceForm = () => {
                 "error"
             );
         }
-    }, []);
+
+    }, [showToast]);
 
     // ==========================================
     // INITIAL LOAD
     // ==========================================
 
-   useEffect(() => {
-    fetchInvoiceNumber();
-    fetchProducts();
+    useEffect(() => {
 
-    const handleShortcut = (event) => {
-        if (event.key === "F4") {
-            event.preventDefault();
-            reviewBtnRef.current?.click();
-        }
-    };
+        fetchInvoiceNumber();
 
-    window.addEventListener(
-        "keydown",
-        handleShortcut
-    );
+        fetchProducts();
 
-    return () => {
-        window.removeEventListener(
+        const handleShortcut = (event) => {
+
+            if (event.key === "F4") {
+
+                event.preventDefault();
+
+                reviewBtnRef.current?.click();
+            }
+        };
+
+        window.addEventListener(
             "keydown",
             handleShortcut
         );
-    };
-}, [fetchInvoiceNumber, fetchProducts]);
+
+        return () => {
+
+            window.removeEventListener(
+                "keydown",
+                handleShortcut
+            );
+        };
+
+    }, [fetchInvoiceNumber, fetchProducts]);
 
     // ==========================================
     // CURRENT TIME
@@ -634,7 +647,6 @@ const InvoiceForm = () => {
             },
 
         ]);
-
     };
 
     // ==========================================
@@ -695,6 +707,7 @@ const InvoiceForm = () => {
 
                             // Reset quantity when
                             // selecting a different product
+
                             newItem.qty = 1;
                         }
                     }
