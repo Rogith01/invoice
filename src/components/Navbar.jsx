@@ -62,6 +62,13 @@ const Navbar = ({ onLogout }) => {
                                 </Link>
 
                                 <Link
+                                    to="/customers"
+                                    className="hover:text-gray-300"
+                                >
+                                    Customers
+                                </Link>
+
+                                <Link
                                     to="/users"
                                     className="hover:text-gray-300"
                                 >
@@ -177,6 +184,15 @@ const Navbar = ({ onLogout }) => {
                             >
                                 Inventory
                             </Link>
+
+                            
+                                <Link
+                                    className="p-3 border-b hover:bg-slate-600"
+                                    to="/customers"
+                                    onClick={() => setMenuOpen(false)}
+                                >
+                                    Customers
+                                </Link>
 
                             <Link
                                 className="p-3 border-b hover:bg-slate-600"

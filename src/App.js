@@ -11,6 +11,7 @@ import InvoiceDetails from "./components/InvoiceDetails";
 import UserManagement from "./components/UserManagement";
 import Navbar from "./components/Navbar";
 import Inventory from "./components/Inventory";
+import Customers from "./components/Customers";
 
 function App() {
 
@@ -154,6 +155,7 @@ if (!user) {
           path="*"
           element={<Navigate to="/" replace />}
         />
+        <Route path="/customers" element={<Customers />} />
 
       </Routes>
 
