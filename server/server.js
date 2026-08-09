@@ -127,6 +127,220 @@ app.get("/api/customer/:phone", (req, res) => {
     });
 
 });
+
+
+// ======================================================
+// GET CUSTOMER PURCHASE HISTORY
+// ======================================================
+
+app.get(
+    "/api/customers/:id/purchases",
+    authenticateToken,
+    (req, res) => {
+
+        const customerId = req.params.id;
+
+        // ======================================================
+        // GET CUSTOMER DETAILS
+        // ======================================================
+
+        const customerSql = `
+            SELECT
+                id,
+                customer_name,
+                phone_number,
+                loyalty_points
+            FROM customers
+            WHERE id = ?
+        `;
+
+        db.query(
+            customerSql,
+            [customerId],
+            (err, customerRows) => {
+
+                if (err) {
+
+                    console.error(
+                        "Customer Details Error:",
+                        err
+                    );
+
+                    return res.status(500).json({
+                        success: false,
+                        message: err.message
+                    });
+
+                }
+
+                // Customer not found
+
+                if (customerRows.length === 0) {
+
+                    return res.status(404).json({
+                        success: false,
+                        message: "Customer not found"
+                    });
+
+                }
+
+                const customer = customerRows[0];
+
+
+                // ======================================================
+                // GET CUSTOMER INVOICES
+                // ======================================================
+
+                const invoiceSql = `
+                    SELECT
+                        id,
+                        invoice_number,
+                        invoice_date,
+                        invoice_time,
+                        subtotal,
+                        discount,
+                        loyalty_discount,
+                        tax,
+                        total,
+                        payment_Method,
+                        cashier_name
+                    FROM invoices
+                    WHERE customer_id = ?
+                    ORDER BY id DESC
+                `;
+
+                db.query(
+                    invoiceSql,
+                    [customerId],
+                    (err, invoiceRows) => {
+
+                        if (err) {
+
+                            console.error(
+                                "Customer Invoice History Error:",
+                                err
+                            );
+
+                            return res.status(500).json({
+                                success: false,
+                                message: err.message
+                            });
+
+                        }
+
+
+                        // ======================================================
+                        // NO PURCHASES
+                        // ======================================================
+
+                        if (invoiceRows.length === 0) {
+
+                            return res.json({
+
+                                success: true,
+
+                                customer,
+
+                                purchases: []
+
+                            });
+
+                        }
+
+
+                        // ======================================================
+                        // GET ITEMS FOR ALL INVOICES
+                        // ======================================================
+
+                        const invoiceIds =
+                            invoiceRows.map(
+                                invoice => invoice.id
+                            );
+
+                        const itemSql = `
+                            SELECT
+                                invoice_id,
+                                item_name,
+                                qty,
+                                price,
+                                amount
+                            FROM invoice_items
+                            WHERE invoice_id IN (?)
+                            ORDER BY invoice_id DESC
+                        `;
+
+                        db.query(
+                            itemSql,
+                            [invoiceIds],
+                            (err, itemRows) => {
+
+                                if (err) {
+
+                                    console.error(
+                                        "Customer Invoice Items Error:",
+                                        err
+                                    );
+
+                                    return res.status(500).json({
+                                        success: false,
+                                        message: err.message
+                                    });
+
+                                }
+
+
+                                // ======================================================
+                                // COMBINE INVOICES + ITEMS
+                                // ======================================================
+
+                                const purchases =
+                                    invoiceRows.map(
+                                        invoice => {
+
+                                            return {
+
+                                                ...invoice,
+
+                                                items:
+                                                    itemRows.filter(
+                                                        item =>
+                                                            item.invoice_id ===
+                                                            invoice.id
+                                                    )
+
+                                            };
+
+                                        }
+                                    );
+
+
+                                // ======================================================
+                                // FINAL RESPONSE
+                                // ======================================================
+
+                                res.json({
+
+                                    success: true,
+
+                                    customer,
+
+                                    purchases
+
+                                });
+
+                            }
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+    }
+);
+
+
 // ======================================================
 // GET ALL CUSTOMERS
 // ======================================================
