@@ -1,288 +1,542 @@
-
-import React, { useEffect, useState } from "react";
+import React, {useEffect, useState, useCallback,} from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import Toast from "./Toast";
 
 const InvoiceHistory = () => {
-
     const [search, setSearch] = useState("");
     const navigate = useNavigate();
 
     const [invoices, setInvoices] = useState([]);
 
-    // Logged-in user
-    const user = JSON.parse(sessionStorage.getItem("user"));
+    // ===============================
+    // Delete Confirmation
+    // ===============================
+    const [deleteConfirm, setDeleteConfirm] = useState({
+        show: false,
+        id: null,
+    });
+
+    // ===============================
+    // Toast State
+    // ===============================
+    const [toast, setToast] = useState({
+        message: "",
+        type: "success",
+    });
+
+    // ===============================
+    // Logged-in User
+    // ===============================
+    const user = JSON.parse(
+        sessionStorage.getItem("user")
+    );
+
+    // ===============================
+    // Show Toast
+    // ===============================
+    const showToast = (
+        message,
+        type = "success"
+    ) => {
+        setToast({
+            message,
+            type,
+        });
+    };
+
+    // ===============================
+    // Hide Toast
+    // ===============================
+    const hideToast = () => {
+        setToast({
+            message: "",
+            type: "success",
+        });
+    };
 
     // ===============================
     // Fetch Invoices
     // ===============================
-    const fetchInvoices = async () => {
-
+   const fetchInvoices = useCallback(async () => {
         try {
-
             const res = await axios.get(
                 "https://invoice-backend-78hd.onrender.com/api/invoices"
             );
 
             if (res.data.success) {
-                setInvoices(res.data.invoices);
+                setInvoices(
+                    res.data.invoices || []
+                );
+            } else {
+                showToast(
+                    res.data.message ||
+                        "Failed to load invoice history.",
+                    "error"
+                );
             }
-
         } catch (err) {
-
             console.log(err);
 
+            showToast(
+                "Failed to load invoice history.",
+                "error"
+            );
         }
-
-    };
+    }, []);
 
     // ===============================
     // Load Invoices
     // ===============================
-    useEffect(() => {
-
-        fetchInvoices();
-
-    }, []);
+useEffect(() => {
+    fetchInvoices();
+}, [fetchInvoices]);
 
     // ===============================
-    // Delete Invoice - Admin Only
+    // Open Delete Confirmation
     // ===============================
+    const confirmDeleteInvoice = (id) => {
+        setDeleteConfirm({
+            show: true,
+            id: id,
+        });
+    };
 
-const handleDelete = async (id) => {
+    // ===============================
+    // Cancel Delete
+    // ===============================
+    const cancelDelete = () => {
+        setDeleteConfirm({
+            show: false,
+            id: null,
+        });
+    };
 
-    const confirmDelete = window.confirm(
-        "Are you sure you want to delete this invoice?"
-    );
+    // ===============================
+    // Delete Invoice
+    // ===============================
+    const handleDelete = async () => {
+        const { id } = deleteConfirm;
 
-    if (!confirmDelete) return;
-
-    try {
-
-        // Get JWT token saved during login
-        const token = sessionStorage.getItem("token");
-
-        await axios.delete(
-            `https://invoice-backend-78hd.onrender.com/api/invoices/${id}`,
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            }
-        );
-
-        alert("Invoice deleted successfully.");
-
-        // Refresh invoice list
-        fetchInvoices();
-
-    } catch (err) {
-
-        console.log(err);
-
-        if (err.response?.status === 401) {
-
-            alert("Please login again.");
-
-        } else if (err.response?.status === 403) {
-
-            alert("Only Admin can delete invoices.");
-
-        } else {
-
-            alert("Failed to delete invoice.");
-
+        if (!id) {
+            return;
         }
 
-    }
+        try {
+            // Get JWT token
+            const token =
+                sessionStorage.getItem("token");
 
-};
+            // Delete invoice
+            await axios.delete(
+                `https://invoice-backend-78hd.onrender.com/api/invoices/${id}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
 
+            // Close confirmation dialog
+            setDeleteConfirm({
+                show: false,
+                id: null,
+            });
 
+            // Show success toast
+            showToast(
+                "Invoice deleted successfully.",
+                "success"
+            );
+
+            // Refresh invoice list
+            await fetchInvoices();
+
+        } catch (err) {
+            console.log(err);
+
+            // Close dialog if there was an error too
+            setDeleteConfirm({
+                show: false,
+                id: null,
+            });
+
+            if (
+                err.response?.status === 401
+            ) {
+                showToast(
+                    "Please login again.",
+                    "warning"
+                );
+
+            } else if (
+                err.response?.status === 403
+            ) {
+                showToast(
+                    "Only Admin can delete invoices.",
+                    "error"
+                );
+
+            } else {
+                showToast(
+                    "Failed to delete invoice.",
+                    "error"
+                );
+            }
+        }
+    };
 
     // ===============================
     // Filter Invoices
     // ===============================
-const filteredInvoices = invoices.filter((invoice) =>
+    const filteredInvoices =
+        invoices.filter((invoice) =>
+            String(
+                invoice.invoice_number || ""
+            )
+                .toLowerCase()
+                .includes(
+                    search.toLowerCase()
+                ) ||
 
-    String(invoice.invoice_number || "")
-        .toLowerCase()
-        .includes(search.toLowerCase()) ||
+            String(
+                invoice.customer_name || ""
+            )
+                .toLowerCase()
+                .includes(
+                    search.toLowerCase()
+                )
+        );
 
-    String(invoice.customer_name || "")
-        .toLowerCase()
-        .includes(search.toLowerCase())
-
-);
-
+    // ===============================
+    // Render
+    // ===============================
     return (
+        <>
+            {/* =============================== */}
+            {/* TOAST */}
+            {/* =============================== */}
 
-        <div className="max-w-7xl mx-auto mt-8 bg-white shadow-lg rounded-lg p-6">
+            <Toast
+                message={toast.message}
+                type={toast.type}
+                onClose={hideToast}
+            />
 
-            {/* Header */}
+            {/* =============================== */}
+            {/* DELETE CONFIRMATION MODAL */}
+            {/* =============================== */}
 
-            <div className="flex justify-between items-center mb-8">
+            {deleteConfirm.show && (
+                <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
 
-                <h1 className="text-3xl font-bold">
-                    Invoice History
-                </h1>
+                    <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6">
 
-            </div>
+                        {/* ICON */}
 
+                        <div className="flex justify-center mb-4">
 
-            {/* Search */}
+                            <div className="w-16 h-16 flex items-center justify-center rounded-full bg-red-100">
 
-            <div className="mb-6">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-8 w-8 text-red-600"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M12 9v2m0 4h.01M10.29 3.86l-7.82 14A2 2 0 004.21 21h15.58a2 2 0 001.74-3.14l-7.82-14a2 2 0 00-3.42 0z"
+                                    />
+                                </svg>
 
-                <input
-                    type="text"
-                    placeholder="🔍 Search Invoice / Customer..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="w-full md:w-96 border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
+                            </div>
 
-            </div>
+                        </div>
 
+                        {/* TITLE */}
 
-            {/* Invoice Table */}
+                        <h2 className="text-xl font-bold text-gray-800 text-center">
+                            Delete Invoice?
+                        </h2>
 
-            <div className="overflow-x-auto">
+                        {/* MESSAGE */}
 
-                <table className="w-full border">
+                        <p className="text-gray-500 text-center mt-2">
+                            Are you sure you want to delete this invoice?
+                        </p>
 
-                    <thead className="bg-gray-100">
+                        <p className="text-sm text-red-500 text-center mt-2">
+                            This action cannot be undone.
+                        </p>
 
-                        <tr>
+                        {/* BUTTONS */}
 
-                            <th className="border p-2">
-                                Invoice
-                            </th>
+                        <div className="flex gap-3 mt-6">
 
-                            <th className="border p-2">
-                                Cashier
-                            </th>
+                            {/* CANCEL */}
 
-                            <th className="border p-2">
-                                Customer
-                            </th>
+                            <button
+                                type="button"
+                                onClick={cancelDelete}
+                                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2.5 rounded-lg transition"
+                            >
+                                Cancel
+                            </button>
 
-                            <th className="border p-2">
-                                Phone
-                            </th>
+                            {/* DELETE */}
 
-                            <th className="border p-2">
-                                Date
-                            </th>
+                            <button
+                                type="button"
+                                onClick={handleDelete}
+                                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 rounded-lg transition"
+                            >
+                                Delete
+                            </button>
 
-                            <th className="border p-2">
-                                Payment
-                            </th>
+                        </div>
 
-                            <th className="border p-2">
-                                Total
-                            </th>
+                    </div>
 
-                            <th className="border p-2">
-                                Action
-                            </th>
+                </div>
+            )}
 
-                        </tr>
+            {/* =============================== */}
+            {/* MAIN CONTAINER */}
+            {/* =============================== */}
 
-                    </thead>
+            <div className="max-w-7xl mx-auto mt-8 bg-white shadow-lg rounded-lg p-6">
 
+                {/* =============================== */}
+                {/* HEADER */}
+                {/* =============================== */}
 
-                    <tbody>
+                <div className="flex justify-between items-center mb-8">
 
-                        {filteredInvoices.map((invoice) => (
+                    <h1 className="text-3xl font-bold">
+                        Invoice History
+                    </h1>
 
-                            <tr key={invoice.id}>
+                </div>
 
-                                <td className="border p-2 text-center">
-                                    {invoice.invoice_number}
-                                </td>
+                {/* =============================== */}
+                {/* SEARCH */}
+                {/* =============================== */}
 
-                                <td className="border p-2 text-center">
-                                    {invoice.cashier_name}
-                                </td>
+                <div className="mb-6">
 
-                                <td className="border p-2 text-center">
-                                    {invoice.customer_name}
-                                </td>
+                    <input
+                        type="text"
+                        placeholder="🔍 Search Invoice / Customer..."
+                        value={search}
+                        onChange={(e) =>
+                            setSearch(
+                                e.target.value
+                            )
+                        }
+                        className="w-full md:w-96 border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
 
-                                <td className="border p-2 text-center">
-                                    {invoice.phone_number}
-                                </td>
+                </div>
 
-                                <td className="border p-2 text-center">
-                                    {new Date(
-                                        invoice.invoice_date
-                                    ).toLocaleDateString("en-GB")}
-                                </td>
+                {/* =============================== */}
+                {/* INVOICE TABLE */}
+                {/* =============================== */}
 
-                                <td className="border p-2 text-center">
-                                    {invoice.payment_Method}
-                                </td>
+                <div className="overflow-x-auto">
 
-                                <td className="border p-2 text-center">
-                                    ₹{Number(invoice.total).toFixed(2)}
-                                </td>
+                    <table className="w-full border">
 
+                        <thead className="bg-gray-100">
 
-                                {/* =============================== */}
-                                {/* ACTION */}
-                                {/* =============================== */}
+                            <tr>
 
-                                <td className="border p-2 text-center">
+                                <th className="border p-2">
+                                    Invoice
+                                </th>
 
-                                    {/* View Invoice - Everyone */}
+                                <th className="border p-2">
+                                    Cashier
+                                </th>
 
-                                    <button
-                                        onClick={() =>
-                                            navigate(`/invoice/${invoice.id}`)
-                                        }
-                                        className="text-blue-600 hover:text-blue-800 font-semibold"
-                                        title="View Invoice"
-                                    >
-                                        👁
-                                    </button>
+                                <th className="border p-2">
+                                    Customer
+                                </th>
 
+                                <th className="border p-2">
+                                    Phone
+                                </th>
 
+                                <th className="border p-2">
+                                    Date
+                                </th>
 
-                                    {/* Delete - Admin Only */}
+                                <th className="border p-2">
+                                    Payment
+                                </th>
 
-                                    {user?.role === "Admin" && (
+                                <th className="border p-2">
+                                    Total
+                                </th>
 
-                                        <button
-                                            onClick={() => handleDelete(invoice.id)}
-                                            className="text-red-600 hover:text-red-800 ml-3 text-xl"
-                                            title="Delete Invoice"
-                                            aria-label="Delete Invoice"
-                                        >
-                                            🗑️
-                                        </button>
-
-                                    )}
-
-
-
-                                </td>
+                                <th className="border p-2">
+                                    Action
+                                </th>
 
                             </tr>
 
-                        ))}
+                        </thead>
 
-                    </tbody>
+                        <tbody>
 
-                </table>
+                            {filteredInvoices.length > 0 ? (
+
+                                filteredInvoices.map(
+                                    (invoice) => (
+
+                                        <tr
+                                            key={invoice.id}
+                                            className="hover:bg-gray-50"
+                                        >
+
+                                            {/* INVOICE */}
+
+                                            <td className="border p-2 text-center">
+                                                {
+                                                    invoice.invoice_number
+                                                }
+                                            </td>
+
+                                            {/* CASHIER */}
+
+                                            <td className="border p-2 text-center">
+                                                {
+                                                    invoice.cashier_name
+                                                }
+                                            </td>
+
+                                            {/* CUSTOMER */}
+
+                                            <td className="border p-2 text-center">
+                                                {
+                                                    invoice.customer_name
+                                                }
+                                            </td>
+
+                                            {/* PHONE */}
+
+                                            <td className="border p-2 text-center">
+                                                {
+                                                    invoice.phone_number
+                                                }
+                                            </td>
+
+                                            {/* DATE */}
+
+                                            <td className="border p-2 text-center">
+                                                {new Date(
+                                                    invoice.invoice_date
+                                                ).toLocaleDateString(
+                                                    "en-GB"
+                                                )}
+                                            </td>
+
+                                            {/* PAYMENT */}
+
+                                            <td className="border p-2 text-center">
+                                                {
+                                                    invoice.payment_Method
+                                                }
+                                            </td>
+
+                                            {/* TOTAL */}
+
+                                            <td className="border p-2 text-center font-semibold">
+                                                ₹
+                                                {Number(
+                                                    invoice.total
+                                                ).toFixed(2)}
+                                            </td>
+
+                                            {/* ACTION */}
+
+                                            <td className="border p-2 text-center">
+
+                                                {/* VIEW INVOICE */}
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        navigate(
+                                                            `/invoice/${invoice.id}`
+                                                        )
+                                                    }
+                                                    className="text-blue-600 hover:text-blue-800 font-semibold transition-transform hover:scale-110"
+                                                    title="View Invoice"
+                                                    aria-label="View Invoice"
+                                                >
+                                                    👁
+                                                </button>
+
+                                                {/* DELETE - ADMIN ONLY */}
+
+                                                {user?.role ===
+                                                    "Admin" && (
+
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            confirmDeleteInvoice(
+                                                                invoice.id
+                                                            )
+                                                        }
+                                                        className="text-red-600 hover:text-red-800 ml-3 text-xl transition-transform hover:scale-110"
+                                                        title="Delete Invoice"
+                                                        aria-label="Delete Invoice"
+                                                    >
+                                                        🗑️
+                                                    </button>
+
+                                                )}
+
+                                            </td>
+
+                                        </tr>
+
+                                    )
+
+                                )
+
+                            ) : (
+
+                                <tr>
+
+                                    <td
+                                        colSpan="8"
+                                        className="border p-6 text-center text-gray-500"
+                                    >
+                                        {search
+                                            ? "No invoices found matching your search."
+                                            : "No invoices available."
+                                        }
+                                    </td>
+
+                                </tr>
+
+                            )}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
 
             </div>
-
-        </div>
-
+        </>
     );
-
 };
 
 export default InvoiceHistory;
-

@@ -1,524 +1,1278 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, {useState,useEffect,useRef,useCallback,} from "react";
 import axios from "axios";
-import { uid } from 'uid';
-import InvoiceItem from './InvoiceItem';
-import InvoiceModal from './InvoiceModal';
+import { uid } from "uid";
+import InvoiceItem from "./InvoiceItem";
+import InvoiceModal from "./InvoiceModal";
+import Toast from "./Toast";
 import "../index.css";
 
 const date = new Date();
-const today = date.toLocaleDateString('en-GB', {
-  month: 'numeric',
-  day: 'numeric',
-  year: 'numeric',
+
+const today = date.toLocaleDateString("en-GB", {
+    month: "numeric",
+    day: "numeric",
+    year: "numeric",
 });
-
-
 
 const InvoiceForm = () => {
 
-  const [isOpen, setIsOpen] = useState(false);
-  const [discount, setDiscount] = useState('2');
-  const [tax, setTax] = useState('5');
-  const [invoiceNumber, setInvoiceNumber] = useState("INV-0001");
-  const user = JSON.parse(sessionStorage.getItem("user"));
-  const [cashierName, setCashierName] = useState(user?.username || "");
-  const [customerName, setCustomerName] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [loyaltyPoints, setLoyaltyPoints] = useState(0);
-  const [redeemPoints, setRedeemPoints] = useState(false);
-  const [availablePoints, setAvailablePoints] = useState(0);
-  const [paymentMethod, setPaymentMethod] = useState("Cash");
-  const [itemOptions, setItemOptions] = useState([]);
-  const reviewBtnRef = useRef(null);
+    // ==========================================
+    // INVOICE STATES
+    // ==========================================
 
-  const [currentTime, setCurrentTime] = useState(
-  new Date().toLocaleTimeString("en-GB", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  })
-);
+    const [isOpen, setIsOpen] = useState(false);
 
-  const [items, setItems] = useState([
-    {
-      id: uid(6),
-      name: '',
-      qty: 1,
-      price: '0.00',
-    },
-  ]);
+    const [discount, setDiscount] = useState("2");
 
-  
-  const fetchCustomer = async (phone) => {
+    const [tax, setTax] = useState("5");
 
-  setPhoneNumber(phone);
+    const [invoiceNumber, setInvoiceNumber] =
+        useState("INV-0001");
 
-  if (phone.length !== 10) return;
-
-  try {
-
-    const res = await axios.get(
-      `https://invoice-backend-78hd.onrender.com/api/customer/${phone}`
+    const user = JSON.parse(
+        sessionStorage.getItem("user")
     );
 
-    if (res.data.success) {
-      setCustomerName(res.data.customer.customer_name);
-      setLoyaltyPoints(res.data.customer.loyalty_points);
-      setAvailablePoints(res.data.customer.loyalty_points);
-    } else {
-      setCustomerName("");
-      setLoyaltyPoints(0);
-      setAvailablePoints(0);
-      setRedeemPoints(false);
-    }
-
-  } catch (err) {
-    console.log(err);
-  }
-
-};
-const fetchProducts = async () => {
-  try {
-    const res = await axios.get(
-      "https://invoice-backend-78hd.onrender.com/api/products"
+    const [cashierName, setCashierName] = useState(
+        user?.username || ""
     );
 
-    if (res.data.success) {
-      const products = res.data.products.map((p) => ({
-        id: p.id,
-        name: p.product_name,
-        price: Number(p.price),
-        stock: Number(p.stock_quantity) || 0,
-      }));
+    const [customerName, setCustomerName] =
+        useState("");
 
-      setItemOptions(products);
-    }
-  } catch (err) {
-    console.error("Error fetching products:", err);
-  }
-};
-  // Fetch next invoice number from backend
-  const fetchInvoiceNumber = async () => {
+    const [phoneNumber, setPhoneNumber] =
+        useState("");
 
-    try {
+    // ==========================================
+    // LOYALTY STATES
+    // ==========================================
 
-      const response = await axios.get(
-        "https://invoice-backend-78hd.onrender.com/api/next-invoice-number"
-      );
+    const [loyaltyPoints, setLoyaltyPoints] =
+        useState(0);
 
-      if (response.data.success) {
-        setInvoiceNumber(response.data.invoiceNumber);
-      }
+    const [redeemPoints, setRedeemPoints] =
+        useState(false);
 
-    } catch (error) {
-      console.error("Error fetching invoice number:", error);
-    }
+    const [availablePoints, setAvailablePoints] =
+        useState(0);
 
-  };
+    // ==========================================
+    // PAYMENT
+    // ==========================================
 
-  // Load invoice number when page opens
-useEffect(() => {
-  fetchInvoiceNumber();
-  fetchProducts();
+    const [paymentMethod, setPaymentMethod] =
+        useState("Cash");
 
-  const handleShortcut = (event) => {
+    // ==========================================
+    // PRODUCTS
+    // ==========================================
 
-    if (event.key === "F4") {
-      event.preventDefault();
-      reviewBtnRef.current?.click();
-    }
+    const [itemOptions, setItemOptions] =
+        useState([]);
 
-  };
-  
+    // ==========================================
+    // REVIEW BUTTON REF
+    // ==========================================
 
-  window.addEventListener("keydown", handleShortcut);
+    const reviewBtnRef = useRef(null);
 
-  return () => {
-    window.removeEventListener("keydown", handleShortcut);
-  };
+    // ==========================================
+    // CURRENT TIME
+    // ==========================================
 
-}, []);
-
-useEffect(() => {
-
-  const timer = setInterval(() => {
-
-    setCurrentTime(
-      new Date().toLocaleTimeString("en-GB", {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      })
+    const [currentTime, setCurrentTime] = useState(
+        new Date().toLocaleTimeString("en-GB", {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+        })
     );
 
-  }, 1000);
+    // ==========================================
+    // ITEMS
+    // ==========================================
 
-
-  return () => clearInterval(timer);
-
-}, []);
-
-  const reviewInvoiceHandler = async (event) => {
-
-    event.preventDefault();
-    
-    
-    const invoiceData = {
-      phoneNumber,
-      cashierName,
-      customerName,
-      subtotal,
-      discountRate,
-      taxRate,
-      total,
-      items,
-      redeemPoints,
-      paymentMethod,
-    };
-
-    try {
-
-      const response = await axios.post(
-        "https://invoice-backend-78hd.onrender.com/api/invoices",
-        invoiceData
-      );
-
-      console.log(response.data);
-
-      // Update invoice number returned from backend
-setInvoiceNumber(response.data.invoiceNumber);
-
-// Refresh product stock in billing UI
-await fetchProducts();
-
-setIsOpen(true);
-
-await fetchCustomer(phoneNumber);
-
-    } catch (error) {
-
-      console.error("Error saving invoice:", error);
-      alert("Failed to save invoice.");
-
-    }
-
-  };
-
-  const addNextInvoiceHandler = async () => {
-
-    await fetchInvoiceNumber();
-
-    setItems([
-      {
-        id: uid(6),
-        name: '',
-        qty: 1,
-        price: '0.00',
-      },
+    const [items, setItems] = useState([
+        {
+            id: uid(6),
+            name: "",
+            qty: 1,
+            price: "0.00",
+        },
     ]);
 
-    setPhoneNumber('');
-    setCustomerName('');
-    setLoyaltyPoints(0);
-    setCashierName(user?.username || "");
-    setRedeemPoints(false);
-    setAvailablePoints(0);
-    setDiscount('2');
-    setTax('5');
+    // ==========================================
+    // TOAST STATE
+    // ==========================================
 
-  };
-
-  const addItemHandler = () => {
-
-    setItems((prevItems) => [
-      ...prevItems,
-      {
-        id: uid(6),
-        name: '',
-        qty: 1,
-        price: '0.00',
-      },
-    ]);
-
-  };
-
-  const deleteItemHandler = (id) => {
-    setItems((prevItems) => prevItems.filter((item) => item.id !== id));
-  };
-
-  const edtiItemHandler = (event) => {
-    const { id, name, value } = event.target;
-
-    const updatedItems = items.map((item) => {
-      if (item.id === id) {
-        let newItem = { ...item, [name]: value };
-
-        if (name === 'name') {
-          const selectedItem = itemOptions.find((opt) => opt.name === value);
-          if (selectedItem) {
-            newItem.price = selectedItem.price;
-          }
-        }
-
-        return newItem;
-      }
-      return item;
+    const [toast, setToast] = useState({
+        message: "",
+        type: "success",
     });
 
-    setItems(updatedItems);
-  };
+    // ==========================================
+    // SHOW TOAST
+    // ==========================================
 
-  const subtotal = items.reduce((prev, curr) => {
-    if (curr.name.trim().length > 0)
-      return prev + Number(curr.price * Math.floor(curr.qty));
-    else return prev;
-  }, 0);
+    const showToast = (message, type = "success") => {
+        setToast({
+            message,
+            type,
+        });
+    };
 
-const taxRate = (tax * subtotal) / 100;
-const discountRate = (discount * subtotal) / 100;
+    // ==========================================
+    // CLOSE TOAST
+    // ==========================================
 
-const loyaltyDiscount = redeemPoints ? availablePoints : 0;
+    const closeToast = () => {
+        setToast({
+            message: "",
+            type: "success",
+        });
+    };
 
-const redeemedAmount = loyaltyDiscount;
+    // ==========================================
+    // FETCH CUSTOMER
+    // ==========================================
 
-const total =
-  subtotal -
-  discountRate -
-  loyaltyDiscount +
-  taxRate;
+    const fetchCustomer = async (phone) => {
 
-  return (
-    <form className="relative flex flex-col gap-6 px-2 md:flex-row" onSubmit={reviewInvoiceHandler}>
-      {/* MAIN FORM CONTENT */}
-      <div className="my-6 flex-1 space-y-4 rounded-md bg-white p-4 shadow-sm md:p-6">
-        <div className="flex flex-col justify-between gap-2 border-b border-gray-200 pb-4 md:flex-row md:items-center">
-          <div className="flex space-x-2">
-            <span className="font-bold">Current Date:</span>
-            <span>{today}</span>
-          </div>
-            <div className="flex space-x-2">
-            <span className="font-bold">Current time:</span>
-            <span>{currentTime}</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <label htmlFor="invoiceNumber" className="font-bold">Invoice Number:</label>
-<input
-  className="w-[130px] border rounded px-2 py-1 bg-gray-100 cursor-not-allowed"
-  type="text"
-  id="invoiceNumber"
-  value={invoiceNumber}
-  readOnly
-/>
-          </div>
-        </div>
+        
 
+        // Only search when 10 digits are entered
+        if (phone.length !== 10) {
+            return;
+        }
 
-        {/* CASHIER & CUSTOMER */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 pt-4">
-          <div className="flex flex-col">
-            <label htmlFor="cashierName" className="text-sm font-bold">Cashier:</label>
-<input
-    type="text"
-    id="cashierName"
-    value={cashierName}
-    readOnly
-    className="border rounded px-2 py-1 bg-gray-100 cursor-not-allowed"
-/>
-          </div>
-         <div className="flex flex-col">
-  <label htmlFor="phoneNumber" className="text-sm font-bold">
-    Phone Number
-  </label>
+        try {
 
-  <input
-    type="text"
-    id="phoneNumber"
-    className="border rounded px-2 py-1"
-    value={phoneNumber}
-    onChange={(e) => {
-      setPhoneNumber(e.target.value);
+            const res = await axios.get(
+                `https://invoice-backend-78hd.onrender.com/api/customer/${phone}`
+            );
 
-      if (e.target.value.length === 10) {
-        fetchCustomer(e.target.value);
-      }
-    }}
-  />
-</div>
-          <div className="flex flex-col">
-            <label htmlFor="customerName" className="text-sm font-bold">Customer:</label>
-            <input
-              required
-              id="customerName"
-              className="border rounded px-2 py-1"
-              placeholder="Customer name"
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
+            if (res.data.success) {
+
+                setCustomerName(
+                    res.data.customer.customer_name
+                );
+
+                setLoyaltyPoints(
+                    Number(
+                        res.data.customer.loyalty_points || 0
+                    )
+                );
+
+                setAvailablePoints(
+                    Number(
+                        res.data.customer.loyalty_points || 0
+                    )
+                );
+
+                showToast(
+                    `Customer "${res.data.customer.customer_name}" found successfully.`,
+                    "success"
+                );
+
+            } else {
+
+                setCustomerName("");
+
+                setLoyaltyPoints(0);
+
+                setAvailablePoints(0);
+
+                setRedeemPoints(false);
+
+                showToast(
+                    "Customer not found. You can continue as a new customer.",
+                    "info"
+                );
+            }
+
+        } catch (err) {
+
+            console.log(
+                "Customer Fetch Error:",
+                err
+            );
+
+            setCustomerName("");
+
+            setLoyaltyPoints(0);
+
+            setAvailablePoints(0);
+
+            setRedeemPoints(false);
+
+            showToast(
+                "Unable to find customer.",
+                "error"
+            );
+        }
+    };
+
+    // ==========================================
+    // FETCH PRODUCTS
+    // ==========================================
+
+    const fetchProducts = useCallback(async () => {
+
+        try {
+
+            const res = await axios.get(
+                "https://invoice-backend-78hd.onrender.com/api/products"
+            );
+
+            if (res.data.success) {
+
+                const products =
+                    res.data.products.map((p) => ({
+                        id: p.id,
+                        name: p.product_name,
+                        price: Number(p.price),
+                        stock:
+                            Number(
+                                p.stock_quantity
+                            ) || 0,
+                    }));
+
+                setItemOptions(products);
+
+            }
+
+        } catch (err) {
+
+            console.error(
+                "Error fetching products:",
+                err
+            );
+
+            showToast(
+                "Failed to load products.",
+                "error"
+            );
+        }
+    }, []);
+
+    // ==========================================
+    // FETCH NEXT INVOICE NUMBER
+    // ==========================================
+
+    const fetchInvoiceNumber = useCallback(async () => {
+
+        try {
+
+            const response =
+                await axios.get(
+                    "https://invoice-backend-78hd.onrender.com/api/next-invoice-number"
+                );
+
+            if (response.data.success) {
+
+                setInvoiceNumber(
+                    response.data.invoiceNumber
+                );
+
+            }
+
+        } catch (error) {
+
+            console.error(
+                "Error fetching invoice number:",
+                error
+            );
+
+            showToast(
+                "Failed to generate invoice number.",
+                "error"
+            );
+        }
+    }, []);
+
+    // ==========================================
+    // INITIAL LOAD
+    // ==========================================
+
+   useEffect(() => {
+    fetchInvoiceNumber();
+    fetchProducts();
+
+    const handleShortcut = (event) => {
+        if (event.key === "F4") {
+            event.preventDefault();
+            reviewBtnRef.current?.click();
+        }
+    };
+
+    window.addEventListener(
+        "keydown",
+        handleShortcut
+    );
+
+    return () => {
+        window.removeEventListener(
+            "keydown",
+            handleShortcut
+        );
+    };
+}, [fetchInvoiceNumber, fetchProducts]);
+
+    // ==========================================
+    // CURRENT TIME
+    // ==========================================
+
+    useEffect(() => {
+
+        const timer = setInterval(() => {
+
+            setCurrentTime(
+                new Date().toLocaleTimeString(
+                    "en-GB",
+                    {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit",
+                    }
+                )
+            );
+
+        }, 1000);
+
+        return () =>
+            clearInterval(timer);
+
+    }, []);
+
+    // ==========================================
+    // CALCULATIONS
+    // ==========================================
+
+    const subtotal = items.reduce(
+        (prev, curr) => {
+
+            if (
+                curr.name &&
+                curr.name.trim().length > 0
+            ) {
+
+                return (
+                    prev +
+                    Number(curr.price || 0) *
+                        Math.floor(
+                            Number(curr.qty || 0)
+                        )
+                );
+
+            }
+
+            return prev;
+        },
+        0
+    );
+
+    const taxRate =
+        (Number(tax || 0) * subtotal) / 100;
+
+    const discountRate =
+        (Number(discount || 0) * subtotal) / 100;
+
+    const loyaltyDiscount =
+        redeemPoints
+            ? Number(availablePoints || 0)
+            : 0;
+
+    const redeemedAmount =
+        loyaltyDiscount;
+
+    const total =
+        subtotal -
+        discountRate -
+        loyaltyDiscount +
+        taxRate;
+
+    // ==========================================
+    // REVIEW INVOICE
+    // ==========================================
+
+    const reviewInvoiceHandler = async (event) => {
+
+        event.preventDefault();
+
+        // ==========================================
+        // VALIDATION
+        // ==========================================
+
+        const validItems = items.filter(
+            (item) =>
+                item.name &&
+                item.name.trim().length > 0
+        );
+
+        if (validItems.length === 0) {
+
+            showToast(
+                "Please add at least one product to the invoice.",
+                "warning"
+            );
+
+            return;
+        }
+
+        if (total < 0) {
+
+            showToast(
+                "Invoice total cannot be negative.",
+                "warning"
+            );
+
+            return;
+        }
+
+        // ==========================================
+        // CHECK STOCK
+        // ==========================================
+
+        for (const item of validItems) {
+
+            const product =
+                itemOptions.find(
+                    (opt) =>
+                        opt.name === item.name
+                );
+
+            if (!product) {
+
+                showToast(
+                    `${item.name} is not available.`,
+                    "error"
+                );
+
+                return;
+            }
+
+            const requestedQty =
+                Math.floor(
+                    Number(item.qty || 0)
+                );
+
+            if (
+                requestedQty <= 0
+            ) {
+
+                showToast(
+                    `Please enter a valid quantity for ${item.name}.`,
+                    "warning"
+                );
+
+                return;
+            }
+
+            if (
+                requestedQty >
+                Number(product.stock || 0)
+            ) {
+
+                showToast(
+                    `Only ${product.stock} stock available for ${item.name}.`,
+                    "warning"
+                );
+
+                return;
+            }
+        }
+
+        // ==========================================
+        // INVOICE DATA
+        // ==========================================
+
+        const invoiceData = {
+
+            phoneNumber,
+
+            cashierName,
+
+            customerName,
+
+            subtotal,
+
+            discountRate,
+
+            taxRate,
+
+            total,
+
+            items: validItems,
+
+            redeemPoints,
+
+            paymentMethod,
+        };
+
+        try {
+
+            const response =
+                await axios.post(
+                    "https://invoice-backend-78hd.onrender.com/api/invoices",
+                    invoiceData
+                );
+
+            console.log(
+                response.data
+            );
+
+            // ==========================================
+            // UPDATE INVOICE NUMBER
+            // ==========================================
+
+            setInvoiceNumber(
+                response.data.invoiceNumber
+            );
+
+            // ==========================================
+            // REFRESH PRODUCT STOCK
+            // ==========================================
+
+            await fetchProducts();
+
+            // ==========================================
+            // REFRESH CUSTOMER LOYALTY POINTS
+            // ==========================================
+
+            await fetchCustomer(
+                phoneNumber
+            );
+
+            // ==========================================
+            // OPEN INVOICE MODAL
+            // ==========================================
+
+            setIsOpen(true);
+
+            // ==========================================
+            // SUCCESS TOAST
+            // ==========================================
+
+            showToast(
+                `Invoice ${response.data.invoiceNumber} saved successfully!`,
+                "success"
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Error saving invoice:",
+                error
+            );
+
+            showToast(
+                error.response?.data?.message ||
+                    "Failed to save invoice.",
+                "error"
+            );
+        }
+    };
+
+    // ==========================================
+    // NEW INVOICE
+    // ==========================================
+
+    const addNextInvoiceHandler = async () => {
+
+        await fetchInvoiceNumber();
+
+        setItems([
+            {
+                id: uid(6),
+                name: "",
+                qty: 1,
+                price: "0.00",
+            },
+        ]);
+
+        setPhoneNumber("");
+
+        setCustomerName("");
+
+        setLoyaltyPoints(0);
+
+        setCashierName(
+            user?.username || ""
+        );
+
+        setRedeemPoints(false);
+
+        setAvailablePoints(0);
+
+        setDiscount("2");
+
+        setTax("5");
+
+        setPaymentMethod("Cash");
+
+        showToast(
+            "Ready for a new invoice.",
+            "info"
+        );
+    };
+
+    // ==========================================
+    // ADD ITEM
+    // ==========================================
+
+    const addItemHandler = () => {
+
+        setItems((prevItems) => [
+
+            ...prevItems,
+
+            {
+                id: uid(6),
+                name: "",
+                qty: 1,
+                price: "0.00",
+            },
+
+        ]);
+
+    };
+
+    // ==========================================
+    // DELETE ITEM
+    // ==========================================
+
+    const deleteItemHandler = (id) => {
+
+        setItems((prevItems) =>
+            prevItems.filter(
+                (item) =>
+                    item.id !== id
+            )
+        );
+    };
+
+    // ==========================================
+    // EDIT ITEM
+    // ==========================================
+
+    const edtiItemHandler = (event) => {
+
+        const {
+            id,
+            name,
+            value,
+        } = event.target;
+
+        const updatedItems =
+            items.map((item) => {
+
+                if (item.id === id) {
+
+                    let newItem = {
+                        ...item,
+                        [name]: value,
+                    };
+
+                    // ==========================================
+                    // PRODUCT SELECTED
+                    // ==========================================
+
+                    if (
+                        name === "name"
+                    ) {
+
+                        const selectedItem =
+                            itemOptions.find(
+                                (opt) =>
+                                    opt.name ===
+                                    value
+                            );
+
+                        if (selectedItem) {
+
+                            newItem.price =
+                                selectedItem.price;
+
+                            // Reset quantity when
+                            // selecting a different product
+                            newItem.qty = 1;
+                        }
+                    }
+
+                    return newItem;
+                }
+
+                return item;
+            });
+
+        setItems(updatedItems);
+    };
+
+    // ==========================================
+    // RENDER
+    // ==========================================
+
+    return (
+
+        <div className="max-w-6xl mx-auto p-4 md:p-6">
+
+            {/* ========================================== */}
+            {/* TOAST */}
+            {/* ========================================== */}
+
+            <Toast
+                message={toast.message}
+                type={toast.type}
+                onClose={closeToast}
             />
-          </div>
-          <div className="flex flex-col">
-    <label className="text-sm font-bold">
-        Loyalty Points
-    </label>
 
-    <input
-        type="text"
-        value={loyaltyPoints}
-        readOnly
-        className="border rounded px-2 py-1 bg-gray-100"
-    />
-</div>
-<div className="flex items-center gap-2 mt-3">
-    <input
-        type="checkbox"
-        checked={redeemPoints}
-        onChange={(e) => setRedeemPoints(e.target.checked)}
-    />
+            {/* ========================================== */}
+            {/* MAIN FORM */}
+            {/* ========================================== */}
 
-    <label>Redeem Loyalty Points</label>
-</div>
-<p className="text-green-600 font-semibold mt-2">
-    Discount from Points:
-    ₹{redeemPoints ? availablePoints : 0}
-</p>
-        </div>
+            <form
+                onSubmit={reviewInvoiceHandler}
+                className="bg-white rounded-xl shadow-lg p-5 md:p-8"
+            >
 
-        {/* ITEM TABLE */}
-        <table className="w-full text-left mt-6">
-          <thead>
-            <tr className="border-b text-sm font-medium text-gray-700">
-              <th>ITEM</th>
-              <th>QTY</th>
-              <th className="text-center">PRICE</th>
-              <th className="text-center">ACTION</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item,index) => (
-              <InvoiceItem
-                key={item.id}
-                id={item.id}
-                name={item.name}
-                qty={item.qty}
-                price={item.price}
-                onDeleteItem={deleteItemHandler}
-                onEdtiItem={edtiItemHandler}
-                itemOptions={itemOptions}
-                onAddItem={addItemHandler}
-                autoFocus={index === items.length - 1}
-              />
-            ))}
-          </tbody>
-        </table>
+                {/* ========================================== */}
+                {/* HEADER */}
+                {/* ========================================== */}
 
-        <button
-          type="button"
-          className="mt-2 rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
-          onClick={addItemHandler}
-        >
-          Add Item
-        </button>
+                <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
 
-        {/* TAX & DISCOUNT */}
-        <div className="grid grid-cols-2 gap-4 pt-6 md:w-1/2">
-          <div className="flex flex-col">
-            <label htmlFor="discount" className="font-bold">Discount (%)</label>
-            <input
-              type="number"
-              id="discount"
-              value={discount}
-              onChange={(e) => setDiscount(e.target.value)}
-              className="border rounded px-2 py-1"
+                    <div>
+
+                        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
+                            AK Super Market
+                        </h1>
+
+                        <p className="text-gray-500 mt-1">
+                            Create New Invoice
+                        </p>
+
+                    </div>
+
+                    <div className="text-left md:text-right">
+
+                        <p className="text-sm text-gray-500">
+                            Current Date
+                        </p>
+
+                        <p className="font-semibold text-gray-800">
+                            {today}
+                        </p>
+
+                        <p className="text-sm text-gray-500 mt-2">
+                            Current Time
+                        </p>
+
+                        <p className="font-semibold text-gray-800">
+                            {currentTime}
+                        </p>
+
+                    </div>
+
+                </div>
+
+                {/* ========================================== */}
+                {/* INVOICE NUMBER */}
+                {/* ========================================== */}
+
+                <div className="mt-6">
+
+                    <label
+                        htmlFor="invoiceNumber"
+                        className="text-sm font-bold"
+                    >
+                        Invoice Number:
+                    </label>
+
+                    <input
+                        type="text"
+                        id="invoiceNumber"
+                        value={invoiceNumber}
+                        readOnly
+                        className="w-full mt-1 border rounded px-3 py-2 bg-gray-100 font-semibold"
+                    />
+
+                </div>
+
+                {/* ========================================== */}
+                {/* CASHIER & CUSTOMER */}
+                {/* ========================================== */}
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 pt-6">
+
+                    {/* CASHIER */}
+
+                    <div className="flex flex-col">
+
+                        <label
+                            htmlFor="cashierName"
+                            className="text-sm font-bold"
+                        >
+                            Cashier:
+                        </label>
+
+                        <input
+                            type="text"
+                            id="cashierName"
+                            value={cashierName}
+                            readOnly
+                            className="border rounded px-3 py-2 bg-gray-100"
+                        />
+
+                    </div>
+
+                    {/* CUSTOMER */}
+
+                    <div className="flex flex-col">
+
+                        <label
+                            htmlFor="customerName"
+                            className="text-sm font-bold"
+                        >
+                            Customer Name:
+                        </label>
+
+                        <input
+                            type="text"
+                            id="customerName"
+                            value={customerName}
+                            onChange={(e) =>
+                                setCustomerName(
+                                    e.target.value
+                                )
+                            }
+                            placeholder="Customer name"
+                            className="border rounded px-3 py-2"
+                        />
+
+                    </div>
+
+                </div>
+
+                {/* ========================================== */}
+                {/* PHONE & LOYALTY */}
+                {/* ========================================== */}
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+
+                    {/* PHONE */}
+
+                    <div className="flex flex-col">
+
+                        <label
+                            htmlFor="phoneNumber"
+                            className="text-sm font-bold"
+                        >
+                            Phone Number:
+                        </label>
+
+                        <input
+                            type="text"
+                            id="phoneNumber"
+                            maxLength={10}
+                            className="border rounded px-3 py-2"
+                            value={phoneNumber}
+                            placeholder="10 digit phone number"
+                            onChange={(e) => {
+
+                                const value =
+                                    e.target.value.replace(
+                                        /\D/g,
+                                        ""
+                                    );
+
+                                setPhoneNumber(value);
+
+                                if (
+                                    value.length ===
+                                    10
+                                ) {
+
+                                    fetchCustomer(
+                                        value
+                                    );
+                                }
+
+                            }}
+                        />
+
+                    </div>
+
+                    {/* LOYALTY POINTS */}
+
+                    <div className="flex flex-col">
+
+                        <label className="text-sm font-bold">
+                            Loyalty Points:
+                        </label>
+
+                        <input
+                            type="text"
+                            value={loyaltyPoints}
+                            readOnly
+                            className="border rounded px-3 py-2 bg-gray-100"
+                        />
+
+                    </div>
+
+                    {/* REDEEM */}
+
+                    <div className="flex items-center gap-2 mt-6 md:mt-0">
+
+                        <input
+                            type="checkbox"
+                            id="redeemPoints"
+                            checked={redeemPoints}
+                            disabled={
+                                availablePoints <= 0
+                            }
+                            onChange={(e) =>
+                                setRedeemPoints(
+                                    e.target.checked
+                                )
+                            }
+                            className="w-5 h-5"
+                        />
+
+                        <label
+                            htmlFor="redeemPoints"
+                            className="font-semibold"
+                        >
+                            Redeem Loyalty Points
+                        </label>
+
+                    </div>
+
+                </div>
+
+                {/* ========================================== */}
+                {/* ITEM TABLE */}
+                {/* ========================================== */}
+
+                <div className="overflow-x-auto mt-6">
+
+                    <table className="w-full text-left">
+
+                        <thead>
+
+                            <tr className="border-b text-sm font-medium text-gray-700">
+
+                                <th className="p-2">
+                                    ITEM
+                                </th>
+
+                                <th className="p-2">
+                                    QTY
+                                </th>
+
+                                <th className="p-2 text-center">
+                                    PRICE
+                                </th>
+
+                                <th className="p-2 text-center">
+                                    ACTION
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            {items.map(
+                                (
+                                    item,
+                                    index
+                                ) => (
+
+                                    <InvoiceItem
+                                        key={item.id}
+                                        id={item.id}
+                                        name={item.name}
+                                        qty={item.qty}
+                                        price={item.price}
+                                        onDeleteItem={
+                                            deleteItemHandler
+                                        }
+                                        onEdtiItem={
+                                            edtiItemHandler
+                                        }
+                                        itemOptions={
+                                            itemOptions
+                                        }
+                                        onAddItem={
+                                            addItemHandler
+                                        }
+                                        autoFocus={
+                                            index ===
+                                            items.length -
+                                                1
+                                        }
+                                    />
+
+                                )
+                            )}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                {/* ========================================== */}
+                {/* ADD ITEM */}
+                {/* ========================================== */}
+
+                <button
+                    type="button"
+                    className="mt-3 rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700 transition"
+                    onClick={addItemHandler}
+                >
+                    ➕ Add Item
+                </button>
+
+                {/* ========================================== */}
+                {/* TAX & DISCOUNT */}
+                {/* ========================================== */}
+
+                <div className="grid grid-cols-2 gap-4 pt-6 md:w-1/2">
+
+                    {/* DISCOUNT */}
+
+                    <div className="flex flex-col">
+
+                        <label
+                            htmlFor="discount"
+                            className="font-bold"
+                        >
+                            Discount (%)
+                        </label>
+
+                        <input
+                            type="number"
+                            id="discount"
+                            min="0"
+                            value={discount}
+                            onChange={(e) =>
+                                setDiscount(
+                                    e.target.value
+                                )
+                            }
+                            className="border rounded px-3 py-2"
+                        />
+
+                    </div>
+
+                    {/* TAX */}
+
+                    <div className="flex flex-col">
+
+                        <label
+                            htmlFor="tax"
+                            className="font-bold"
+                        >
+                            Tax (%)
+                        </label>
+
+                        <input
+                            type="number"
+                            id="tax"
+                            min="0"
+                            value={tax}
+                            onChange={(e) =>
+                                setTax(
+                                    e.target.value
+                                )
+                            }
+                            className="border rounded px-3 py-2"
+                        />
+
+                    </div>
+
+                </div>
+
+                {/* ========================================== */}
+                {/* TOTALS */}
+                {/* ========================================== */}
+
+                <div className="flex flex-col items-end space-y-3 pt-6 md:w-1/2">
+
+                    {/* SUBTOTAL */}
+
+                    <div className="flex justify-between w-full">
+
+                        <span className="font-bold">
+                            Subtotal:
+                        </span>
+
+                        <span>
+                            ₹{subtotal.toFixed(2)}
+                        </span>
+
+                    </div>
+
+                    {/* DISCOUNT */}
+
+                    <div className="flex justify-between w-full">
+
+                        <span className="font-bold">
+                            Discount:
+                        </span>
+
+                        <span>
+                            ({discount || 0}%)
+                            ₹{discountRate.toFixed(2)}
+                        </span>
+
+                    </div>
+
+                    {/* LOYALTY DISCOUNT */}
+
+                    <div className="flex justify-between w-full">
+
+                        <span className="font-bold">
+                            Loyalty Discount:
+                        </span>
+
+                        <span className="text-purple-600 font-semibold">
+                            ₹
+                            {redeemPoints
+                                ? Number(
+                                      availablePoints
+                                  ).toFixed(2)
+                                : "0.00"}
+                        </span>
+
+                    </div>
+
+                    {/* TAX */}
+
+                    <div className="flex justify-between w-full">
+
+                        <span className="font-bold">
+                            Tax:
+                        </span>
+
+                        <span>
+                            ₹{taxRate.toFixed(2)}
+                        </span>
+
+                    </div>
+
+                    {/* PAYMENT METHOD */}
+
+                    <div className="w-full mt-2">
+
+                        <label
+                            htmlFor="paymentMethod"
+                            className="font-bold"
+                        >
+                            Payment Method:
+                        </label>
+
+                        <select
+                            id="paymentMethod"
+                            value={paymentMethod}
+                            onChange={(e) =>
+                                setPaymentMethod(
+                                    e.target.value
+                                )
+                            }
+                            className="w-full border rounded px-3 py-2 mt-1"
+                        >
+
+                            <option value="Cash">
+                                Cash
+                            </option>
+
+                            <option value="Online">
+                                Online
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    {/* GRAND TOTAL */}
+
+                    <div className="flex justify-between w-full border-t pt-4 mt-2">
+
+                        <span className="font-bold text-xl">
+                            Total:
+                        </span>
+
+                        <span className="font-bold text-xl text-blue-600">
+                            ₹{total.toFixed(2)}
+                        </span>
+
+                    </div>
+
+                    {/* ========================================== */}
+                    {/* REVIEW BUTTON DESKTOP */}
+                    {/* ========================================== */}
+
+                    <button
+                        className="hidden md:block mt-4 w-full rounded-lg bg-blue-600 py-3 text-white font-semibold hover:bg-blue-700 transition"
+                        type="submit"
+                        ref={reviewBtnRef}
+                    >
+                        🧾 Review Invoice
+                    </button>
+
+                </div>
+
+                {/* ========================================== */}
+                {/* MOBILE REVIEW BUTTON */}
+                {/* ========================================== */}
+
+                <div className="md:hidden w-full pt-4">
+
+                    <button
+                        className="w-full rounded-lg bg-blue-600 py-3 text-white font-semibold hover:bg-blue-700 transition"
+                        type="submit"
+                    >
+                        🧾 Review Invoice
+                    </button>
+
+                </div>
+
+            </form>
+
+            {/* ========================================== */}
+            {/* INVOICE MODAL */}
+            {/* ========================================== */}
+
+            <InvoiceModal
+                isOpen={isOpen}
+                setIsOpen={setIsOpen}
+
+                invoiceInfo={{
+                    invoiceNumber,
+                    cashierName,
+                    customerName,
+                    phoneNumber,
+                    paymentMethod,
+                    subtotal,
+                    discountRate,
+                    taxRate,
+                    loyaltyDiscount:
+                        redeemedAmount,
+                    total,
+                }}
+
+                items={items}
+
+                onAddNextInvoice={
+                    addNextInvoiceHandler
+                }
             />
-          </div>
-          <div className="flex flex-col">
-            <label htmlFor="tax" className="font-bold">Tax (%)</label>
-            <input
-              type="number"
-              id="tax"
-              value={tax}
-              onChange={(e) => setTax(e.target.value)}
-              className="border rounded px-2 py-1"
-            />
-          </div>
+
         </div>
-
-        {/* TOTALS */}
-        <div className="flex flex-col items-end space-y-2 pt-6 md:w-1/2">
-          <div className="flex justify-between w-full">
-            <span className="font-bold">Subtotal:</span>
-            <span>Rs: {subtotal.toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between w-full">
-            <span className="font-bold">Discount:</span>
-            <span>({discount || 0}%) Rs: {discountRate.toFixed(2)}</span>
-          </div>
-            <div className="flex justify-between w-full">
-    <span className="font-bold">Loyalty Discount:</span>
-    <span>Rs: ₹{redeemPoints ? availablePoints : 0}</span>
-  </div>
-          <div className="flex justify-between w-full">
-            <span className="font-bold">Tax:</span>
-            <span>({tax || 0}%) Rs: {taxRate.toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between w-full border-t pt-2">
-            <span className="font-bold">Total:</span>
-            <span className="font-bold">Rs: {total.toFixed(2)}</span>
-          </div>
-          <div className="w-full">
-  <label className="font-bold block mb-1">Payment Method</label>
-
-  <select
-    value={paymentMethod}
-    onChange={(e) => setPaymentMethod(e.target.value)}
-    className="w-full border rounded px-2 py-1"
-  >
-    <option value="Cash">Cash</option>
-    <option value="Online">Online</option>
-  </select>
-</div>
-
-          {/* ✅ Review Invoice Button inside totals section (for desktop) */}
-          <button
-            className="hidden md:block mt-4 w-full rounded bg-blue-600 py-2 text-white hover:bg-blue-700"
-            type="submit"
-            ref={reviewBtnRef}
-          >
-            Review Invoice
-          </button>
-        </div>
-      </div>
-
-      {/* SIDE BUTTON PANEL (only for mobile view) */}
-      <div className="md:hidden w-full px-2 pt-2">
-        <button
-          className="w-full rounded bg-blue-600 py-2 text-white hover:bg-blue-700"
-          type="submit"
-        >
-          Review Invoice
-        </button>
-      </div>
-
-      {/* Invoice Modal */}
-      <InvoiceModal
-        isOpen={isOpen}
-        setIsOpen={setIsOpen}
-invoiceInfo={{
-  invoiceNumber,
-  cashierName,
-  customerName,
-  phoneNumber,
-  paymentMethod,
-  subtotal,
-  discountRate,
-  taxRate,
-  loyaltyDiscount: redeemedAmount,
-  total,
-}}
-        items={items}
-        onAddNextInvoice={addNextInvoiceHandler}
-      />
-    </form>
-  );
+    );
 };
 
 export default InvoiceForm;
