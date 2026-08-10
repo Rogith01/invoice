@@ -1,3 +1,4 @@
+
 import React, {
     useState,
     useEffect,
@@ -59,6 +60,17 @@ const InvoiceForm = () => {
         useState(false);
 
     const [availablePoints, setAvailablePoints] =
+        useState(0);
+
+    // ==========================================
+    // IMPORTANT:
+    // FREEZE VALUES FOR REVIEW INVOICE MODAL
+    // ==========================================
+
+    const [redeemedAmount, setRedeemedAmount] =
+        useState(0);
+
+    const [reviewTotal, setReviewTotal] =
         useState(0);
 
     // ==========================================
@@ -395,9 +407,6 @@ const InvoiceForm = () => {
             ? Number(availablePoints || 0)
             : 0;
 
-    const redeemedAmount =
-        loyaltyDiscount;
-
     const total =
         subtotal -
         discountRate -
@@ -496,6 +505,30 @@ const InvoiceForm = () => {
         }
 
         // ==========================================
+        // FREEZE VALUES BEFORE SAVING
+        // ==========================================
+        //
+        // IMPORTANT:
+        // If availablePoints = 72,
+        // invoiceLoyaltyDiscount = 72.
+        //
+        // We save this value in state BEFORE
+        // fetchCustomer() refreshes availablePoints
+        // to the customer's remaining points (8).
+        // ==========================================
+
+        const invoiceLoyaltyDiscount =
+            redeemPoints
+                ? Number(availablePoints || 0)
+                : 0;
+
+        const invoiceTotal =
+            subtotal -
+            discountRate -
+            invoiceLoyaltyDiscount +
+            taxRate;
+
+        // ==========================================
         // INVOICE DATA
         // ==========================================
 
@@ -513,7 +546,7 @@ const InvoiceForm = () => {
 
             taxRate,
 
-            total,
+            total: invoiceTotal,
 
             items: validItems,
 
@@ -535,6 +568,18 @@ const InvoiceForm = () => {
             );
 
             // ==========================================
+            // FREEZE RECEIPT VALUES
+            // ==========================================
+
+            setRedeemedAmount(
+                invoiceLoyaltyDiscount
+            );
+
+            setReviewTotal(
+                invoiceTotal
+            );
+
+            // ==========================================
             // UPDATE INVOICE NUMBER
             // ==========================================
 
@@ -550,6 +595,13 @@ const InvoiceForm = () => {
 
             // ==========================================
             // REFRESH CUSTOMER LOYALTY POINTS
+            // ==========================================
+            //
+            // This can change availablePoints
+            // from 72 -> 8.
+            //
+            // That is okay because the receipt
+            // uses redeemedAmount above.
             // ==========================================
 
             await fetchCustomer(
@@ -616,6 +668,11 @@ const InvoiceForm = () => {
         setRedeemPoints(false);
 
         setAvailablePoints(0);
+
+        // Reset frozen receipt values
+        setRedeemedAmount(0);
+
+        setReviewTotal(0);
 
         setDiscount("2");
 
@@ -1269,12 +1326,24 @@ const InvoiceForm = () => {
                     customerName,
                     phoneNumber,
                     paymentMethod,
+
                     subtotal,
+
                     discountRate,
+
                     taxRate,
+
+                    // IMPORTANT:
+                    // Use frozen redeemed amount.
+                    // Do NOT use availablePoints here.
                     loyaltyDiscount:
                         redeemedAmount,
-                    total,
+
+                    // IMPORTANT:
+                    // Use frozen invoice total.
+                    // Do NOT use live total here.
+                    total:
+                        reviewTotal,
                 }}
 
                 items={items}

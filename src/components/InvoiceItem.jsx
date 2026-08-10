@@ -56,35 +56,37 @@ const InvoiceItem = ({
         onDeleteItem(id);
     };
 
-    // ===============================
-    // Keyboard Navigation
-    // ===============================
-    const handleKeyDown = (event) => {
 
-        // Delete current row
-        if (event.key === "Delete") {
-            event.preventDefault();
-            onDeleteItem(id);
-            return;
-        }
+// ===============================
+// Keyboard Navigation
+// ===============================
+const handleKeyDown = (event) => {
 
-        // Only handle Enter
-        if (event.key !== "Enter") return;
-
+    // Delete current row
+    if (event.key === "Delete") {
         event.preventDefault();
+        onDeleteItem(id);
+        return;
+    }
 
-        if (event.target.name === "name") {
-            qtyRef.current?.focus();
-        }
+    // Only handle Enter
+    if (event.key !== "Enter") return;
 
-        else if (event.target.name === "qty") {
-            priceRef.current?.focus();
-        }
+    event.preventDefault();
 
-        else if (event.target.name === "price") {
-            onAddItem();
-        }
-    };
+    // Product → Quantity
+    if (event.target.name === "name") {
+        qtyRef.current?.focus();
+        return;
+    }
+
+    // Quantity → Next Item
+    if (event.target.name === "qty") {
+        onAddItem();
+        return;
+    }
+};
+
 
     // ===============================
     // Refs
