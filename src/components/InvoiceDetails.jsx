@@ -153,11 +153,11 @@ return (
                         {item.qty}
                     </td>
                     <td className="min-w-[80px] text-right py-2">
-                        Rs:{Number(item.price).toFixed(2)}
+                        {Number(item.price).toFixed(2)}
                     </td>
 
                     <td className="min-w-[90px] text-right py-2">
-                        Rs:{Number(item.amount).toFixed(2)}
+                        {Number(item.amount).toFixed(2)}
                     </td>
 
                 </tr>
@@ -172,22 +172,22 @@ return (
 
     <div className="flex w-full justify-between  border-black/10 pt-2 text-[15px]">
         <span className="font-bold">Subtotal:</span>
-        <span>Rs:{Number(invoice.subtotal).toFixed(2)}</span>
+        <span>{Number(invoice.subtotal).toFixed(2)}</span>
     </div>
 
     <div className="flex w-full justify-between text-[15px]">
         <span className="font-bold">Discount:</span>
-        <span>Rs:{Number(invoice.discount).toFixed(2)}</span>
+        <span>{Number(invoice.discount).toFixed(2)}</span>
     </div>
 
     <div className="flex w-full justify-between text-[15px]">
         <span className="font-bold">Loyalty Discount:</span>
-        <span>Rs:{Number(invoice.loyalty_discount).toFixed(2)}</span>
+        <span>{Number(invoice.loyalty_discount).toFixed(2)}</span>
     </div>
 
     <div className="flex w-full justify-between text-[15px]">
         <span className="font-bold">Tax:</span>
-        <span>Rs:{Number(invoice.tax).toFixed(2)}</span>
+        <span>{Number(invoice.tax).toFixed(2)}</span>
     </div>
 
     <div className="flex w-full justify-between border-t border-black/10 py-2 text-[17px] font-bold">

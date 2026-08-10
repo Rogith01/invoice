@@ -1,4 +1,3 @@
-
 import React, {
     useState,
     useEffect,
@@ -63,7 +62,6 @@ const InvoiceForm = () => {
         useState(0);
 
     // ==========================================
-    // IMPORTANT:
     // FREEZE VALUES FOR REVIEW INVOICE MODAL
     // ==========================================
 
@@ -115,6 +113,7 @@ const InvoiceForm = () => {
             name: "",
             qty: 1,
             price: "0.00",
+            amount: 0,
         },
     ]);
 
@@ -341,7 +340,10 @@ const InvoiceForm = () => {
             );
         };
 
-    }, [fetchInvoiceNumber, fetchProducts]);
+    }, [
+        fetchInvoiceNumber,
+        fetchProducts,
+    ]);
 
     // ==========================================
     // CURRENT TIME
@@ -388,7 +390,6 @@ const InvoiceForm = () => {
                             Number(curr.qty || 0)
                         )
                 );
-
             }
 
             return prev;
@@ -505,16 +506,7 @@ const InvoiceForm = () => {
         }
 
         // ==========================================
-        // FREEZE VALUES BEFORE SAVING
-        // ==========================================
-        //
-        // IMPORTANT:
-        // If availablePoints = 72,
-        // invoiceLoyaltyDiscount = 72.
-        //
-        // We save this value in state BEFORE
-        // fetchCustomer() refreshes availablePoints
-        // to the customer's remaining points (8).
+        // FREEZE LOYALTY DISCOUNT
         // ==========================================
 
         const invoiceLoyaltyDiscount =
@@ -522,11 +514,46 @@ const InvoiceForm = () => {
                 ? Number(availablePoints || 0)
                 : 0;
 
+        // ==========================================
+        // CALCULATE FINAL TOTAL
+        // ==========================================
+
         const invoiceTotal =
             subtotal -
             discountRate -
             invoiceLoyaltyDiscount +
             taxRate;
+
+        // ==========================================
+        // IMPORTANT:
+        // CREATE FINAL ITEMS WITH AMOUNT
+        // ==========================================
+
+        const invoiceItems = validItems.map(
+            (item) => {
+
+                const itemQty =
+                    Math.floor(
+                        Number(item.qty || 0)
+                    );
+
+                const itemPrice =
+                    Number(item.price || 0);
+
+                const itemAmount =
+                    itemPrice * itemQty;
+
+                return {
+                    ...item,
+
+                    qty: itemQty,
+
+                    price: itemPrice,
+
+                    amount: itemAmount,
+                };
+            }
+        );
 
         // ==========================================
         // INVOICE DATA
@@ -548,7 +575,7 @@ const InvoiceForm = () => {
 
             total: invoiceTotal,
 
-            items: validItems,
+            items: invoiceItems,
 
             redeemPoints,
 
@@ -595,13 +622,6 @@ const InvoiceForm = () => {
 
             // ==========================================
             // REFRESH CUSTOMER LOYALTY POINTS
-            // ==========================================
-            //
-            // This can change availablePoints
-            // from 72 -> 8.
-            //
-            // That is okay because the receipt
-            // uses redeemedAmount above.
             // ==========================================
 
             await fetchCustomer(
@@ -652,6 +672,7 @@ const InvoiceForm = () => {
                 name: "",
                 qty: 1,
                 price: "0.00",
+                amount: 0,
             },
         ]);
 
@@ -701,6 +722,7 @@ const InvoiceForm = () => {
                 name: "",
                 qty: 1,
                 price: "0.00",
+                amount: 0,
             },
 
         ]);
@@ -762,12 +784,30 @@ const InvoiceForm = () => {
                             newItem.price =
                                 selectedItem.price;
 
-                            // Reset quantity when
-                            // selecting a different product
-
+                            // Reset quantity
                             newItem.qty = 1;
                         }
                     }
+
+                    // ==========================================
+                    // CALCULATE ITEM AMOUNT
+                    // ==========================================
+
+                    const itemPrice =
+                        Number(
+                            newItem.price || 0
+                        );
+
+                    const itemQty =
+                        Math.floor(
+                            Number(
+                                newItem.qty || 0
+                            )
+                        );
+
+                    newItem.amount =
+                        itemPrice *
+                        itemQty;
 
                     return newItem;
                 }
@@ -1044,6 +1084,10 @@ const InvoiceForm = () => {
                                 </th>
 
                                 <th className="p-2 text-center">
+                                    AMOUNT
+                                </th>
+
+                                <th className="p-2 text-center">
                                     ACTION
                                 </th>
 
@@ -1065,6 +1109,7 @@ const InvoiceForm = () => {
                                         name={item.name}
                                         qty={item.qty}
                                         price={item.price}
+                                        amount={item.amount}
                                         onDeleteItem={
                                             deleteItemHandler
                                         }
@@ -1180,7 +1225,7 @@ const InvoiceForm = () => {
                         </span>
 
                         <span>
-                            ₹{subtotal.toFixed(2)}
+                            {subtotal.toFixed(2)}
                         </span>
 
                     </div>
@@ -1195,7 +1240,7 @@ const InvoiceForm = () => {
 
                         <span>
                             ({discount || 0}%)
-                            ₹{discountRate.toFixed(2)}
+                            {discountRate.toFixed(2)}
                         </span>
 
                     </div>
@@ -1209,7 +1254,7 @@ const InvoiceForm = () => {
                         </span>
 
                         <span className="text-purple-600 font-semibold">
-                            ₹
+                            
                             {redeemPoints
                                 ? Number(
                                       availablePoints
@@ -1228,7 +1273,7 @@ const InvoiceForm = () => {
                         </span>
 
                         <span>
-                            ₹{taxRate.toFixed(2)}
+                            {taxRate.toFixed(2)}
                         </span>
 
                     </div>
@@ -1276,21 +1321,19 @@ const InvoiceForm = () => {
                         </span>
 
                         <span className="font-bold text-xl text-blue-600">
-                            ₹{total.toFixed(2)}
+                            RS: {total.toFixed(2)}
                         </span>
 
                     </div>
 
-                    {/* ========================================== */}
                     {/* REVIEW BUTTON DESKTOP */}
-                    {/* ========================================== */}
 
                     <button
                         className="hidden md:block mt-4 w-full rounded-lg bg-blue-600 py-3 text-white font-semibold hover:bg-blue-700 transition"
                         type="submit"
                         ref={reviewBtnRef}
                     >
-                        🧾 Review Invoice
+                        Review Invoice
                     </button>
 
                 </div>
@@ -1305,7 +1348,7 @@ const InvoiceForm = () => {
                         className="w-full rounded-lg bg-blue-600 py-3 text-white font-semibold hover:bg-blue-700 transition"
                         type="submit"
                     >
-                        🧾 Review Invoice
+                        Review Invoice
                     </button>
 
                 </div>
@@ -1322,9 +1365,13 @@ const InvoiceForm = () => {
 
                 invoiceInfo={{
                     invoiceNumber,
+
                     cashierName,
+
                     customerName,
+
                     phoneNumber,
+
                     paymentMethod,
 
                     subtotal,
@@ -1333,15 +1380,9 @@ const InvoiceForm = () => {
 
                     taxRate,
 
-                    // IMPORTANT:
-                    // Use frozen redeemed amount.
-                    // Do NOT use availablePoints here.
                     loyaltyDiscount:
                         redeemedAmount,
 
-                    // IMPORTANT:
-                    // Use frozen invoice total.
-                    // Do NOT use live total here.
                     total:
                         reviewTotal,
                 }}

@@ -693,7 +693,7 @@ const fetchCustomers = useCallback(async () => {
 
                                                             <tr className="bg-gray-50">
 
-                                                                <th className="border p-2 text-left">
+                                                                <th className="border p-2 text-center">
                                                                     Product
                                                                 </th>
 
@@ -726,7 +726,7 @@ const fetchCustomers = useCallback(async () => {
                                                                         key={`${purchase.id}-${index}`}
                                                                     >
 
-                                                                        <td className="border p-2">
+                                                                        <td className="border p-2 text-center">
                                                                             {
                                                                                 item.item_name
                                                                             }
@@ -739,14 +739,14 @@ const fetchCustomers = useCallback(async () => {
                                                                         </td>
 
                                                                         <td className="border p-2 text-center">
-                                                                            ₹
+                                                                            
                                                                             {Number(
                                                                                 item.price
                                                                             ).toFixed(2)}
                                                                         </td>
 
                                                                         <td className="border p-2 text-center font-semibold">
-                                                                            ₹
+                                                                            
                                                                             {Number(
                                                                                 item.amount
                                                                             ).toFixed(2)}
@@ -781,7 +781,7 @@ const fetchCustomers = useCallback(async () => {
                                                                 </span>
 
                                                                 <span>
-                                                                    ₹
+                                                                    
                                                                     {Number(
                                                                         purchase.subtotal
                                                                     ).toFixed(2)}
@@ -797,7 +797,7 @@ const fetchCustomers = useCallback(async () => {
                                                                 </span>
 
                                                                 <span>
-                                                                    ₹
+                                                                    
                                                                     {Number(
                                                                         purchase.discount
                                                                     ).toFixed(2)}
@@ -813,7 +813,7 @@ const fetchCustomers = useCallback(async () => {
                                                                 </span>
 
                                                                 <span>
-                                                                    ₹
+                                                                    
                                                                     {Number(
                                                                         purchase.loyalty_discount
                                                                     ).toFixed(2)}
@@ -829,7 +829,7 @@ const fetchCustomers = useCallback(async () => {
                                                                 </span>
 
                                                                 <span>
-                                                                    ₹
+                                                                    
                                                                     {Number(
                                                                         purchase.tax
                                                                     ).toFixed(2)}

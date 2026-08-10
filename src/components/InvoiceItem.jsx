@@ -1,5 +1,11 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, {
+    useEffect,
+    useState,
+    useCallback,
+} from "react";
+
 import "../index.css";
+
 import Toast from "./Toast";
 
 const InvoiceItem = ({
@@ -7,6 +13,7 @@ const InvoiceItem = ({
     name,
     qty,
     price,
+    amount,
     onDeleteItem,
     onEdtiItem,
     itemOptions,
@@ -22,81 +29,140 @@ const InvoiceItem = ({
     // ===============================
     // Show Toast
     // ===============================
-    const showToast = useCallback((message, type = "warning") => {
-        setToast({
-            message,
-            type,
-        });
-    }, []);
+
+    const showToast = useCallback(
+        (message, type = "warning") => {
+
+            setToast({
+                message,
+                type,
+            });
+
+        },
+        []
+    );
 
     // ===============================
     // Hide Toast
     // ===============================
+
     const hideToast = useCallback(() => {
+
         setToast({
             message: "",
             type: "warning",
         });
+
     }, []);
+
+    // ===============================
+    // Refs
+    // ===============================
+
+    const itemRef = React.useRef(null);
+
+    const qtyRef = React.useRef(null);
+
+    const priceRef = React.useRef(null);
 
     // ===============================
     // Auto Focus
     // ===============================
+
     useEffect(() => {
-        if (autoFocus && itemRef.current) {
+
+        if (
+            autoFocus &&
+            itemRef.current
+        ) {
+
             itemRef.current.focus();
         }
+
     }, [autoFocus]);
 
     // ===============================
     // Delete Item
     // ===============================
+
     const deleteItemHandler = (event) => {
+
         event.preventDefault();
+
         onDeleteItem(id);
     };
 
+    // ===============================
+    // Keyboard Navigation
+    // ===============================
 
-// ===============================
-// Keyboard Navigation
-// ===============================
-const handleKeyDown = (event) => {
+    const handleKeyDown = (event) => {
 
-    // Delete current row
-    if (event.key === "Delete") {
+        // Delete current row
+
+        if (
+            event.key === "Delete"
+        ) {
+
+            event.preventDefault();
+
+            onDeleteItem(id);
+
+            return;
+        }
+
+        // Only handle Enter
+
+        if (
+            event.key !== "Enter"
+        ) {
+            return;
+        }
+
         event.preventDefault();
-        onDeleteItem(id);
-        return;
-    }
 
-    // Only handle Enter
-    if (event.key !== "Enter") return;
+        // Product → Quantity
 
-    event.preventDefault();
+        if (
+            event.target.name === "name"
+        ) {
 
-    // Product → Quantity
-    if (event.target.name === "name") {
-        qtyRef.current?.focus();
-        return;
-    }
+            qtyRef.current?.focus();
 
-    // Quantity → Next Item
-    if (event.target.name === "qty") {
-        onAddItem();
-        return;
-    }
-};
+            return;
+        }
 
+        // Quantity → Next Item
+
+        if (
+            event.target.name === "qty"
+        ) {
+
+            onAddItem();
+
+            return;
+        }
+
+    };
 
     // ===============================
-    // Refs
+    // Calculate Amount
     // ===============================
-    const itemRef = React.useRef(null);
-    const qtyRef = React.useRef(null);
-    const priceRef = React.useRef(null);
+
+    const calculatedAmount =
+        Number(price || 0) *
+        Math.floor(
+            Number(qty || 0)
+        );
+
+    // ===============================
+    // RETURN
+    // ===============================
 
     return (
+
         <>
+
             {/* =============================== */}
             {/* TOAST */}
             {/* =============================== */}
@@ -108,7 +174,7 @@ const handleKeyDown = (event) => {
             />
 
             {/* =============================== */}
-            {/* ITEM */}
+            {/* ITEM ROW */}
             {/* =============================== */}
 
             <tr>
@@ -117,7 +183,7 @@ const handleKeyDown = (event) => {
                 {/* PRODUCT NAME */}
                 {/* =============================== */}
 
-                <td className="w-full">
+                <td className="w-full p-1">
 
                     <select
                         ref={itemRef}
@@ -134,17 +200,22 @@ const handleKeyDown = (event) => {
                         </option>
 
                         {itemOptions
-                            .filter((opt) => opt.stock > 0)
-                            .map((opt) => (
+                            .filter(
+                                (opt) =>
+                                    opt.stock > 0
+                            )
+                            .map(
+                                (opt) => (
 
-                                <option
-                                    key={opt.id}
-                                    value={opt.name}
-                                >
-                                    {opt.name}
-                                </option>
+                                    <option
+                                        key={opt.id}
+                                        value={opt.name}
+                                    >
+                                        {opt.name}
+                                    </option>
 
-                            ))}
+                                )
+                            )}
 
                     </select>
 
@@ -154,7 +225,7 @@ const handleKeyDown = (event) => {
                 {/* QUANTITY */}
                 {/* =============================== */}
 
-                <td className="min-w-[65px] md:min-w-[80px]">
+                <td className="min-w-[65px] md:min-w-[80px] p-1">
 
                     <input
                         ref={qtyRef}
@@ -163,7 +234,9 @@ const handleKeyDown = (event) => {
                         min="1"
                         max={
                             itemOptions.find(
-                                (opt) => opt.name === name
+                                (opt) =>
+                                    opt.name ===
+                                    name
                             )?.stock || 1
                         }
                         name="qty"
@@ -173,20 +246,28 @@ const handleKeyDown = (event) => {
 
                             const selectedProduct =
                                 itemOptions.find(
-                                    (opt) => opt.name === name
+                                    (opt) =>
+                                        opt.name ===
+                                        name
                                 );
 
                             const stock =
-                                selectedProduct?.stock || 0;
+                                selectedProduct?.stock ||
+                                0;
 
                             const enteredQty =
-                                Number(e.target.value);
+                                Number(
+                                    e.target.value
+                                );
 
                             // ===============================
                             // STOCK VALIDATION
                             // ===============================
 
-                            if (enteredQty > stock) {
+                            if (
+                                enteredQty >
+                                stock
+                            ) {
 
                                 showToast(
                                     `Only ${stock} stock available for ${name}.`,
@@ -197,11 +278,16 @@ const handleKeyDown = (event) => {
                             }
 
                             // Prevent quantity below 1
-                            if (enteredQty < 1) {
+
+                            if (
+                                enteredQty < 1
+                            ) {
+
                                 return;
                             }
 
                             onEdtiItem(e);
+
                         }}
                         onKeyDown={handleKeyDown}
                         onFocus={(e) =>
@@ -215,11 +301,11 @@ const handleKeyDown = (event) => {
                 {/* PRICE */}
                 {/* =============================== */}
 
-                <td className="relative min-w-[100px] md:min-w-[150px]">
+                <td className="relative min-w-[100px] md:min-w-[150px] p-1">
 
                     <input
                         ref={priceRef}
-                        className="w-full text-right rounded border px-2 py-1"
+                        className="w-full text-center rounded border px-2 py-1"
                         type="number"
                         min="0.01"
                         step="0.01"
@@ -236,42 +322,65 @@ const handleKeyDown = (event) => {
                 </td>
 
                 {/* =============================== */}
+                {/* AMOUNT */}
+                {/* =============================== */}
+
+                <td className="relative min-w-[100px] md:min-w-[150px] p-1">
+
+                    <div className="w-full text-center rounded bg-gray-100 p-1">
+                    {Number(
+                        amount !== undefined
+                            ? amount
+                            : calculatedAmount
+                    ).toFixed(2)}
+                    </div>
+                </td>
+
+                {/* =============================== */}
                 {/* DELETE */}
                 {/* =============================== */}
 
-                <td className="flex items-center justify-center">
+                <td className="p-1">
 
-                    <button
-                        type="button"
-                        className="rounded-md bg-red-500 p-2 text-white shadow-sm transition hover:bg-red-600 hover:scale-105"
-                        onClick={deleteItemHandler}
-                        title="Delete Item"
-                        aria-label="Delete Item"
-                    >
+                    <div className="flex items-center justify-center">
 
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-5 w-5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
+                        <button
+                            type="button"
+                            className="rounded-md bg-red-500 p-2 text-white shadow-sm transition hover:bg-red-600 hover:scale-105"
+                            onClick={
+                                deleteItemHandler
+                            }
+                            title="Delete Item"
+                            aria-label="Delete Item"
                         >
 
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                            />
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-5 w-5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
 
-                        </svg>
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                />
 
-                    </button>
+                            </svg>
+
+                        </button>
+
+                    </div>
 
                 </td>
 
             </tr>
+
         </>
+
     );
 };
 
