@@ -23,6 +23,7 @@ const Dashboard = () => {
     const [dashboard, setDashboard] = useState({
 
         totalSales: 0,
+        
         todaySales: 0,
         todayOrders: 0,
 
