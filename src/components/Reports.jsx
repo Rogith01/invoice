@@ -403,7 +403,7 @@ const Reports = () => {
 
                                     <tr>
 
-                                        <th className="border p-3 text-left">
+                                        <th className="border p-3 text-center">
                                             Date
                                         </th>
 
@@ -411,7 +411,7 @@ const Reports = () => {
                                             Orders
                                         </th>
 
-                                        <th className="border p-3 text-right">
+                                        <th className="border p-3 text-center  ">
                                             Sales
                                         </th>
 
@@ -431,7 +431,7 @@ const Reports = () => {
                                                     className="hover:bg-gray-50"
                                                 >
 
-                                                    <td className="border p-3">
+                                                    <td className="border p-3 text-center">
                                                         {new Date(
                                                             day.saleDate
                                                         ).toLocaleDateString(
@@ -443,7 +443,7 @@ const Reports = () => {
                                                         {day.orders}
                                                     </td>
 
-                                                    <td className="border p-3 text-right font-semibold">
+                                                    <td className="border p-3 text-center font-semibold">
                                                         {money(
                                                             day.sales
                                                         )}
@@ -496,11 +496,11 @@ const Reports = () => {
 
                                     <tr>
 
-                                        <th className="border p-3 text-left">
+                                        <th className="border p-3 text-center">
                                             #
                                         </th>
 
-                                        <th className="border p-3 text-left">
+                                        <th className="border p-3 text-center">
                                             Product
                                         </th>
 
@@ -508,7 +508,7 @@ const Reports = () => {
                                             Quantity Sold
                                         </th>
 
-                                        <th className="border p-3 text-right">
+                                        <th className="border p-3 text-center">
                                             Sales
                                         </th>
 
@@ -528,11 +528,11 @@ const Reports = () => {
                                                     className="hover:bg-gray-50"
                                                 >
 
-                                                    <td className="border p-3">
+                                                    <td className="border p-3 text-center">
                                                         {index + 1}
                                                     </td>
 
-                                                    <td className="border p-3 font-semibold">
+                                                    <td className="border p-3 text-center font-semibold">
                                                         {product.productName}
                                                     </td>
 
@@ -540,7 +540,7 @@ const Reports = () => {
                                                         {product.quantitySold}
                                                     </td>
 
-                                                    <td className="border p-3 text-right font-semibold">
+                                                    <td className="border p-3 text-center font-semibold">
                                                         {money(
                                                             product.sales
                                                         )}
@@ -593,7 +593,7 @@ const Reports = () => {
 
                                     <tr>
 
-                                        <th className="border p-3 text-left">
+                                        <th className="border p-3 text-center">
                                             Cashier
                                         </th>
 
@@ -601,7 +601,7 @@ const Reports = () => {
                                             Orders
                                         </th>
 
-                                        <th className="border p-3 text-right">
+                                        <th className="border p-3 text-center">
                                             Sales
                                         </th>
 
@@ -618,10 +618,10 @@ const Reports = () => {
 
                                                 <tr
                                                     key={cashier.cashierName}
-                                                    className="hover:bg-gray-50"
+                                                    className="hover:bg-gray-50 "
                                                 >
 
-                                                    <td className="border p-3 font-semibold">
+                                                    <td className="border p-3 font-semibold text-center">
                                                         {cashier.cashierName || "Unknown"}
                                                     </td>
 
@@ -629,7 +629,7 @@ const Reports = () => {
                                                         {cashier.orders}
                                                     </td>
 
-                                                    <td className="border p-3 text-right font-semibold">
+                                                    <td className="border p-3 text-center font-semibold">
                                                         {money(
                                                             cashier.sales
                                                         )}
