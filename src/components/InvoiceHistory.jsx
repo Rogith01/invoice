@@ -1,10 +1,17 @@
-import React, {useEffect, useState, useCallback,} from "react";
+
+import React, {
+    useEffect,
+    useState,
+    useCallback,
+} from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Toast from "./Toast";
 
 const InvoiceHistory = () => {
+
     const [search, setSearch] = useState("");
+
     const navigate = useNavigate();
 
     const [invoices, setInvoices] = useState([]);
@@ -12,6 +19,7 @@ const InvoiceHistory = () => {
     // ===============================
     // Delete Confirmation
     // ===============================
+
     const [deleteConfirm, setDeleteConfirm] = useState({
         show: false,
         id: null,
@@ -20,6 +28,7 @@ const InvoiceHistory = () => {
     // ===============================
     // Toast State
     // ===============================
+
     const [toast, setToast] = useState({
         message: "",
         type: "success",
@@ -28,6 +37,7 @@ const InvoiceHistory = () => {
     // ===============================
     // Logged-in User
     // ===============================
+
     const user = JSON.parse(
         sessionStorage.getItem("user")
     );
@@ -35,6 +45,7 @@ const InvoiceHistory = () => {
     // ===============================
     // Show Toast
     // ===============================
+
     const showToast = (
         message,
         type = "success"
@@ -48,6 +59,7 @@ const InvoiceHistory = () => {
     // ===============================
     // Hide Toast
     // ===============================
+
     const hideToast = () => {
         setToast({
             message: "",
@@ -58,44 +70,61 @@ const InvoiceHistory = () => {
     // ===============================
     // Fetch Invoices
     // ===============================
-   const fetchInvoices = useCallback(async () => {
-        try {
-            const res = await axios.get(
-                "https://invoice-backend-78hd.onrender.com/api/invoices"
-            );
 
-            if (res.data.success) {
-                setInvoices(
-                    res.data.invoices || []
+    const fetchInvoices = useCallback(
+        async () => {
+
+            try {
+
+                const res = await axios.get(
+                    "https://invoice-backend-78hd.onrender.com/api/invoices"
                 );
-            } else {
+
+                if (res.data.success) {
+
+                    setInvoices(
+                        res.data.invoices || []
+                    );
+
+                } else {
+
+                    showToast(
+                        res.data.message ||
+                            "Failed to load invoice history.",
+                        "error"
+                    );
+                }
+
+            } catch (err) {
+
+                console.log(err);
+
                 showToast(
-                    res.data.message ||
-                        "Failed to load invoice history.",
+                    "Failed to load invoice history.",
                     "error"
                 );
             }
-        } catch (err) {
-            console.log(err);
 
-            showToast(
-                "Failed to load invoice history.",
-                "error"
-            );
-        }
-    }, []);
+        },
+        []
+    );
 
     // ===============================
     // Load Invoices
     // ===============================
-useEffect(() => {
-    fetchInvoices();
-}, [fetchInvoices]);
+
+    useEffect(() => {
+
+        fetchInvoices();
+
+    }, [fetchInvoices]);
 
     // ===============================
     // Open Delete Confirmation
     // ===============================
+
     const confirmDeleteInvoice = (id) => {
+
         setDeleteConfirm({
             show: true,
             id: id,
@@ -105,7 +134,9 @@ useEffect(() => {
     // ===============================
     // Cancel Delete
     // ===============================
+
     const cancelDelete = () => {
+
         setDeleteConfirm({
             show: false,
             id: null,
@@ -115,7 +146,9 @@ useEffect(() => {
     // ===============================
     // Delete Invoice
     // ===============================
+
     const handleDelete = async () => {
+
         const { id } = deleteConfirm;
 
         if (!id) {
@@ -123,39 +156,36 @@ useEffect(() => {
         }
 
         try {
-            // Get JWT token
+
             const token =
                 sessionStorage.getItem("token");
 
-            // Delete invoice
             await axios.delete(
                 `https://invoice-backend-78hd.onrender.com/api/invoices/${id}`,
                 {
                     headers: {
-                        Authorization: `Bearer ${token}`,
+                        Authorization:
+                            `Bearer ${token}`,
                     },
                 }
             );
 
-            // Close confirmation dialog
             setDeleteConfirm({
                 show: false,
                 id: null,
             });
 
-            // Show success toast
             showToast(
                 "Invoice deleted successfully.",
                 "success"
             );
 
-            // Refresh invoice list
             await fetchInvoices();
 
         } catch (err) {
+
             console.log(err);
 
-            // Close dialog if there was an error too
             setDeleteConfirm({
                 show: false,
                 id: null,
@@ -164,6 +194,7 @@ useEffect(() => {
             if (
                 err.response?.status === 401
             ) {
+
                 showToast(
                     "Please login again.",
                     "warning"
@@ -172,12 +203,14 @@ useEffect(() => {
             } else if (
                 err.response?.status === 403
             ) {
+
                 showToast(
                     "Only Admin can delete invoices.",
                     "error"
                 );
 
             } else {
+
                 showToast(
                     "Failed to delete invoice.",
                     "error"
@@ -189,15 +222,19 @@ useEffect(() => {
     // ===============================
     // Filter Invoices
     // ===============================
+
     const filteredInvoices =
         invoices.filter((invoice) =>
+
             String(
                 invoice.invoice_number || ""
             )
                 .toLowerCase()
                 .includes(
                     search.toLowerCase()
-                ) ||
+                )
+
+            ||
 
             String(
                 invoice.customer_name || ""
@@ -211,8 +248,10 @@ useEffect(() => {
     // ===============================
     // Render
     // ===============================
+
     return (
         <>
+
             {/* =============================== */}
             {/* TOAST */}
             {/* =============================== */}
@@ -228,6 +267,7 @@ useEffect(() => {
             {/* =============================== */}
 
             {deleteConfirm.show && (
+
                 <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
 
                     <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6">
@@ -245,12 +285,14 @@ useEffect(() => {
                                     viewBox="0 0 24 24"
                                     stroke="currentColor"
                                 >
+
                                     <path
                                         strokeLinecap="round"
                                         strokeLinejoin="round"
                                         strokeWidth={2}
                                         d="M12 9v2m0 4h.01M10.29 3.86l-7.82 14A2 2 0 004.21 21h15.58a2 2 0 001.74-3.14l-7.82-14a2 2 0 00-3.42 0z"
                                     />
+
                                 </svg>
 
                             </div>
@@ -316,9 +358,53 @@ useEffect(() => {
 
                 <div className="flex justify-between items-center mb-8">
 
+                    {/* TITLE */}
+
                     <h1 className="text-3xl font-bold">
                         Invoice History
                     </h1>
+
+                    {/* =============================== */}
+                    {/* REFUND HISTORY BUTTON */}
+                    {/* =============================== */}
+
+                    <button
+                        type="button"
+                        onClick={() =>
+                            navigate("/refund-history")
+                        }
+                        className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-5 py-2.5 rounded-lg shadow-sm transition duration-200 hover:scale-105"
+                    >
+
+                        {/* REFUND ICON */}
+
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 14l-4-4 4-4"
+                            />
+
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M5 10h9a5 5 0 015 5v1"
+                            />
+
+                        </svg>
+
+                        Refund History
+
+                    </button>
 
                 </div>
 
@@ -437,11 +523,13 @@ useEffect(() => {
                                             {/* DATE */}
 
                                             <td className="border p-2 text-center">
+
                                                 {new Date(
                                                     invoice.invoice_date
                                                 ).toLocaleDateString(
                                                     "en-GB"
                                                 )}
+
                                             </td>
 
                                             {/* PAYMENT */}
@@ -455,10 +543,12 @@ useEffect(() => {
                                             {/* TOTAL */}
 
                                             <td className="border p-2 text-center font-semibold">
+
                                                 ₹
                                                 {Number(
                                                     invoice.total
                                                 ).toFixed(2)}
+
                                             </td>
 
                                             {/* ACTION */}
@@ -518,10 +608,12 @@ useEffect(() => {
                                         colSpan="8"
                                         className="border p-6 text-center text-gray-500"
                                     >
+
                                         {search
                                             ? "No invoices found matching your search."
                                             : "No invoices available."
                                         }
+
                                     </td>
 
                                 </tr>
@@ -535,6 +627,7 @@ useEffect(() => {
                 </div>
 
             </div>
+
         </>
     );
 };

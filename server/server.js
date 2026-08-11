@@ -1823,7 +1823,69 @@ app.get(
         );
     }
 );
+// ======================================================
+// GET ALL REFUND / RETURN HISTORY
+// ======================================================
 
+app.get(
+    "/api/refund-history",
+    authenticateToken,
+    (req, res) => {
+
+        const sql = `
+            SELECT
+                ir.id,
+                ir.invoice_id,
+                ir.invoice_number,
+                ir.product_id,
+                ir.product_name,
+                ir.original_qty,
+                ir.return_qty,
+                ir.refund_amount,
+                ir.reason,
+                ir.returned_by,
+                ir.created_at,
+
+                i.customer_name,
+                i.cashier_name,
+                i.invoice_date,
+                i.payment_Method,
+
+                c.phone_number
+
+            FROM invoice_returns ir
+
+            LEFT JOIN invoices i
+                ON ir.invoice_id = i.id
+
+            LEFT JOIN customers c
+                ON i.customer_id = c.id
+
+            ORDER BY ir.created_at DESC
+        `;
+
+        db.query(sql, (err, rows) => {
+
+            if (err) {
+
+                console.error(
+                    "Refund History Error:",
+                    err
+                );
+
+                return res.status(500).json({
+                    success: false,
+                    message: err.message
+                });
+            }
+
+            res.json({
+                success: true,
+                refunds: rows
+            });
+        });
+    }
+);
 // ======================================================
 // SAVE INVOICE
 // ======================================================
