@@ -4,7 +4,6 @@ import axios from "axios";
 import Toast from "./Toast";
 
 const Customers = () => {
-
     const [customers, setCustomers] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -46,9 +45,7 @@ const Customers = () => {
     // ==========================================
 
     const fetchCustomers = useCallback(async () => {
-
         try {
-
             setLoading(true);
 
             const res = await axios.get(
@@ -65,26 +62,17 @@ const Customers = () => {
             if (res.data.success) {
                 setCustomers(res.data.customers);
             }
-
         } catch (err) {
-
-            console.error(
-                "Customers Error:",
-                err
-            );
+            console.error("Customers Error:", err);
 
             showToast(
                 err.response?.data?.message ||
                     "Failed to load customers.",
                 "error"
             );
-
         } finally {
-
             setLoading(false);
-
         }
-
     }, []);
 
     // ==========================================
@@ -92,9 +80,7 @@ const Customers = () => {
     // ==========================================
 
     const fetchPurchaseHistory = async (customer) => {
-
         try {
-
             setHistoryLoading(true);
 
             // Show modal immediately
@@ -114,23 +100,11 @@ const Customers = () => {
             );
 
             if (res.data.success) {
-
-                setSelectedCustomer(
-                    res.data.customer
-                );
-
-                setPurchaseHistory(
-                    res.data.purchases
-                );
-
+                setSelectedCustomer(res.data.customer);
+                setPurchaseHistory(res.data.purchases || []);
             }
-
         } catch (err) {
-
-            console.error(
-                "Purchase History Error:",
-                err
-            );
+            console.error("Purchase History Error:", err);
 
             showToast(
                 err.response?.data?.message ||
@@ -139,13 +113,9 @@ const Customers = () => {
             );
 
             setShowHistory(false);
-
         } finally {
-
             setHistoryLoading(false);
-
         }
-
     };
 
     // ==========================================
@@ -153,11 +123,9 @@ const Customers = () => {
     // ==========================================
 
     const closeHistory = () => {
-
         setShowHistory(false);
         setSelectedCustomer(null);
         setPurchaseHistory([]);
-
     };
 
     // ==========================================
@@ -165,45 +133,34 @@ const Customers = () => {
     // ==========================================
 
     useEffect(() => {
-
         fetchCustomers();
-
     }, [fetchCustomers]);
 
     // ==========================================
     // FILTER CUSTOMERS
     // ==========================================
 
-    const filteredCustomers = customers.filter(
-        (customer) => {
+    const filteredCustomers = customers.filter((customer) => {
+        const name =
+            customer.customer_name?.toLowerCase() || "";
 
-            const name =
-                customer.customer_name
-                    ?.toLowerCase() || "";
+        const phone =
+            customer.phone_number?.toString() || "";
 
-            const phone =
-                customer.phone_number
-                    ?.toString() || "";
+        const search =
+            searchTerm.toLowerCase().trim();
 
-            const search =
-                searchTerm
-                    .toLowerCase()
-                    .trim();
-
-            return (
-                name.includes(search) ||
-                phone.includes(search)
-            );
-
-        }
-    );
+        return (
+            name.includes(search) ||
+            phone.includes(search)
+        );
+    });
 
     // ==========================================
     // RETURN
     // ==========================================
 
     return (
-
         <div className="max-w-7xl mx-auto p-4 md:p-6">
 
             {/* ========================================== */}
@@ -211,7 +168,6 @@ const Customers = () => {
             {/* ========================================== */}
 
             {toast.show && (
-
                 <Toast
                     message={toast.message}
                     type={toast.type}
@@ -222,7 +178,6 @@ const Customers = () => {
                         })
                     }
                 />
-
             )}
 
             {/* ========================================== */}
@@ -241,7 +196,6 @@ const Customers = () => {
 
             </div>
 
-
             {/* ========================================== */}
             {/* SEARCH */}
             {/* ========================================== */}
@@ -258,33 +212,24 @@ const Customers = () => {
                         type="text"
                         value={searchTerm}
                         onChange={(e) =>
-                            setSearchTerm(
-                                e.target.value
-                            )
+                            setSearchTerm(e.target.value)
                         }
                         placeholder="Search customer or phone number..."
                         className="w-full border border-gray-300 rounded-lg pl-10 pr-10 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
 
-                    {/* CLEAR SEARCH */}
-
                     {searchTerm && (
-
                         <button
-                            onClick={() =>
-                                setSearchTerm("")
-                            }
+                            onClick={() => setSearchTerm("")}
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 text-lg"
                         >
                             ×
                         </button>
-
                     )}
 
                 </div>
 
             </div>
-
 
             {/* ========================================== */}
             {/* LOADING */}
@@ -303,8 +248,6 @@ const Customers = () => {
                     <div className="overflow-x-auto">
 
                         <table className="w-full border-collapse">
-
-                            {/* TABLE HEADER */}
 
                             <thead className="bg-gray-100">
 
@@ -346,9 +289,6 @@ const Customers = () => {
 
                             </thead>
 
-
-                            {/* TABLE BODY */}
-
                             <tbody>
 
                                 {filteredCustomers.length > 0 ? (
@@ -361,51 +301,26 @@ const Customers = () => {
                                                 className="hover:bg-gray-50"
                                             >
 
-                                                {/* NUMBER */}
-
                                                 <td className="border p-3 text-center">
                                                     {index + 1}
                                                 </td>
 
-
-                                                {/* CUSTOMER */}
-
                                                 <td className="border p-3 font-semibold">
-                                                    {
-                                                        customer.customer_name
-                                                    }
+                                                    {customer.customer_name}
                                                 </td>
-
-
-                                                {/* PHONE */}
 
                                                 <td className="border p-3 text-center">
-                                                    {
-                                                        customer.phone_number
-                                                    }
+                                                    {customer.phone_number}
                                                 </td>
-
-
-                                                {/* LOYALTY */}
 
                                                 <td className="border p-3 text-center">
                                                     ⭐{" "}
-                                                    {
-                                                        customer.loyalty_points
-                                                    }
+                                                    {customer.loyalty_points}
                                                 </td>
-
-
-                                                {/* ORDERS */}
 
                                                 <td className="border p-3 text-center">
-                                                    {
-                                                        customer.total_orders
-                                                    }
+                                                    {customer.total_orders}
                                                 </td>
-
-
-                                                {/* TOTAL SPENT */}
 
                                                 <td className="border p-3 text-center font-semibold">
                                                     ₹
@@ -413,9 +328,6 @@ const Customers = () => {
                                                         customer.total_spent
                                                     ).toFixed(2)}
                                                 </td>
-
-
-                                                {/* LAST PURCHASE */}
 
                                                 <td className="border p-3 text-center">
 
@@ -428,9 +340,6 @@ const Customers = () => {
                                                         : "No purchase"}
 
                                                 </td>
-
-
-                                                {/* ACTION */}
 
                                                 <td className="border p-3 text-center">
 
@@ -479,7 +388,6 @@ const Customers = () => {
 
             )}
 
-
             {/* ================================================= */}
             {/* CUSTOMER PURCHASE HISTORY MODAL */}
             {/* ================================================= */}
@@ -489,7 +397,6 @@ const Customers = () => {
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
 
                     <div className="bg-white rounded-xl shadow-xl w-full max-w-5xl max-h-[90vh] overflow-hidden">
-
 
                         {/* ========================================== */}
                         {/* MODAL HEADER */}
@@ -519,7 +426,6 @@ const Customers = () => {
 
                             </div>
 
-
                             <button
                                 onClick={closeHistory}
                                 className="text-gray-500 hover:text-gray-800 text-2xl"
@@ -529,7 +435,6 @@ const Customers = () => {
 
                         </div>
 
-
                         {/* ========================================== */}
                         {/* CUSTOMER SUMMARY */}
                         {/* ========================================== */}
@@ -537,9 +442,6 @@ const Customers = () => {
                         {selectedCustomer && (
 
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-5 bg-gray-50 border-b">
-
-
-                                {/* NAME */}
 
                                 <div className="bg-white rounded-lg p-4 shadow-sm">
 
@@ -553,9 +455,6 @@ const Customers = () => {
 
                                 </div>
 
-
-                                {/* PHONE */}
-
                                 <div className="bg-white rounded-lg p-4 shadow-sm">
 
                                     <p className="text-sm text-gray-500">
@@ -567,9 +466,6 @@ const Customers = () => {
                                     </p>
 
                                 </div>
-
-
-                                {/* LOYALTY */}
 
                                 <div className="bg-white rounded-lg p-4 shadow-sm">
 
@@ -583,9 +479,6 @@ const Customers = () => {
                                     </p>
 
                                 </div>
-
-
-                                {/* TOTAL ORDERS */}
 
                                 <div className="bg-white rounded-lg p-4 shadow-sm">
 
@@ -602,7 +495,6 @@ const Customers = () => {
                             </div>
 
                         )}
-
 
                         {/* ========================================== */}
                         {/* PURCHASE HISTORY CONTENT */}
@@ -627,580 +519,628 @@ const Customers = () => {
                                 <div className="space-y-5">
 
                                     {purchaseHistory.map(
-                                        (purchase) => (
+                                        (purchase) => {
 
-                                            <div
-                                                key={purchase.id}
-                                                className={`border rounded-xl overflow-hidden ${
-                                                    purchase.has_refund
-                                                        ? "border-red-300"
-                                                        : "border-gray-200"
-                                                }`}
-                                            >
+                                            // ==========================================
+                                            // BACKEND RETURN VALUES
+                                            // ==========================================
 
+                                            const hasRefund =
+                                                purchase.returns &&
+                                                purchase.returns.length > 0;
 
-                                                {/* ========================================== */}
-                                                {/* INVOICE HEADER */}
-                                                {/* ========================================== */}
+                                            const totalRefund =
+                                                Number(
+                                                    purchase.totalRefund || 0
+                                                );
 
-                                                <div className="bg-gray-100 p-4 flex flex-col md:flex-row md:justify-between gap-2">
+                                            const originalTotal =
+                                                Number(
+                                                    purchase.total || 0
+                                                );
 
-                                                    <div>
+                                            const netPaid =
+                                                Math.max(
+                                                    0,
+                                                    originalTotal -
+                                                        totalRefund
+                                                );
 
-                                                        <div className="flex flex-wrap items-center gap-2">
+                                            return (
 
-                                                            <p className="font-bold text-gray-800">
-                                                                🧾{" "}
-                                                                {
-                                                                    purchase.invoice_number
-                                                                }
+                                                <div
+                                                    key={purchase.id}
+                                                    className={`border rounded-xl overflow-hidden ${
+                                                        hasRefund
+                                                            ? "border-red-300"
+                                                            : "border-gray-200"
+                                                    }`}
+                                                >
+
+                                                    {/* ========================================== */}
+                                                    {/* INVOICE HEADER */}
+                                                    {/* ========================================== */}
+
+                                                    <div className="bg-gray-100 p-4 flex flex-col md:flex-row md:justify-between gap-2">
+
+                                                        <div>
+
+                                                            <div className="flex flex-wrap items-center gap-2">
+
+                                                                <p className="font-bold text-gray-800">
+                                                                    🧾{" "}
+                                                                    {
+                                                                        purchase.invoice_number
+                                                                    }
+                                                                </p>
+
+                                                                {hasRefund && (
+
+                                                                    <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-bold">
+                                                                        🔴 REFUNDED
+                                                                    </span>
+
+                                                                )}
+
+                                                            </div>
+
+                                                            <p className="text-sm text-gray-500">
+
+                                                                {purchase.invoice_date
+                                                                    ? new Date(
+                                                                        purchase.invoice_date
+                                                                    ).toLocaleDateString(
+                                                                        "en-IN"
+                                                                    )
+                                                                    : "-"}
+
+                                                                {" • "}
+
+                                                                {purchase.invoice_time ||
+                                                                    "-"}
+
                                                             </p>
 
-                                                            {purchase.has_refund && (
+                                                            <p className="text-xs text-gray-500 mt-1">
 
-                                                                <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-bold">
-                                                                    🔴 REFUNDED
-                                                                </span>
+                                                                Cashier:{" "}
 
-                                                            )}
+                                                                {purchase.cashier_name ||
+                                                                    "-"}
+
+                                                            </p>
 
                                                         </div>
 
-
-                                                        <p className="text-sm text-gray-500">
-
-                                                            {purchase.invoice_date
-                                                                ? new Date(
-                                                                    purchase.invoice_date
-                                                                ).toLocaleDateString(
-                                                                    "en-IN"
-                                                                )
-                                                                : "-"
-                                                            }
-
-                                                            {" • "}
-
-                                                            {purchase.invoice_time ||
-                                                                "-"
-                                                            }
-
-                                                        </p>
-
-
-                                                        <p className="text-xs text-gray-500 mt-1">
-                                                            Cashier:{" "}
-                                                            {purchase.cashier_name ||
-                                                                "-"
-                                                            }
-                                                        </p>
-
-                                                    </div>
-
-
-                                                    <div className="text-left md:text-right">
-
-                                                        {/* ORIGINAL TOTAL */}
-
-                                                        <p className="text-xs text-gray-500">
-                                                            Original Total
-                                                        </p>
-
-                                                        <p
-                                                            className={`font-bold text-lg ${
-                                                                purchase.has_refund
-                                                                    ? "text-gray-500 line-through"
-                                                                    : "text-green-600"
-                                                            }`}
-                                                        >
-                                                            ₹
-                                                            {Number(
-                                                                purchase.total
-                                                            ).toFixed(2)}
-                                                        </p>
-
-
-                                                        {/* REFUND */}
-
-                                                        {purchase.has_refund && (
-
-                                                            <>
-
-                                                                <p className="text-sm text-red-600 font-semibold">
-
-                                                                    Refunded: -₹
-                                                                    {Number(
-                                                                        purchase.total_refund
-                                                                    ).toFixed(2)}
-
-                                                                </p>
-
-
-                                                                <p className="text-sm text-green-600 font-bold">
-
-                                                                    Net Paid: ₹
-                                                                    {Number(
-                                                                        purchase.net_paid
-                                                                    ).toFixed(2)}
-
-                                                                </p>
-
-                                                            </>
-
-                                                        )}
-
-
-                                                        <p className="text-sm text-gray-500 mt-1">
-                                                            {purchase.payment_Method ||
-                                                                "-"
-                                                            }
-                                                        </p>
-
-                                                    </div>
-
-                                                </div>
-
-
-                                                {/* ========================================== */}
-                                                {/* ITEMS */}
-                                                {/* ========================================== */}
-
-                                                <div className="p-4 overflow-x-auto">
-
-                                                    <table className="w-full border-collapse">
-
-                                                        <thead>
-
-                                                            <tr className="bg-gray-50">
-
-                                                                <th className="border p-2 text-center">
-                                                                    Product
-                                                                </th>
-
-                                                                <th className="border p-2 text-center">
-                                                                    Qty
-                                                                </th>
-
-                                                                <th className="border p-2 text-center">
-                                                                    Price
-                                                                </th>
-
-                                                                <th className="border p-2 text-center">
-                                                                    Amount
-                                                                </th>
-
-                                                            </tr>
-
-                                                        </thead>
-
-
-                                                        <tbody>
-
-                                                            {purchase.items.map(
-                                                                (
-                                                                    item,
-                                                                    index
-                                                                ) => {
-
-                                                                    // ==========================================
-                                                                    // CALCULATE RETURNED QTY FOR THIS PRODUCT
-                                                                    // ==========================================
-
-                                                                    const returnedQty =
-                                                                        purchase.returns
-                                                                            ?.filter(
-                                                                                returnItem =>
-                                                                                    returnItem.product_name ===
-                                                                                    item.item_name
-                                                                            )
-                                                                            .reduce(
-                                                                                (
-                                                                                    sum,
-                                                                                    returnItem
-                                                                                ) =>
-                                                                                    sum +
-                                                                                    Number(
-                                                                                        returnItem.return_qty
-                                                                                    || 0
-                                                                                    ),
-                                                                                0
-                                                                            ) || 0;
-
-
-                                                                    const remainingQty =
-                                                                        Number(
-                                                                            item.qty
-                                                                        ) -
-                                                                        returnedQty;
-
-
-                                                                    return (
-
-                                                                        <tr
-                                                                            key={`${purchase.id}-${index}`}
-                                                                        >
-
-                                                                            {/* PRODUCT */}
-
-                                                                            <td className="border p-2 text-center">
-
-                                                                                <div className="font-medium">
-                                                                                    {
-                                                                                        item.item_name
-                                                                                    }
-                                                                                </div>
-
-
-                                                                                {returnedQty > 0 && (
-
-                                                                                    <div className="text-xs text-red-600 font-semibold mt-1">
-
-                                                                                        ↩{" "}
-                                                                                        {
-                                                                                            returnedQty
-                                                                                        }{" "}
-                                                                                        returned
-
-                                                                                    </div>
-
-                                                                                )}
-
-                                                                            </td>
-
-
-                                                                            {/* QTY */}
-
-                                                                            <td className="border p-2 text-center">
-
-                                                                                <div>
-                                                                                    {
-                                                                                        item.qty
-                                                                                    }
-                                                                                </div>
-
-
-                                                                                {returnedQty > 0 && (
-
-                                                                                    <div className="text-xs text-gray-500 mt-1">
-
-                                                                                        Remaining:{" "}
-
-                                                                                        <span className="font-semibold">
-                                                                                            {
-                                                                                                remainingQty
-                                                                                            }
-                                                                                        </span>
-
-                                                                                    </div>
-
-                                                                                )}
-
-                                                                            </td>
-
-
-                                                                            {/* PRICE */}
-
-                                                                            <td className="border p-2 text-center">
-
-                                                                                ₹
-                                                                                {Number(
-                                                                                    item.price
-                                                                                ).toFixed(2)}
-
-                                                                            </td>
-
-
-                                                                            {/* AMOUNT */}
-
-                                                                            <td className="border p-2 text-center font-semibold">
-
-                                                                                ₹
-                                                                                {Number(
-                                                                                    item.amount
-                                                                                ).toFixed(2)}
-
-                                                                            </td>
-
-                                                                        </tr>
-
-                                                                    );
-
-                                                                }
-                                                            )}
-
-                                                        </tbody>
-
-                                                    </table>
-
-                                                </div>
-
-
-                                                {/* ========================================== */}
-                                                {/* REFUND DETAILS */}
-                                                {/* ========================================== */}
-
-                                                {purchase.has_refund && (
-
-                                                    <div className="mx-4 mb-4 border border-red-200 bg-red-50 rounded-lg p-4">
-
-                                                        <div className="flex items-center justify-between mb-3">
-
-                                                            <h3 className="font-bold text-red-700">
-                                                                ↩ Refund / Return Details
-                                                            </h3>
-
-                                                            <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-bold">
-                                                                REFUNDED
-                                                            </span>
-
-                                                        </div>
-
-
-                                                        <div className="space-y-2">
-
-                                                            {purchase.returns?.map(
-                                                                (returnItem) => (
-
-                                                                    <div
-                                                                        key={
-                                                                            returnItem.id
-                                                                        }
-                                                                        className="bg-white rounded-lg p-3 border border-red-100"
-                                                                    >
-
-                                                                        <div className="flex flex-col md:flex-row md:justify-between gap-2">
-
-                                                                            <div>
-
-                                                                                <p className="font-semibold text-gray-800">
-                                                                                    {
-                                                                                        returnItem.product_name
-                                                                                    }
-                                                                                </p>
-
-
-                                                                                <p className="text-sm text-gray-500">
-
-                                                                                    Returned Qty:{" "}
-
-                                                                                    <span className="font-semibold text-red-600">
-                                                                                        {
-                                                                                            returnItem.return_qty
-                                                                                        }
-                                                                                    </span>
-
-                                                                                    {" • "}
-
-                                                                                    Refund: ₹
-                                                                                    {Number(
-                                                                                        returnItem.refund_amount
-                                                                                    ).toFixed(
-                                                                                        2
-                                                                                    )}
-
-                                                                                </p>
-
-
-                                                                                {returnItem.reason && (
-
-                                                                                    <p className="text-xs text-gray-500 mt-1">
-
-                                                                                        Reason:{" "}
-                                                                                        {
-                                                                                            returnItem.reason
-                                                                                        }
-
-                                                                                    </p>
-
-                                                                                )}
-
-                                                                            </div>
-
-
-                                                                            <div className="text-left md:text-right">
-
-                                                                                <p className="text-xs text-gray-400">
-                                                                                    Returned by
-                                                                                </p>
-
-                                                                                <p className="text-sm font-semibold text-gray-700">
-                                                                                    {
-                                                                                        returnItem.returned_by ||
-                                                                                        "-"
-                                                                                    }
-                                                                                </p>
-
-                                                                            </div>
-
-                                                                        </div>
-
-                                                                    </div>
-
-                                                                )
-                                                            )}
-
-                                                        </div>
-
-                                                    </div>
-
-                                                )}
-
-
-                                                {/* ========================================== */}
-                                                {/* INVOICE TOTAL DETAILS */}
-                                                {/* ========================================== */}
-
-                                                <div className="bg-gray-50 border-t p-4">
-
-                                                    <div className="flex justify-end">
-
-                                                        <div className="w-full md:w-72 space-y-2 text-sm">
-
-                                                            {/* SUBTOTAL */}
-
-                                                            <div className="flex justify-between">
-
-                                                                <span className="text-gray-500">
-                                                                    Subtotal
-                                                                </span>
-
-                                                                <span>
-                                                                    ₹
-                                                                    {Number(
-                                                                        purchase.subtotal
-                                                                    ).toFixed(2)}
-                                                                </span>
-
-                                                            </div>
-
-
-                                                            {/* DISCOUNT */}
-
-                                                            <div className="flex justify-between">
-
-                                                                <span className="text-gray-500">
-                                                                    Discount
-                                                                </span>
-
-                                                                <span>
-                                                                    ₹
-                                                                    {Number(
-                                                                        purchase.discount
-                                                                    ).toFixed(2)}
-                                                                </span>
-
-                                                            </div>
-
-
-                                                            {/* LOYALTY DISCOUNT */}
-
-                                                            <div className="flex justify-between">
-
-                                                                <span className="text-gray-500">
-                                                                    Loyalty Discount
-                                                                </span>
-
-                                                                <span>
-                                                                    ₹
-                                                                    {Number(
-                                                                        purchase.loyalty_discount
-                                                                    ).toFixed(2)}
-                                                                </span>
-
-                                                            </div>
-
-
-                                                            {/* TAX */}
-
-                                                            <div className="flex justify-between">
-
-                                                                <span className="text-gray-500">
-                                                                    Tax
-                                                                </span>
-
-                                                                <span>
-                                                                    ₹
-                                                                    {Number(
-                                                                        purchase.tax
-                                                                    ).toFixed(2)}
-                                                                </span>
-
-                                                            </div>
-
+                                                        <div className="text-left md:text-right">
 
                                                             {/* ORIGINAL TOTAL */}
 
-                                                            <div className="border-t pt-2 flex justify-between font-bold text-base">
+                                                            <p className="text-xs text-gray-500">
+                                                                Original Total
+                                                            </p>
 
-                                                                <span>
-                                                                    Original Total
-                                                                </span>
-
-                                                                <span>
-                                                                    ₹
-                                                                    {Number(
-                                                                        purchase.total
-                                                                    ).toFixed(2)}
-                                                                </span>
-
-                                                            </div>
-
+                                                            <p
+                                                                className={`font-bold text-lg ${
+                                                                    hasRefund
+                                                                        ? "text-gray-500 line-through"
+                                                                        : "text-green-600"
+                                                                }`}
+                                                            >
+                                                                ₹
+                                                                {originalTotal.toFixed(
+                                                                    2
+                                                                )}
+                                                            </p>
 
                                                             {/* REFUND */}
 
-                                                            {purchase.has_refund && (
+                                                            {hasRefund && (
 
                                                                 <>
 
-                                                                    <div className="flex justify-between text-red-600 font-semibold">
+                                                                    <p className="text-sm text-red-600 font-semibold">
 
-                                                                        <span>
-                                                                            Refunded
-                                                                        </span>
+                                                                        Refunded: -₹
+                                                                        {totalRefund.toFixed(
+                                                                            2
+                                                                        )}
 
-                                                                        <span>
-                                                                            - ₹
-                                                                            {Number(
-                                                                                purchase.total_refund
-                                                                            ).toFixed(
-                                                                                2
-                                                                            )}
-                                                                        </span>
+                                                                    </p>
 
-                                                                    </div>
+                                                                    <p className="text-sm text-green-600 font-bold">
 
+                                                                        Net Paid: ₹
+                                                                        {netPaid.toFixed(
+                                                                            2
+                                                                        )}
 
-                                                                    {/* NET PAID */}
-
-                                                                    <div className="border-t pt-2 flex justify-between font-bold text-base">
-
-                                                                        <span>
-                                                                            Net Paid
-                                                                        </span>
-
-                                                                        <span className="text-green-600">
-                                                                            ₹
-                                                                            {Number(
-                                                                                purchase.net_paid
-                                                                            ).toFixed(
-                                                                                2
-                                                                            )}
-                                                                        </span>
-
-                                                                    </div>
+                                                                    </p>
 
                                                                 </>
 
                                                             )}
 
+                                                            <p className="text-sm text-gray-500 mt-1">
+
+                                                                {purchase.payment_Method ||
+                                                                    purchase.payment_method ||
+                                                                    "-"}
+
+                                                            </p>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                    {/* ========================================== */}
+                                                    {/* ITEMS */}
+                                                    {/* ========================================== */}
+
+                                                    <div className="p-4 overflow-x-auto">
+
+                                                        <table className="w-full border-collapse">
+
+                                                            <thead>
+
+                                                                <tr className="bg-gray-50">
+
+                                                                    <th className="border p-2 text-center">
+                                                                        Product
+                                                                    </th>
+
+                                                                    <th className="border p-2 text-center">
+                                                                        Qty
+                                                                    </th>
+
+                                                                    <th className="border p-2 text-center">
+                                                                        Price
+                                                                    </th>
+
+                                                                    <th className="border p-2 text-center">
+                                                                        Amount
+                                                                    </th>
+
+                                                                </tr>
+
+                                                            </thead>
+
+                                                            <tbody>
+
+                                                                {purchase.items?.map(
+                                                                    (
+                                                                        item,
+                                                                        index
+                                                                    ) => {
+
+                                                                        // ==========================================
+                                                                        // CALCULATE RETURNED QTY
+                                                                        // ==========================================
+
+                                                                        const returnedQty =
+                                                                            purchase.returns
+                                                                                ?.filter(
+                                                                                    returnItem =>
+                                                                                        Number(
+                                                                                            returnItem.product_id
+                                                                                        ) ===
+                                                                                            Number(
+                                                                                                item.product_id
+                                                                                            ) ||
+                                                                                        returnItem.product_name ===
+                                                                                            item.item_name
+                                                                                )
+                                                                                .reduce(
+                                                                                    (
+                                                                                        sum,
+                                                                                        returnItem
+                                                                                    ) =>
+                                                                                        sum +
+                                                                                        Number(
+                                                                                            returnItem.return_qty ||
+                                                                                                0
+                                                                                        ),
+                                                                                    0
+                                                                                ) ||
+                                                                            0;
+
+                                                                        const originalQty =
+                                                                            Number(
+                                                                                item.qty ||
+                                                                                    0
+                                                                            );
+
+                                                                        const remainingQty =
+                                                                            Math.max(
+                                                                                0,
+                                                                                originalQty -
+                                                                                    returnedQty
+                                                                            );
+
+                                                                        return (
+
+                                                                            <tr
+                                                                                key={`${purchase.id}-${index}`}
+                                                                            >
+
+                                                                                {/* PRODUCT */}
+
+                                                                                <td className="border p-2 text-center">
+
+                                                                                    <div className="font-medium">
+                                                                                        {
+                                                                                            item.item_name
+                                                                                        }
+                                                                                    </div>
+
+                                                                                    {returnedQty >
+                                                                                        0 && (
+
+                                                                                        <div className="text-xs text-red-600 font-semibold mt-1">
+
+                                                                                            ↩{" "}
+                                                                                            {
+                                                                                                returnedQty
+                                                                                            }{" "}
+                                                                                            returned
+
+                                                                                        </div>
+
+                                                                                    )}
+
+                                                                                </td>
+
+                                                                                {/* QTY */}
+
+                                                                                <td className="border p-2 text-center">
+
+                                                                                    <div>
+                                                                                        {
+                                                                                            originalQty
+                                                                                        }
+                                                                                    </div>
+
+                                                                                    {returnedQty >
+                                                                                        0 && (
+
+                                                                                        <div className="text-xs text-gray-500 mt-1">
+
+                                                                                            Remaining:{" "}
+
+                                                                                            <span className="font-semibold">
+                                                                                                {
+                                                                                                    remainingQty
+                                                                                                }
+                                                                                            </span>
+
+                                                                                        </div>
+
+                                                                                    )}
+
+                                                                                </td>
+
+                                                                                {/* PRICE */}
+
+                                                                                <td className="border p-2 text-center">
+
+                                                                                    ₹
+                                                                                    {Number(
+                                                                                        item.price ||
+                                                                                            0
+                                                                                    ).toFixed(
+                                                                                        2
+                                                                                    )}
+
+                                                                                </td>
+
+                                                                                {/* AMOUNT */}
+
+                                                                                <td className="border p-2 text-center font-semibold">
+
+                                                                                    ₹
+                                                                                    {Number(
+                                                                                        item.amount ||
+                                                                                            0
+                                                                                    ).toFixed(
+                                                                                        2
+                                                                                    )}
+
+                                                                                </td>
+
+                                                                            </tr>
+
+                                                                        );
+                                                                    }
+                                                                )}
+
+                                                            </tbody>
+
+                                                        </table>
+
+                                                    </div>
+
+                                                    {/* ========================================== */}
+                                                    {/* REFUND DETAILS */}
+                                                    {/* ========================================== */}
+
+                                                    {hasRefund && (
+
+                                                        <div className="mx-4 mb-4 border border-red-200 bg-red-50 rounded-lg p-4">
+
+                                                            <div className="flex items-center justify-between mb-3">
+
+                                                                <h3 className="font-bold text-red-700">
+                                                                    ↩ Refund / Return Details
+                                                                </h3>
+
+                                                                <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-bold">
+                                                                    {purchase.refundStatus ||
+                                                                        "REFUNDED"}
+                                                                </span>
+
+                                                            </div>
+
+                                                            <div className="space-y-2">
+
+                                                                {purchase.returns?.map(
+                                                                    (
+                                                                        returnItem
+                                                                    ) => (
+
+                                                                        <div
+                                                                            key={
+                                                                                returnItem.id
+                                                                            }
+                                                                            className="bg-white rounded-lg p-3 border border-red-100"
+                                                                        >
+
+                                                                            <div className="flex flex-col md:flex-row md:justify-between gap-2">
+
+                                                                                <div>
+
+                                                                                    <p className="font-semibold text-gray-800">
+                                                                                        {
+                                                                                            returnItem.product_name
+                                                                                        }
+                                                                                    </p>
+
+                                                                                    <p className="text-sm text-gray-500">
+
+                                                                                        Returned Qty:{" "}
+
+                                                                                        <span className="font-semibold text-red-600">
+                                                                                            {
+                                                                                                returnItem.return_qty
+                                                                                            }
+                                                                                        </span>
+
+                                                                                        {" • "}
+
+                                                                                        Refund: ₹
+                                                                                        {Number(
+                                                                                            returnItem.refund_amount ||
+                                                                                                0
+                                                                                        ).toFixed(
+                                                                                            2
+                                                                                        )}
+
+                                                                                    </p>
+
+                                                                                    {returnItem.reason && (
+
+                                                                                        <p className="text-xs text-gray-500 mt-1">
+
+                                                                                            Reason:{" "}
+
+                                                                                            {
+                                                                                                returnItem.reason
+                                                                                            }
+
+                                                                                        </p>
+
+                                                                                    )}
+
+                                                                                    <p className="text-xs text-gray-400 mt-1">
+
+                                                                                        {returnItem.created_at
+                                                                                            ? new Date(
+                                                                                                returnItem.created_at
+                                                                                            ).toLocaleString(
+                                                                                                "en-IN"
+                                                                                            )
+                                                                                            : ""}
+
+                                                                                    </p>
+
+                                                                                </div>
+
+                                                                                <div className="text-left md:text-right">
+
+                                                                                    <p className="text-xs text-gray-400">
+                                                                                        Returned by
+                                                                                    </p>
+
+                                                                                    <p className="text-sm font-semibold text-gray-700">
+                                                                                        {
+                                                                                            returnItem.returned_by ||
+                                                                                            "-"
+                                                                                        }
+                                                                                    </p>
+
+                                                                                </div>
+
+                                                                            </div>
+
+                                                                        </div>
+
+                                                                    )
+                                                                )}
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    )}
+
+                                                    {/* ========================================== */}
+                                                    {/* INVOICE TOTAL DETAILS */}
+                                                    {/* ========================================== */}
+
+                                                    <div className="bg-gray-50 border-t p-4">
+
+                                                        <div className="flex justify-end">
+
+                                                            <div className="w-full md:w-72 space-y-2 text-sm">
+
+                                                                {/* SUBTOTAL */}
+
+                                                                <div className="flex justify-between">
+
+                                                                    <span className="text-gray-500">
+                                                                        Subtotal
+                                                                    </span>
+
+                                                                    <span>
+                                                                        ₹
+                                                                        {Number(
+                                                                            purchase.subtotal ||
+                                                                                0
+                                                                        ).toFixed(
+                                                                            2
+                                                                        )}
+                                                                    </span>
+
+                                                                </div>
+
+                                                                {/* DISCOUNT */}
+
+                                                                <div className="flex justify-between">
+
+                                                                    <span className="text-gray-500">
+                                                                        Discount
+                                                                    </span>
+
+                                                                    <span>
+                                                                        ₹
+                                                                        {Number(
+                                                                            purchase.discount ||
+                                                                                0
+                                                                        ).toFixed(
+                                                                            2
+                                                                        )}
+                                                                    </span>
+
+                                                                </div>
+
+                                                                {/* LOYALTY DISCOUNT */}
+
+                                                                <div className="flex justify-between">
+
+                                                                    <span className="text-gray-500">
+                                                                        Loyalty Discount
+                                                                    </span>
+
+                                                                    <span>
+                                                                        ₹
+                                                                        {Number(
+                                                                            purchase.loyalty_discount ||
+                                                                                0
+                                                                        ).toFixed(
+                                                                            2
+                                                                        )}
+                                                                    </span>
+
+                                                                </div>
+
+                                                                {/* TAX */}
+
+                                                                <div className="flex justify-between">
+
+                                                                    <span className="text-gray-500">
+                                                                        Tax
+                                                                    </span>
+
+                                                                    <span>
+                                                                        ₹
+                                                                        {Number(
+                                                                            purchase.tax ||
+                                                                                0
+                                                                        ).toFixed(
+                                                                            2
+                                                                        )}
+                                                                    </span>
+
+                                                                </div>
+
+                                                                {/* ORIGINAL TOTAL */}
+
+                                                                <div className="border-t pt-2 flex justify-between font-bold text-base">
+
+                                                                    <span>
+                                                                        Original Total
+                                                                    </span>
+
+                                                                    <span>
+                                                                        ₹
+                                                                        {originalTotal.toFixed(
+                                                                            2
+                                                                        )}
+                                                                    </span>
+
+                                                                </div>
+
+                                                                {/* REFUND */}
+
+                                                                {hasRefund && (
+
+                                                                    <>
+
+                                                                        <div className="flex justify-between text-red-600 font-semibold">
+
+                                                                            <span>
+                                                                                Refunded
+                                                                            </span>
+
+                                                                            <span>
+                                                                                - ₹
+                                                                                {totalRefund.toFixed(
+                                                                                    2
+                                                                                )}
+                                                                            </span>
+
+                                                                        </div>
+
+                                                                        {/* NET PAID */}
+
+                                                                        <div className="border-t pt-2 flex justify-between font-bold text-base">
+
+                                                                            <span>
+                                                                                Net Paid
+                                                                            </span>
+
+                                                                            <span className="text-green-600">
+                                                                                ₹
+                                                                                {netPaid.toFixed(
+                                                                                    2
+                                                                                )}
+                                                                            </span>
+
+                                                                        </div>
+
+                                                                    </>
+
+                                                                )}
+
+                                                            </div>
+
                                                         </div>
 
                                                     </div>
 
                                                 </div>
 
-                                            </div>
-
-                                        )
+                                            );
+                                        }
                                     )}
 
                                 </div>
@@ -1208,7 +1148,6 @@ const Customers = () => {
                             )}
 
                         </div>
-
 
                         {/* ========================================== */}
                         {/* FOOTER */}
@@ -1232,9 +1171,7 @@ const Customers = () => {
             )}
 
         </div>
-
     );
-
 };
 
 export default Customers;
