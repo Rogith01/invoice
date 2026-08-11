@@ -183,7 +183,7 @@ const InvoiceItem = ({
                 {/* PRODUCT NAME */}
                 {/* =============================== */}
 
-                <td className="w-full p-1">
+                <td className="min-w-[180px] p-1">
 
                     <select
                         ref={itemRef}

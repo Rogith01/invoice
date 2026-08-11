@@ -495,13 +495,9 @@ const InvoiceModal = ({
                                         {/* ========================================== */}
 
                                         <div className="w-full text-center mt-4">
-
                                             <h4 className="font-semibold text-[15px]">
-
-                                                Thank you, Visit again!
-
+                                            <p></p> Thank you for shopping!<p>Visit us again!❤️</p>
                                             </h4>
-
                                         </div>
 
                                     </div>

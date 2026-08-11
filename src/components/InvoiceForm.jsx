@@ -422,25 +422,59 @@ const InvoiceForm = () => {
 
         event.preventDefault();
 
-        // ==========================================
-        // VALIDATION
-        // ==========================================
+// ==========================================
+// VALIDATION
+// ==========================================
 
-        const validItems = items.filter(
-            (item) =>
-                item.name &&
-                item.name.trim().length > 0
-        );
+// CUSTOMER NAME VALIDATION
+if (!customerName || customerName.trim().length === 0) {
 
-        if (validItems.length === 0) {
+    showToast(
+        "Please enter customer name.",
+        "warning"
+    );
 
-            showToast(
-                "Please add at least one product to the invoice.",
-                "warning"
-            );
+    return;
+}
 
-            return;
-        }
+// PHONE NUMBER VALIDATION
+if (!phoneNumber || phoneNumber.trim().length === 0) {
+
+    showToast(
+        "Please enter phone number.",
+        "warning"
+    );
+
+    return;
+}
+
+// PHONE NUMBER LENGTH VALIDATION
+if (phoneNumber.length !== 10) {
+
+    showToast(
+        "Please enter a valid 10-digit phone number.",
+        "warning"
+    );
+
+    return;
+}
+
+// PRODUCT VALIDATION
+const validItems = items.filter(
+    (item) =>
+        item.name &&
+        item.name.trim().length > 0
+);
+
+if (validItems.length === 0) {
+
+    showToast(
+        "Please add at least one product to the invoice.",
+        "warning"
+    );
+
+    return;
+}
 
         if (total < 0) {
 
@@ -1071,7 +1105,7 @@ const InvoiceForm = () => {
 
                             <tr className="border-b text-sm font-medium text-gray-700">
 
-                                <th className="p-2">
+                                <th className="p-2 min-w-[180px]">
                                     ITEM
                                 </th>
 
