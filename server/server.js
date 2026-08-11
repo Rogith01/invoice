@@ -2398,6 +2398,430 @@ app.delete(
 
     }
 );
+// ======================================================
+// RETURN / REFUND INVOICE ITEM
+// ======================================================
+
+app.post(
+    "/api/invoices/:invoiceId/return",
+    authenticateToken,
+    (req, res) => {
+
+        const invoiceId = req.params.invoiceId;
+
+        const {
+            productName,
+            returnQty,
+            reason
+        } = req.body;
+
+        const quantity = Number(returnQty);
+
+        // ======================================================
+        // VALIDATION
+        // ======================================================
+
+        if (!productName || !productName.trim()) {
+
+            return res.status(400).json({
+                success: false,
+                message: "Product name is required"
+            });
+
+        }
+
+        if (!Number.isInteger(quantity) || quantity <= 0) {
+
+            return res.status(400).json({
+                success: false,
+                message: "Return quantity must be a positive whole number"
+            });
+
+        }
+
+        // ======================================================
+        // GET ORIGINAL INVOICE ITEM
+        // ======================================================
+
+        const invoiceItemSql = `
+            SELECT
+                i.id,
+                i.invoice_number,
+                i.customer_id,
+                i.cashier_name,
+                ii.item_name,
+                ii.qty,
+                ii.price
+            FROM invoices i
+            JOIN invoice_items ii
+                ON i.id = ii.invoice_id
+            WHERE i.id = ?
+            AND ii.item_name = ?
+        `;
+
+        db.query(
+            invoiceItemSql,
+            [
+                invoiceId,
+                productName.trim()
+            ],
+            (err, rows) => {
+
+                if (err) {
+
+                    console.error(
+                        "Return Invoice Item Error:",
+                        err
+                    );
+
+                    return res.status(500).json({
+                        success: false,
+                        message: err.message
+                    });
+
+                }
+
+                // ======================================================
+                // INVOICE / PRODUCT NOT FOUND
+                // ======================================================
+
+                if (rows.length === 0) {
+
+                    return res.status(404).json({
+                        success: false,
+                        message:
+                            "Invoice or product not found"
+                    });
+
+                }
+
+                const invoiceItem = rows[0];
+
+                const originalQty =
+                    Number(invoiceItem.qty);
+
+                const price =
+                    Number(invoiceItem.price);
+
+                // ======================================================
+                // GET ALREADY RETURNED QUANTITY
+                // ======================================================
+
+                const returnedQtySql = `
+                    SELECT
+                        COALESCE(
+                            SUM(return_qty),
+                            0
+                        ) AS returnedQty
+                    FROM invoice_returns
+                    WHERE invoice_id = ?
+                    AND product_name = ?
+                `;
+
+                db.query(
+                    returnedQtySql,
+                    [
+                        invoiceId,
+                        productName.trim()
+                    ],
+                    (err, returnRows) => {
+
+                        if (err) {
+
+                            console.error(
+                                "Returned Quantity Error:",
+                                err
+                            );
+
+                            return res.status(500).json({
+                                success: false,
+                                message: err.message
+                            });
+
+                        }
+
+                        const alreadyReturned =
+                            Number(
+                                returnRows[0].returnedQty
+                            ) || 0;
+
+                        const remainingQty =
+                            originalQty -
+                            alreadyReturned;
+
+                        // ======================================================
+                        // PREVENT EXCESS RETURN
+                        // ======================================================
+
+                        if (quantity > remainingQty) {
+
+                            return res.status(400).json({
+                                success: false,
+                                message:
+                                    `Cannot return ${quantity}. ` +
+                                    `Only ${remainingQty} item(s) available for return.`
+                            });
+
+                        }
+
+                        // ======================================================
+                        // REFUND AMOUNT
+                        // ======================================================
+
+                        const refundAmount =
+                            quantity * price;
+
+                        // ======================================================
+                        // GET CURRENT PRODUCT STOCK
+                        // ======================================================
+
+                        const productSql = `
+                            SELECT
+                                id,
+                                product_name,
+                                stock_quantity
+                            FROM products
+                            WHERE product_name = ?
+                        `;
+
+                        db.query(
+                            productSql,
+                            [productName.trim()],
+                            (err, productRows) => {
+
+                                if (err) {
+
+                                    console.error(
+                                        "Return Product Error:",
+                                        err
+                                    );
+
+                                    return res.status(500).json({
+                                        success: false,
+                                        message: err.message
+                                    });
+
+                                }
+
+                                if (productRows.length === 0) {
+
+                                    return res.status(404).json({
+                                        success: false,
+                                        message:
+                                            "Product not found in inventory"
+                                    });
+
+                                }
+
+                                const product =
+                                    productRows[0];
+
+                                const stockBefore =
+                                    Number(
+                                        product.stock_quantity
+                                    ) || 0;
+
+                                const stockAfter =
+                                    stockBefore + quantity;
+
+                                // ======================================================
+                                // UPDATE STOCK
+                                // ======================================================
+
+                                const updateStockSql = `
+                                    UPDATE products
+                                    SET stock_quantity = ?
+                                    WHERE id = ?
+                                `;
+
+                                db.query(
+                                    updateStockSql,
+                                    [
+                                        stockAfter,
+                                        product.id
+                                    ],
+                                    (err) => {
+
+                                        if (err) {
+
+                                            console.error(
+                                                "Return Stock Update Error:",
+                                                err
+                                            );
+
+                                            return res.status(500).json({
+                                                success: false,
+                                                message: err.message
+                                            });
+
+                                        }
+
+                                        // ======================================================
+                                        // RECORD RETURN
+                                        // ======================================================
+
+                                        const returnSql = `
+                                            INSERT INTO invoice_returns
+                                            (
+                                                invoice_id,
+                                                invoice_number,
+                                                product_id,
+                                                product_name,
+                                                original_qty,
+                                                return_qty,
+                                                refund_amount,
+                                                reason,
+                                                returned_by
+                                            )
+                                            VALUES
+                                            (
+                                                ?,
+                                                ?,
+                                                ?,
+                                                ?,
+                                                ?,
+                                                ?,
+                                                ?,
+                                                ?,
+                                                ?
+                                            )
+                                        `;
+
+                                        db.query(
+                                            returnSql,
+                                            [
+                                                invoiceId,
+                                                invoiceItem.invoice_number,
+                                                product.id,
+                                                product.product_name,
+                                                originalQty,
+                                                quantity,
+                                                refundAmount,
+                                                reason || "Customer Return",
+                                                req.user.username
+                                            ],
+                                            (err) => {
+
+                                                if (err) {
+
+                                                    console.error(
+                                                        "Return Insert Error:",
+                                                        err
+                                                    );
+
+                                                    return res.status(500).json({
+                                                        success: false,
+                                                        message: err.message
+                                                    });
+
+                                                }
+
+                                                // ======================================================
+                                                // STOCK MOVEMENT
+                                                // ======================================================
+
+                                                const movementSql = `
+                                                    INSERT INTO stock_movements
+                                                    (
+                                                        product_id,
+                                                        product_name,
+                                                        movement_type,
+                                                        quantity,
+                                                        stock_before,
+                                                        stock_after,
+                                                        reference_type,
+                                                        reference_id,
+                                                        performed_by
+                                                    )
+                                                    VALUES
+                                                    (
+                                                        ?,
+                                                        ?,
+                                                        'STOCK_IN',
+                                                        ?,
+                                                        ?,
+                                                        ?,
+                                                        'RETURN',
+                                                        ?,
+                                                        ?
+                                                    )
+                                                `;
+
+                                                db.query(
+                                                    movementSql,
+                                                    [
+                                                        product.id,
+                                                        product.product_name,
+                                                        quantity,
+                                                        stockBefore,
+                                                        stockAfter,
+                                                        invoiceId,
+                                                        req.user.username
+                                                    ],
+                                                    (err) => {
+
+                                                        if (err) {
+
+                                                            console.error(
+                                                                "Return Stock Movement Error:",
+                                                                err
+                                                            );
+
+                                                            return res.status(500).json({
+                                                                success: false,
+                                                                message: err.message
+                                                            });
+
+                                                        }
+
+                                                        // ======================================================
+                                                        // FINAL RESPONSE
+                                                        // ======================================================
+
+                                                        res.json({
+
+                                                            success: true,
+
+                                                            message:
+                                                                "Product returned successfully",
+
+                                                            invoiceNumber:
+                                                                invoiceItem.invoice_number,
+
+                                                            productName:
+                                                                product.product_name,
+
+                                                            returnedQuantity:
+                                                                quantity,
+
+                                                            refundAmount,
+
+                                                            stockBefore,
+
+                                                            stockAfter
+
+                                                        });
+
+                                                    }
+                                                );
+
+                                            }
+                                        );
+
+                                    }
+                                );
+
+                            }
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+    }
+);
 /* ======================================================
    LOGIN
 ====================================================== */
