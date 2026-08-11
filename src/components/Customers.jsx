@@ -1,6 +1,7 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import axios from "axios";
+import { jsPDF } from "jspdf";
 import Toast from "./Toast";
 
 const Customers = () => {
@@ -127,7 +128,438 @@ const Customers = () => {
         setSelectedCustomer(null);
         setPurchaseHistory([]);
     };
+// ==========================================
+// DOWNLOAD CUSTOMER HISTORY AS PDF
+// ==========================================
 
+const downloadCustomerPDF = () => {
+
+    if (!selectedCustomer) {
+        showToast("No customer selected.", "error");
+        return;
+    }
+
+    const doc = new jsPDF();
+
+    let y = 20;
+
+    // ==========================================
+    // HEADER
+    // ==========================================
+
+    doc.setFontSize(20);
+    doc.setFont("helvetica", "bold");
+
+    doc.text(
+        "AK SUPER MARKET",
+        105,
+        y,
+        { align: "center" }
+    );
+
+    y += 10;
+
+    doc.setFontSize(15);
+
+    doc.text(
+        "Customer Purchase History",
+        105,
+        y,
+        { align: "center" }
+    );
+
+    y += 12;
+
+    doc.line(15, y, 195, y);
+
+    y += 10;
+
+    // ==========================================
+    // CUSTOMER DETAILS
+    // ==========================================
+
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+
+    doc.text("Customer Details", 15, y);
+
+    y += 8;
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+
+    doc.text(
+        `Customer: ${selectedCustomer.customer_name || "-"}`,
+        20,
+        y
+    );
+
+    y += 6;
+
+    doc.text(
+        `Phone: ${selectedCustomer.phone_number || "-"}`,
+        20,
+        y
+    );
+
+    y += 6;
+
+    doc.text(
+        `Loyalty Points: ${selectedCustomer.loyalty_points || 0}`,
+        20,
+        y
+    );
+
+    y += 6;
+
+    doc.text(
+        `Total Orders: ${purchaseHistory.length}`,
+        20,
+        y
+    );
+
+    y += 12;
+
+    doc.line(15, y, 195, y);
+
+    y += 10;
+
+    // ==========================================
+    // PURCHASE HISTORY
+    // ==========================================
+
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "bold");
+
+    doc.text("Purchase History", 15, y);
+
+    y += 9;
+
+    if (!purchaseHistory || purchaseHistory.length === 0) {
+
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+
+        doc.text(
+            "No purchases found for this customer.",
+            20,
+            y
+        );
+
+    } else {
+
+        purchaseHistory.forEach((purchase, index) => {
+
+            // New page if needed
+            if (y > 255) {
+                doc.addPage();
+                y = 20;
+            }
+
+            const originalTotal =
+                Number(purchase.total || 0);
+
+            const totalRefund =
+                Number(purchase.totalRefund || 0);
+
+            const netPaid =
+                Math.max(
+                    0,
+                    originalTotal - totalRefund
+                );
+
+            // ======================================
+            // INVOICE HEADER
+            // ======================================
+
+            doc.setFontSize(11);
+            doc.setFont("helvetica", "bold");
+
+            doc.text(
+                `${index + 1}. Invoice: ${
+                    purchase.invoice_number || "-"
+                }`,
+                20,
+                y
+            );
+
+            y += 6;
+
+            doc.setFontSize(9);
+            doc.setFont("helvetica", "normal");
+
+            const invoiceDate =
+                purchase.invoice_date
+                    ? new Date(
+                        purchase.invoice_date
+                    ).toLocaleDateString("en-IN")
+                    : "-";
+
+            doc.text(
+                `Date: ${invoiceDate}   Time: ${
+                    purchase.invoice_time || "-"
+                }`,
+                20,
+                y
+            );
+
+            y += 5;
+
+            doc.text(
+                `Cashier: ${
+                    purchase.cashier_name || "-"
+                }`,
+                20,
+                y
+            );
+
+            y += 7;
+
+            // ======================================
+            // ITEMS HEADER
+            // ======================================
+
+            doc.setFont("helvetica", "bold");
+
+            doc.text("Product", 20, y);
+            doc.text("Qty", 105, y);
+            doc.text("Price", 130, y);
+            doc.text("Amount", 165, y);
+
+            y += 5;
+
+            doc.line(20, y, 190, y);
+
+            y += 6;
+
+            // ======================================
+            // ITEMS
+            // ======================================
+
+            doc.setFont("helvetica", "normal");
+
+            purchase.items?.forEach((item) => {
+
+                if (y > 275) {
+
+                    doc.addPage();
+                    y = 20;
+
+                }
+
+                const productName =
+                    String(
+                        item.item_name || "-"
+                    );
+
+                const quantity =
+                    Number(item.qty || 0);
+
+                const price =
+                    Number(item.price || 0);
+
+                const amount =
+                    Number(item.amount || 0);
+
+                // Keep long product names inside page
+                const shortName =
+                    productName.length > 38
+                        ? productName.substring(0, 35) + "..."
+                        : productName;
+
+                doc.text(
+                    shortName,
+                    20,
+                    y
+                );
+
+                doc.text(
+                    String(quantity),
+                    105,
+                    y
+                );
+
+                doc.text(
+                    `RS: ${price.toFixed(2)}`,
+                    130,
+                    y
+                );
+
+                doc.text(
+                    `RS: ${amount.toFixed(2)}`,
+                    165,
+                    y
+                );
+
+                y += 6;
+
+            });
+
+            y += 3;
+
+            doc.line(20, y, 190, y);
+
+            y += 7;
+
+            // ======================================
+            // TOTAL DETAILS
+            // ======================================
+
+            doc.text(
+                `Subtotal: RS: ${
+                    Number(
+                        purchase.subtotal || 0
+                    ).toFixed(2)
+                }`,
+                110,
+                y
+            );
+
+            y += 5;
+
+            doc.text(
+                `Discount: RS: ${
+                    Number(
+                        purchase.discount || 0
+                    ).toFixed(2)
+                }`,
+                110,
+                y
+            );
+
+            y += 5;
+
+            doc.text(
+                `Loyalty Discount: RS: ${
+                    Number(
+                        purchase.loyalty_discount || 0
+                    ).toFixed(2)
+                }`,
+                110,
+                y
+            );
+
+            y += 5;
+
+            doc.text(
+                `Tax: RS: ${
+                    Number(
+                        purchase.tax || 0
+                    ).toFixed(2)
+                }`,
+                110,
+                y
+            );
+
+            y += 6;
+
+            doc.setFont("helvetica", "bold");
+
+            doc.text(
+                `Original Total: RS: ${
+                    originalTotal.toFixed(2)
+                }`,
+                110,
+                y
+            );
+
+            // ======================================
+            // REFUND
+            // ======================================
+
+            if (
+                purchase.returns &&
+                purchase.returns.length > 0
+            ) {
+
+                y += 6;
+
+                doc.text(
+                    `Refunded: RS: ${
+                        totalRefund.toFixed(2)
+                    }`,
+                    110,
+                    y
+                );
+
+                y += 6;
+
+                doc.text(
+                    `Net Paid: RS: ${
+                        netPaid.toFixed(2)
+                    }`,
+                    110,
+                    y
+                );
+
+            }
+
+            y += 7;
+
+            doc.setFont("helvetica", "normal");
+
+            doc.text(
+                `Payment: ${
+                    purchase.payment_Method ||
+                    purchase.payment_method ||
+                    "-"
+                }`,
+                20,
+                y
+            );
+
+            y += 10;
+
+            doc.line(15, y, 195, y);
+
+            y += 10;
+
+        });
+
+    }
+
+    // ==========================================
+    // FOOTER
+    // ==========================================
+
+    const pageCount =
+        doc.internal.getNumberOfPages();
+
+    for (
+        let i = 1;
+        i <= pageCount;
+        i++
+    ) {
+
+        doc.setPage(i);
+
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "normal");
+
+        doc.text(
+            `AK SUPER MARKET - Customer Report | Page ${i} of ${pageCount}`,
+            105,
+            290,
+            {
+                align: "center"
+            }
+        );
+
+    }
+
+    // ==========================================
+    // DOWNLOAD
+    // ==========================================
+
+    const customerName =
+        selectedCustomer.customer_name
+            ?.replace(/[^a-z0-9]/gi, "_") ||
+        "Customer";
+
+    doc.save(
+        `AK_Super_Market_${customerName}_Purchase_History.pdf`
+    );
+};
     // ==========================================
     // LOAD CUSTOMERS
     // ==========================================
@@ -155,7 +587,267 @@ const Customers = () => {
             phone.includes(search)
         );
     });
+// ==========================================
+// DOWNLOAD CUSTOMER LIST AS PDF
+// ==========================================
 
+const downloadCustomersPDF = () => {
+
+    if (filteredCustomers.length === 0) {
+        showToast("No customers available to download.", "error");
+        return;
+    }
+
+    const doc = new jsPDF();
+
+    let y = 20;
+
+    // ==========================================
+    // HEADER
+    // ==========================================
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(20);
+
+    doc.text(
+        "AK SUPER MARKET",
+        105,
+        y,
+        {
+            align: "center"
+        }
+    );
+
+    y += 9;
+
+    doc.setFontSize(15);
+
+    doc.text(
+        "Customer Report",
+        105,
+        y,
+        {
+            align: "center"
+        }
+    );
+
+    y += 8;
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+
+    const today = new Date().toLocaleDateString("en-IN");
+
+    doc.text(
+        `Generated Date: ${today}`,
+        105,
+        y,
+        {
+            align: "center"
+        }
+    );
+
+    y += 12;
+
+    doc.line(15, y, 195, y);
+
+    y += 10;
+
+    // ==========================================
+    // SUMMARY
+    // ==========================================
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+
+    doc.text(
+        `Total Customers: ${filteredCustomers.length}`,
+        15,
+        y
+    );
+
+    y += 10;
+
+    // ==========================================
+    // TABLE HEADER
+    // ==========================================
+
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+
+    doc.text("#", 15, y);
+    doc.text("Customer", 25, y);
+    doc.text("Phone", 70, y);
+    doc.text("Points", 105, y);
+    doc.text("Orders", 125, y);
+    doc.text("Total Spent", 145, y);
+    doc.text("Last Purchase", 175, y);
+
+    y += 5;
+
+    doc.line(15, y, 195, y);
+
+    y += 7;
+
+    // ==========================================
+    // CUSTOMER ROWS
+    // ==========================================
+
+    doc.setFont("helvetica", "normal");
+
+    filteredCustomers.forEach((customer, index) => {
+
+        // New page when required
+        if (y > 275) {
+
+            doc.addPage();
+
+            y = 20;
+
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(12);
+
+            doc.text(
+                "Customer Report - Continued",
+                15,
+                y
+            );
+
+            y += 10;
+
+            doc.setFontSize(9);
+
+            doc.text("#", 15, y);
+            doc.text("Customer", 25, y);
+            doc.text("Phone", 70, y);
+            doc.text("Points", 105, y);
+            doc.text("Orders", 125, y);
+            doc.text("Total Spent", 145, y);
+            doc.text("Last Purchase", 175, y);
+
+            y += 5;
+
+            doc.line(15, y, 195, y);
+
+            y += 7;
+
+            doc.setFont("helvetica", "normal");
+        }
+
+        const customerName =
+            String(customer.customer_name || "Unknown");
+
+        const phone =
+            String(customer.phone_number || "-");
+
+        const loyaltyPoints =
+            String(customer.loyalty_points || 0);
+
+        const orders =
+            String(customer.total_orders || 0);
+
+        const totalSpent =
+            `RS ${Number(
+                customer.total_spent || 0
+            ).toFixed(2)}`;
+
+        const lastPurchase =
+            customer.last_purchase
+                ? new Date(
+                    customer.last_purchase
+                ).toLocaleDateString("en-IN")
+                : "No purchase";
+
+        // Limit long customer names
+        const displayName =
+            customerName.length > 20
+                ? customerName.substring(0, 18) + "..."
+                : customerName;
+
+        doc.text(
+            String(index + 1),
+            15,
+            y
+        );
+
+        doc.text(
+            displayName,
+            25,
+            y
+        );
+
+        doc.text(
+            phone,
+            70,
+            y
+        );
+
+        doc.text(
+            loyaltyPoints,
+            105,
+            y
+        );
+
+        doc.text(
+            orders,
+            125,
+            y
+        );
+
+        doc.text(
+            totalSpent,
+            145,
+            y
+        );
+
+        doc.text(
+            lastPurchase,
+            175,
+            y
+        );
+
+        y += 7;
+    });
+
+    // ==========================================
+    // FOOTER
+    // ==========================================
+
+    const pageCount =
+        doc.internal.getNumberOfPages();
+
+    for (
+        let i = 1;
+        i <= pageCount;
+        i++
+    ) {
+
+        doc.setPage(i);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8);
+
+        doc.text(
+            `AK SUPER MARKET - Customer Report | Page ${i} of ${pageCount}`,
+            105,
+            290,
+            {
+                align: "center"
+            }
+        );
+    }
+
+    // ==========================================
+    // DOWNLOAD
+    // ==========================================
+
+    doc.save(
+        `AK_Super_Market_Customers_${today.replace(
+            /\//g,
+            "-"
+        )}.pdf`
+    );
+};
     // ==========================================
     // RETURN
     // ==========================================
@@ -184,17 +876,30 @@ const Customers = () => {
             {/* HEADER */}
             {/* ========================================== */}
 
-            <div className="mb-8">
+<div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
 
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
-                    Customer Management
-                </h1>
+    <div>
 
-                <p className="text-gray-500 mt-1">
-                    Manage customers and their purchase history
-                </p>
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
+            Customer Management
+        </h1>
 
-            </div>
+        <p className="text-gray-500 mt-1">
+            Manage customers and their purchase history
+        </p>
+
+    </div>
+
+    <button
+        type="button"
+        onClick={downloadCustomersPDF}
+        disabled={filteredCustomers.length === 0}
+        className="bg-red-600 hover:bg-red-700 disabled:bg-red-300 text-white font-semibold px-5 py-2.5 rounded-lg transition shadow"
+    >
+        📄 Download PDF
+    </button>
+
+</div>
 
             {/* ========================================== */}
             {/* SEARCH */}
@@ -426,12 +1131,23 @@ const Customers = () => {
 
                             </div>
 
-                            <button
-                                onClick={closeHistory}
-                                className="text-gray-500 hover:text-gray-800 text-2xl"
-                            >
-                                ×
-                            </button>
+                            <div className="flex items-center gap-2">
+
+                                <button
+                                    onClick={downloadCustomerPDF}
+                                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-2"
+                                >
+                                    📄 Download PDF
+                                </button>
+
+                                <button
+                                    onClick={closeHistory}
+                                    className="text-gray-500 hover:text-gray-800 text-2xl px-2"
+                                >
+                                    ×
+                                </button>
+
+                            </div>
 
                         </div>
 
