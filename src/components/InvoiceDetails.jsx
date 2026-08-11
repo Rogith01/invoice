@@ -1010,58 +1010,53 @@ const InvoiceDetails = () => {
                                                 className="py-2"
                                             >
 
-                                                <div className="flex items-center justify-between bg-gray-50 rounded-md px-3 py-2">
 
-                                                    <div className="text-xs">
+<div className="flex items-center justify-between bg-gray-50 rounded-md px-3 py-2">
 
-                                                        <span className="font-semibold">
-                                                            {item.item_name}
-                                                        </span>
+    <div className="text-xs leading-5">
 
-                                                        <span className="ml-2">
-                                                            — Qty {originalQty}
-                                                        </span>
+        {/* Product + Quantity */}
+        <div className="font-semibold">
+            {item.item_name} — Qty {originalQty}
+        </div>
 
-                                                        <span className="ml-2 text-red-600">
-                                                            Returned: {returnedQty}
-                                                        </span>
+        {/* Returned */}
+        <div className="text-red-600">
+            Returned: {returnedQty}
+        </div>
 
-                                                        <span className="ml-2 text-green-600">
-                                                            Remaining: {remainingQty}
-                                                        </span>
+        {/* Remaining */}
+        <div className="text-green-600">
+            Remaining: {remainingQty}
+        </div>
 
-                                                    </div>
+    </div>
 
 
-                                                    {/* RETURN BUTTON */}
+    {/* RETURN BUTTON */}
 
-                                                    {remainingQty > 0 ? (
+    {remainingQty > 0 ? (
 
-                                                        <button
-                                                            type="button"
-                                                            onClick={() =>
-                                                                openReturnModal(
-                                                                    item
-                                                                )
-                                                            }
-                                                            className="ml-2 text-sm text-red-600 hover:text-red-800 font-semibold whitespace-nowrap"
-                                                        >
+        <button
+            type="button"
+            onClick={() =>
+                openReturnModal(item)
+            }
+            className="ml-2 text-sm text-red-600 hover:text-red-800 font-semibold whitespace-nowrap"
+        >
+            ↩ Return
+        </button>
 
-                                                            ↩ Return
+    ) : (
 
-                                                        </button>
+        <span className="ml-2 text-sm text-gray-500 font-semibold whitespace-nowrap">
+            Fully Returned
+        </span>
 
-                                                    ) : (
+    )}
 
-                                                        <span className="ml-2 text-sm text-gray-500 font-semibold whitespace-nowrap">
+</div>
 
-                                                            Fully Returned
-
-                                                        </span>
-
-                                                    )}
-
-                                                </div>
 
                                             </td>
 
