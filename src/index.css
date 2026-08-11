@@ -130,3 +130,30 @@
 .animate-slide-in {
     animation: slideIn 0.3s ease-out;
 }
+
+/* ======================================================
+   PRINT SETTINGS
+====================================================== */
+
+@media print {
+
+    /* Hide anything marked no-print */
+    .no-print {
+        display: none !important;
+    }
+
+    /* Remove page background */
+    body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+    }
+
+    /* Remove invoice shadow/border when printing */
+    #print {
+        box-shadow: none !important;
+        border: none !important;
+        margin: 0 auto !important;
+    }
+
+}

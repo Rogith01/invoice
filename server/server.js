@@ -6,26 +6,28 @@ const db = require("./db");
 
 const app = express();
 
-// Middleware
+// ======================================================
+// MIDDLEWARE
+// ======================================================
+
 app.use(cors());
 app.use(express.json());
+
 // ======================================================
 // JWT AUTHENTICATION MIDDLEWARE
 // ======================================================
 
 const authenticateToken = (req, res, next) => {
-
     const authHeader = req.headers["authorization"];
 
-    const token = authHeader && authHeader.split(" ")[1];
+    const token =
+        authHeader && authHeader.split(" ")[1];
 
     if (!token) {
-
         return res.status(401).json({
             success: false,
             message: "Access token required"
         });
-
     }
 
     jwt.verify(
@@ -34,26 +36,23 @@ const authenticateToken = (req, res, next) => {
         (err, user) => {
 
             if (err) {
-
                 return res.status(403).json({
                     success: false,
                     message: "Invalid or expired token"
                 });
-
             }
 
             req.user = user;
 
             next();
-
         }
     );
-
 };
 
-/* ======================================================
-   GET NEXT INVOICE NUMBER
-====================================================== */
+// ======================================================
+// GET NEXT INVOICE NUMBER
+// ======================================================
+
 app.get("/api/next-invoice-number", (req, res) => {
 
     const sql = `
@@ -67,6 +66,7 @@ app.get("/api/next-invoice-number", (req, res) => {
 
         if (err) {
             console.error(err);
+
             return res.status(500).json({
                 success: false,
                 message: err.message
@@ -76,23 +76,30 @@ app.get("/api/next-invoice-number", (req, res) => {
         let invoiceNumber = "INV-0001";
 
         if (rows.length > 0) {
-            const lastInvoice = rows[0].invoice_number;
-            const lastNumber = parseInt(lastInvoice.replace("INV-", ""));
-            invoiceNumber = "INV-" + String(lastNumber + 1).padStart(4, "0");
+
+            const lastInvoice =
+                rows[0].invoice_number;
+
+            const lastNumber =
+                parseInt(
+                    lastInvoice.replace("INV-", "")
+                );
+
+            invoiceNumber =
+                "INV-" +
+                String(lastNumber + 1).padStart(4, "0");
         }
 
         res.json({
             success: true,
             invoiceNumber
         });
-
     });
-
 });
 
-/* ======================================================
-   GET CUSTOMER BY PHONE
-====================================================== */
+// ======================================================
+// GET CUSTOMER BY PHONE
+// ======================================================
 
 app.get("/api/customer/:phone", (req, res) => {
 
@@ -114,6 +121,7 @@ app.get("/api/customer/:phone", (req, res) => {
         }
 
         if (rows.length > 0) {
+
             return res.json({
                 success: true,
                 customer: rows[0]
@@ -123,11 +131,8 @@ app.get("/api/customer/:phone", (req, res) => {
         res.json({
             success: false
         });
-
     });
-
 });
-
 
 // ======================================================
 // GET CUSTOMER PURCHASE HISTORY
@@ -170,10 +175,7 @@ app.get(
                         success: false,
                         message: err.message
                     });
-
                 }
-
-                // Customer not found
 
                 if (customerRows.length === 0) {
 
@@ -181,11 +183,10 @@ app.get(
                         success: false,
                         message: "Customer not found"
                     });
-
                 }
 
-                const customer = customerRows[0];
-
+                const customer =
+                    customerRows[0];
 
                 // ======================================================
                 // GET CUSTOMER INVOICES
@@ -225,28 +226,16 @@ app.get(
                                 success: false,
                                 message: err.message
                             });
-
                         }
-
-
-                        // ======================================================
-                        // NO PURCHASES
-                        // ======================================================
 
                         if (invoiceRows.length === 0) {
 
                             return res.json({
-
                                 success: true,
-
                                 customer,
-
                                 purchases: []
-
                             });
-
                         }
-
 
                         // ======================================================
                         // GET ITEMS FOR ALL INVOICES
@@ -285,20 +274,13 @@ app.get(
                                         success: false,
                                         message: err.message
                                     });
-
                                 }
-
-
-                                // ======================================================
-                                // COMBINE INVOICES + ITEMS
-                                // ======================================================
 
                                 const purchases =
                                     invoiceRows.map(
                                         invoice => {
 
                                             return {
-
                                                 ...invoice,
 
                                                 items:
@@ -307,105 +289,98 @@ app.get(
                                                             item.invoice_id ===
                                                             invoice.id
                                                     )
-
                                             };
-
                                         }
                                     );
 
-
-                                // ======================================================
-                                // FINAL RESPONSE
-                                // ======================================================
-
                                 res.json({
-
                                     success: true,
-
                                     customer,
-
                                     purchases
-
                                 });
-
                             }
                         );
-
                     }
                 );
-
             }
         );
-
     }
 );
-
 
 // ======================================================
 // GET ALL CUSTOMERS
 // ======================================================
 
-app.get("/api/customers", authenticateToken, (req, res) => {
+app.get(
+    "/api/customers",
+    authenticateToken,
+    (req, res) => {
 
-    const sql = `
-        SELECT
-            c.id,
-            c.customer_name,
-            c.phone_number,
-            c.loyalty_points,
+        const sql = `
+            SELECT
+                c.id,
+                c.customer_name,
+                c.phone_number,
+                c.loyalty_points,
 
-            COUNT(i.id) AS total_orders,
+                COUNT(i.id) AS total_orders,
 
-            COALESCE(SUM(i.total), 0) AS total_spent,
+                COALESCE(
+                    SUM(i.total),
+                    0
+                ) AS total_spent,
 
-            MAX(i.invoice_date) AS last_purchase
+                MAX(i.invoice_date) AS last_purchase
 
-        FROM customers c
+            FROM customers c
 
-        LEFT JOIN invoices i
-            ON c.id = i.customer_id
+            LEFT JOIN invoices i
+                ON c.id = i.customer_id
 
-        GROUP BY
-            c.id,
-            c.customer_name,
-            c.phone_number,
-            c.loyalty_points
+            GROUP BY
+                c.id,
+                c.customer_name,
+                c.phone_number,
+                c.loyalty_points
 
-        ORDER BY
-            c.id DESC
-    `;
+            ORDER BY c.id DESC
+        `;
 
-    db.query(sql, (err, rows) => {
+        db.query(sql, (err, rows) => {
 
-        if (err) {
+            if (err) {
 
-            console.error(
-                "Customers Error:",
-                err
-            );
+                console.error(
+                    "Customers Error:",
+                    err
+                );
 
-            return res.status(500).json({
-                success: false,
-                message: err.message
+                return res.status(500).json({
+                    success: false,
+                    message: err.message
+                });
+            }
+
+            res.json({
+                success: true,
+                customers: rows
             });
-
-        }
-
-        res.json({
-            success: true,
-            customers: rows
         });
+    }
+);
 
-    });
+// ======================================================
+// GET ALL PRODUCTS
+// ======================================================
 
-});
-/* ======================================================
-   GET ALL PRODUCTS
-====================================================== */
 app.get("/api/products", (req, res) => {
 
     const sql = `
-        SELECT id, product_name, price , stock_quantity
+        SELECT
+            id,
+            product_name,
+            price,
+            stock_quantity
         FROM products
         ORDER BY product_name
     `;
@@ -413,7 +388,11 @@ app.get("/api/products", (req, res) => {
     db.query(sql, (err, rows) => {
 
         if (err) {
-            console.error("Products Error:", err);
+
+            console.error(
+                "Products Error:",
+                err
+            );
 
             return res.status(500).json({
                 success: false,
@@ -425,17 +404,19 @@ app.get("/api/products", (req, res) => {
             success: true,
             products: rows
         });
-
     });
-
 });
-/* ======================================================
-   ADD PRODUCT
-====================================================== */
+
+// ======================================================
+// ADD PRODUCT
+// ======================================================
 
 app.post("/api/products", (req, res) => {
 
-    const { productName, price } = req.body;
+    const {
+        productName,
+        price
+    } = req.body;
 
     const sql = `
         INSERT INTO products
@@ -456,35 +437,40 @@ app.post("/api/products", (req, res) => {
             productName,
             price
         ],
-        (err, result) => {
+        (err) => {
 
             if (err) {
 
-                console.error("Add Product Error:", err);
+                console.error(
+                    "Add Product Error:",
+                    err
+                );
 
                 return res.status(500).json({
                     success: false,
                     message: err.message
                 });
-
             }
 
             res.json({
                 success: true,
                 message: "Product Added Successfully"
             });
-
         }
     );
-
 });
-/* ======================================================
-   UPDATE PRODUCT
-====================================================== */
+
+// ======================================================
+// UPDATE PRODUCT
+// ======================================================
 
 app.put("/api/products/:id", (req, res) => {
 
-    const { productName, price } = req.body;
+    const {
+        productName,
+        price
+    } = req.body;
+
     const id = req.params.id;
 
     const sql = `
@@ -510,249 +496,48 @@ app.put("/api/products/:id", (req, res) => {
                     success: false,
                     message: err.message
                 });
-
             }
 
             res.json({
                 success: true,
                 message: "Product Updated Successfully"
             });
-
         }
     );
-
 });
+
 // ======================================================
 // ADD / RESTOCK PRODUCT
 // ======================================================
 
-app.put("/api/products/:id/restock", authenticateToken, (req, res) => {
-
-    const productId = req.params.id;
-    const { quantity } = req.body;
-
-    // Validate quantity
-    if (!quantity || Number(quantity) <= 0) {
-
-        return res.status(400).json({
-            success: false,
-            message: "Please enter a valid stock quantity"
-        });
-
-    }
-
-    const stockToAdd = Number(quantity);
-
-    // ======================================================
-    // GET CURRENT PRODUCT
-    // ======================================================
-
-    const getProductSql = `
-        SELECT
-            id,
-            product_name,
-            stock_quantity
-        FROM products
-        WHERE id = ?
-    `;
-
-    db.query(
-        getProductSql,
-        [productId],
-        (err, rows) => {
-
-            if (err) {
-
-                console.error("Get Product Error:", err);
-
-                return res.status(500).json({
-                    success: false,
-                    message: err.message
-                });
-
-            }
-
-            // Product not found
-            if (rows.length === 0) {
-
-                return res.status(404).json({
-                    success: false,
-                    message: "Product not found"
-                });
-
-            }
-
-            const product = rows[0];
-
-            const stockBefore =
-                Number(product.stock_quantity) || 0;
-
-            const stockAfter =
-                stockBefore + stockToAdd;
-
-
-            // ======================================================
-            // UPDATE PRODUCT STOCK
-            // ======================================================
-
-            const updateStockSql = `
-                UPDATE products
-                SET stock_quantity = ?
-                WHERE id = ?
-            `;
-
-            db.query(
-                updateStockSql,
-                [
-                    stockAfter,
-                    productId
-                ],
-                (err) => {
-
-                    if (err) {
-
-                        console.error(
-                            "Restock Update Error:",
-                            err
-                        );
-
-                        return res.status(500).json({
-                            success: false,
-                            message: err.message
-                        });
-
-                    }
-
-
-                    // ======================================================
-                    // RECORD STOCK MOVEMENT
-                    // ======================================================
-
-                    const movementSql = `
-                        INSERT INTO stock_movements
-                        (
-                            product_id,
-                            product_name,
-                            movement_type,
-                            quantity,
-                            stock_before,
-                            stock_after,
-                            reference_type,
-                            reference_id,
-                            performed_by
-                        )
-                        VALUES
-                        (
-                            ?,
-                            ?,
-                            'STOCK_IN',
-                            ?,
-                            ?,
-                            ?,
-                            'RESTOCK',
-                            NULL,
-                            ?
-                        )
-                    `;
-
-                    db.query(
-                        movementSql,
-                        [
-                            productId,
-                            product.product_name,
-                            stockToAdd,
-                            stockBefore,
-                            stockAfter,
-                            req.user.username
-                        ],
-                        (err) => {
-
-                            if (err) {
-
-                                console.error(
-                                    "Stock Movement Error:",
-                                    err
-                                );
-
-                                return res.status(500).json({
-                                    success: false,
-                                    message: err.message
-                                });
-
-                            }
-
-
-                            // ======================================================
-                            // FINAL RESPONSE
-                            // ======================================================
-
-                            res.json({
-
-                                success: true,
-
-                                message:
-                                    "Stock added successfully",
-
-                                stockBefore,
-                                stockAdded: stockToAdd,
-                                stockAfter
-
-                            });
-
-                        }
-                    );
-
-                }
-            );
-
-        }
-    );
-
-});
-// ======================================================
-// STOCK ADJUSTMENT
-// ======================================================
-
 app.put(
-    "/api/products/:id/adjust-stock",
+    "/api/products/:id/restock",
     authenticateToken,
     (req, res) => {
-
-        // Admin only
-        if (req.user.role !== "Admin") {
-            return res.status(403).json({
-                success: false,
-                message: "Only Admin can adjust stock"
-            });
-        }
 
         const productId = req.params.id;
 
         const {
-            quantity,
-            reason
+            quantity
         } = req.body;
 
-        const adjustment = Number(quantity);
+        if (
+            !quantity ||
+            Number(quantity) <= 0
+        ) {
 
-        // Validate adjustment
-        if (!Number.isInteger(adjustment) || adjustment === 0) {
             return res.status(400).json({
                 success: false,
-                message: "Adjustment quantity must be a non-zero whole number"
+                message:
+                    "Please enter a valid stock quantity"
             });
         }
 
-        if (!reason || !reason.trim()) {
-            return res.status(400).json({
-                success: false,
-                message: "Please provide a reason for the adjustment"
-            });
-        }
-
+        const stockToAdd =
+            Number(quantity);
 
         // ======================================================
-        // GET CURRENT STOCK
+        // GET CURRENT PRODUCT
         // ======================================================
 
         const getProductSql = `
@@ -770,7 +555,11 @@ app.put(
             (err, rows) => {
 
                 if (err) {
-                    console.error("Adjustment Product Error:", err);
+
+                    console.error(
+                        "Get Product Error:",
+                        err
+                    );
 
                     return res.status(500).json({
                         success: false,
@@ -779,37 +568,239 @@ app.put(
                 }
 
                 if (rows.length === 0) {
+
                     return res.status(404).json({
                         success: false,
                         message: "Product not found"
                     });
                 }
 
-                const product = rows[0];
+                const product =
+                    rows[0];
 
                 const stockBefore =
-                    Number(product.stock_quantity) || 0;
+                    Number(
+                        product.stock_quantity
+                    ) || 0;
 
                 const stockAfter =
-                    stockBefore + adjustment;
+                    stockBefore +
+                    stockToAdd;
 
+                // ======================================================
+                // UPDATE STOCK
+                // ======================================================
 
-                // Prevent negative stock
+                const updateStockSql = `
+                    UPDATE products
+                    SET stock_quantity = ?
+                    WHERE id = ?
+                `;
+
+                db.query(
+                    updateStockSql,
+                    [
+                        stockAfter,
+                        productId
+                    ],
+                    (err) => {
+
+                        if (err) {
+
+                            console.error(
+                                "Restock Update Error:",
+                                err
+                            );
+
+                            return res.status(500).json({
+                                success: false,
+                                message: err.message
+                            });
+                        }
+
+                        // ======================================================
+                        // STOCK MOVEMENT
+                        // ======================================================
+
+                        const movementSql = `
+                            INSERT INTO stock_movements
+                            (
+                                product_id,
+                                product_name,
+                                movement_type,
+                                quantity,
+                                stock_before,
+                                stock_after,
+                                reference_type,
+                                reference_id,
+                                performed_by
+                            )
+                            VALUES
+                            (
+                                ?,
+                                ?,
+                                'STOCK_IN',
+                                ?,
+                                ?,
+                                ?,
+                                'RESTOCK',
+                                NULL,
+                                ?
+                            )
+                        `;
+
+                        db.query(
+                            movementSql,
+                            [
+                                productId,
+                                product.product_name,
+                                stockToAdd,
+                                stockBefore,
+                                stockAfter,
+                                req.user.username
+                            ],
+                            (err) => {
+
+                                if (err) {
+
+                                    console.error(
+                                        "Stock Movement Error:",
+                                        err
+                                    );
+
+                                    return res.status(500).json({
+                                        success: false,
+                                        message: err.message
+                                    });
+                                }
+
+                                res.json({
+                                    success: true,
+                                    message:
+                                        "Stock added successfully",
+
+                                    stockBefore,
+                                    stockAdded:
+                                        stockToAdd,
+                                    stockAfter
+                                });
+                            }
+                        );
+                    }
+                );
+            }
+        );
+    }
+);
+
+// ======================================================
+// STOCK ADJUSTMENT
+// ======================================================
+
+app.put(
+    "/api/products/:id/adjust-stock",
+    authenticateToken,
+    (req, res) => {
+
+        if (req.user.role !== "Admin") {
+
+            return res.status(403).json({
+                success: false,
+                message:
+                    "Only Admin can adjust stock"
+            });
+        }
+
+        const productId =
+            req.params.id;
+
+        const {
+            quantity,
+            reason
+        } = req.body;
+
+        const adjustment =
+            Number(quantity);
+
+        if (
+            !Number.isInteger(adjustment) ||
+            adjustment === 0
+        ) {
+
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Adjustment quantity must be a non-zero whole number"
+            });
+        }
+
+        if (
+            !reason ||
+            !reason.trim()
+        ) {
+
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Please provide a reason for the adjustment"
+            });
+        }
+
+        const getProductSql = `
+            SELECT
+                id,
+                product_name,
+                stock_quantity
+            FROM products
+            WHERE id = ?
+        `;
+
+        db.query(
+            getProductSql,
+            [productId],
+            (err, rows) => {
+
+                if (err) {
+
+                    console.error(
+                        "Adjustment Product Error:",
+                        err
+                    );
+
+                    return res.status(500).json({
+                        success: false,
+                        message: err.message
+                    });
+                }
+
+                if (rows.length === 0) {
+
+                    return res.status(404).json({
+                        success: false,
+                        message: "Product not found"
+                    });
+                }
+
+                const product =
+                    rows[0];
+
+                const stockBefore =
+                    Number(
+                        product.stock_quantity
+                    ) || 0;
+
+                const stockAfter =
+                    stockBefore +
+                    adjustment;
+
                 if (stockAfter < 0) {
 
                     return res.status(400).json({
                         success: false,
                         message:
-                            `Stock cannot become negative. ` +
-                            `Current stock: ${stockBefore}`
+                            `Stock cannot become negative. Current stock: ${stockBefore}`
                     });
-
                 }
-
-
-                // ======================================================
-                // UPDATE PRODUCT STOCK
-                // ======================================================
 
                 const updateStockSql = `
                     UPDATE products
@@ -836,13 +827,7 @@ app.put(
                                 success: false,
                                 message: err.message
                             });
-
                         }
-
-
-                        // ======================================================
-                        // RECORD STOCK MOVEMENT
-                        // ======================================================
 
                         const movementSql = `
                             INSERT INTO stock_movements
@@ -874,15 +859,10 @@ app.put(
                             [
                                 product.id,
                                 product.product_name,
-
-                                // Store absolute adjustment amount
                                 Math.abs(adjustment),
-
                                 stockBefore,
                                 stockAfter,
-
                                 reason.trim(),
-
                                 req.user.username
                             ],
                             (err) => {
@@ -898,13 +878,7 @@ app.put(
                                         success: false,
                                         message: err.message
                                     });
-
                                 }
-
-
-                                // ======================================================
-                                // FINAL RESPONSE
-                                // ======================================================
 
                                 res.json({
                                     success: true,
@@ -918,20 +892,18 @@ app.put(
                                     adjustment,
                                     stockAfter,
 
-                                    reason: reason.trim()
+                                    reason:
+                                        reason.trim()
                                 });
-
                             }
                         );
-
                     }
                 );
-
             }
         );
-
     }
 );
+
 // ======================================================
 // GET STOCK MOVEMENT HISTORY
 // ======================================================
@@ -971,53 +943,57 @@ app.get(
                     success: false,
                     message: err.message
                 });
-
             }
 
             res.json({
                 success: true,
                 movements: rows
             });
-
         });
-
     }
 );
-/* ======================================================
-   DELETE PRODUCT
-====================================================== */
 
-app.delete("/api/products/:id", (req, res) => {
+// ======================================================
+// DELETE PRODUCT
+// ======================================================
 
-    const id = req.params.id;
+app.delete(
+    "/api/products/:id",
+    (req, res) => {
 
-    const sql = `
-        DELETE FROM products
-        WHERE id = ?
-    `;
+        const id = req.params.id;
 
-    db.query(sql, [id], (err) => {
+        const sql = `
+            DELETE FROM products
+            WHERE id = ?
+        `;
 
-        if (err) {
+        db.query(
+            sql,
+            [id],
+            (err) => {
 
-            return res.status(500).json({
-                success: false,
-                message: err.message
-            });
+                if (err) {
 
-        }
+                    return res.status(500).json({
+                        success: false,
+                        message: err.message
+                    });
+                }
 
-        res.json({
-            success: true,
-            message: "Product Deleted Successfully"
-        });
+                res.json({
+                    success: true,
+                    message:
+                        "Product Deleted Successfully"
+                });
+            }
+        );
+    }
+);
 
-    });
-
-});
-/* ======================================================
-   GET ALL USERS
-====================================================== */
+// ======================================================
+// GET ALL USERS
+// ======================================================
 
 app.get("/api/users", (req, res) => {
 
@@ -1034,6 +1010,7 @@ app.get("/api/users", (req, res) => {
     db.query(sql, (err, rows) => {
 
         if (err) {
+
             return res.status(500).json({
                 success: false,
                 message: err.message
@@ -1044,13 +1021,12 @@ app.get("/api/users", (req, res) => {
             success: true,
             users: rows
         });
-
     });
-
 });
-/* ======================================================
-   ADD USER
-====================================================== */
+
+// ======================================================
+// ADD USER
+// ======================================================
 
 app.post("/api/users", (req, res) => {
 
@@ -1090,24 +1066,27 @@ app.post("/api/users", (req, res) => {
                     success: false,
                     message: err.message
                 });
-
             }
 
             res.json({
                 success: true
             });
-
         }
     );
-
 });
-/* ======================================================
-   UPDATE USER
-====================================================== */
+
+// ======================================================
+// UPDATE USER
+// ======================================================
 
 app.put("/api/users/:id", (req, res) => {
 
-    const { username, password, role } = req.body;
+    const {
+        username,
+        password,
+        role
+    } = req.body;
+
     const id = req.params.id;
 
     const sql = `
@@ -1135,21 +1114,20 @@ app.put("/api/users/:id", (req, res) => {
                     success: false,
                     message: err.message
                 });
-
             }
 
             res.json({
                 success: true,
-                message: "User Updated Successfully"
+                message:
+                    "User Updated Successfully"
             });
-
         }
     );
-
 });
-/* ======================================================
-   DELETE USER
-====================================================== */
+
+// ======================================================
+// DELETE USER
+// ======================================================
 
 app.delete("/api/users/:id", (req, res) => {
 
@@ -1160,35 +1138,38 @@ app.delete("/api/users/:id", (req, res) => {
         WHERE id = ?
     `;
 
-    db.query(sql, [id], (err) => {
+    db.query(
+        sql,
+        [id],
+        (err) => {
 
-        if (err) {
+            if (err) {
 
-            return res.status(500).json({
-                success: false,
-                message: err.message
+                return res.status(500).json({
+                    success: false,
+                    message: err.message
+                });
+            }
+
+            res.json({
+                success: true,
+                message:
+                    "User Deleted Successfully"
             });
-
         }
-
-        res.json({
-            success: true,
-            message: "User Deleted Successfully"
-        });
-
-    });
-
+    );
 });
-/* ======================================================
-   DASHBOARD
-====================================================== */
+
+// ======================================================
+// DASHBOARD
+// ======================================================
 
 app.get("/api/dashboard", (req, res) => {
 
     const dashboard = {};
 
     // ==================================================
-    // 1. TOTAL SALES
+    // TOTAL SALES
     // ==================================================
 
     db.query(
@@ -1199,18 +1180,23 @@ app.get("/api/dashboard", (req, res) => {
         (err, rows) => {
 
             if (err) {
-                console.error("Total Sales Error:", err);
+
+                console.error(
+                    "Total Sales Error:",
+                    err
+                );
+
                 return res.status(500).json({
                     success: false,
                     message: err.message
                 });
             }
 
-            dashboard.totalSales = rows[0].totalSales;
-
+            dashboard.totalSales =
+                rows[0].totalSales;
 
             // ==================================================
-            // 2. TODAY'S SALES
+            // TODAY SALES
             // ==================================================
 
             db.query(
@@ -1222,18 +1208,18 @@ app.get("/api/dashboard", (req, res) => {
                 (err, rows) => {
 
                     if (err) {
-                        console.error("Today's Sales Error:", err);
+
                         return res.status(500).json({
                             success: false,
                             message: err.message
                         });
                     }
 
-                    dashboard.todaySales = rows[0].todaySales;
-
+                    dashboard.todaySales =
+                        rows[0].todaySales;
 
                     // ==================================================
-                    // 3. TODAY'S ORDERS
+                    // TODAY ORDERS
                     // ==================================================
 
                     db.query(
@@ -1245,23 +1231,27 @@ app.get("/api/dashboard", (req, res) => {
                         (err, rows) => {
 
                             if (err) {
-                                console.error("Today's Orders Error:", err);
+
                                 return res.status(500).json({
                                     success: false,
                                     message: err.message
                                 });
                             }
 
-                            dashboard.todayOrders = rows[0].todayOrders;
-
+                            dashboard.todayOrders =
+                                rows[0].todayOrders;
 
                             // ==================================================
-                            // 4. TODAY'S CASH SALES
+                            // CASH SALES
                             // ==================================================
 
                             db.query(
                                 `
-                                SELECT IFNULL(SUM(total), 0) AS cashSales
+                                SELECT
+                                    IFNULL(
+                                        SUM(total),
+                                        0
+                                    ) AS cashSales
                                 FROM invoices
                                 WHERE payment_Method = 'Cash'
                                 AND invoice_date = CURDATE()
@@ -1269,23 +1259,27 @@ app.get("/api/dashboard", (req, res) => {
                                 (err, rows) => {
 
                                     if (err) {
-                                        console.error("Cash Sales Error:", err);
+
                                         return res.status(500).json({
                                             success: false,
                                             message: err.message
                                         });
                                     }
 
-                                    dashboard.cashSales = rows[0].cashSales;
-
+                                    dashboard.cashSales =
+                                        rows[0].cashSales;
 
                                     // ==================================================
-                                    // 5. TODAY'S ONLINE SALES
+                                    // ONLINE SALES
                                     // ==================================================
 
                                     db.query(
                                         `
-                                        SELECT IFNULL(SUM(total), 0) AS onlineSales
+                                        SELECT
+                                            IFNULL(
+                                                SUM(total),
+                                                0
+                                            ) AS onlineSales
                                         FROM invoices
                                         WHERE payment_Method = 'Online'
                                         AND invoice_date = CURDATE()
@@ -1293,34 +1287,36 @@ app.get("/api/dashboard", (req, res) => {
                                         (err, rows) => {
 
                                             if (err) {
-                                                console.error("Online Sales Error:", err);
+
                                                 return res.status(500).json({
                                                     success: false,
                                                     message: err.message
                                                 });
                                             }
 
-                                            dashboard.onlineSales = rows[0].onlineSales;
-
+                                            dashboard.onlineSales =
+                                                rows[0].onlineSales;
 
                                             // ==================================================
-                                            // 6. TOP SELLING PRODUCT
+                                            // TOP PRODUCT
                                             // ==================================================
 
                                             db.query(
                                                 `
                                                 SELECT
                                                     item_name,
-                                                    SUM(qty) AS total_quantity_sold
+                                                    SUM(qty)
+                                                        AS total_quantity_sold
                                                 FROM invoice_items
                                                 GROUP BY item_name
-                                                ORDER BY total_quantity_sold DESC
+                                                ORDER BY
+                                                    total_quantity_sold DESC
                                                 LIMIT 1
                                                 `,
                                                 (err, rows) => {
 
                                                     if (err) {
-                                                        console.error("Top Product Error:", err);
+
                                                         return res.status(500).json({
                                                             success: false,
                                                             message: err.message
@@ -1332,19 +1328,21 @@ app.get("/api/dashboard", (req, res) => {
                                                             ? rows[0]
                                                             : null;
 
-
                                                     // ==================================================
-                                                    // 7. TOP CUSTOMER
+                                                    // TOP CUSTOMER
                                                     // ==================================================
 
                                                     db.query(
                                                         `
                                                         SELECT
                                                             customer_name,
-                                                            COUNT(*) AS total_orders,
-                                                            SUM(total) AS total_spent
+                                                            COUNT(*)
+                                                                AS total_orders,
+                                                            SUM(total)
+                                                                AS total_spent
                                                         FROM invoices
-                                                        WHERE customer_name IS NOT NULL
+                                                        WHERE customer_name
+                                                            IS NOT NULL
                                                         AND customer_name != ''
                                                         GROUP BY customer_name
                                                         ORDER BY total_spent DESC
@@ -1353,7 +1351,7 @@ app.get("/api/dashboard", (req, res) => {
                                                         (err, rows) => {
 
                                                             if (err) {
-                                                                console.error("Top Customer Error:", err);
+
                                                                 return res.status(500).json({
                                                                     success: false,
                                                                     message: err.message
@@ -1365,19 +1363,21 @@ app.get("/api/dashboard", (req, res) => {
                                                                     ? rows[0]
                                                                     : null;
 
-
                                                             // ==================================================
-                                                            // 8. TOP CASHIER
+                                                            // TOP CASHIER
                                                             // ==================================================
 
                                                             db.query(
                                                                 `
                                                                 SELECT
                                                                     cashier_name,
-                                                                    COUNT(*) AS total_orders,
-                                                                    SUM(total) AS total_sales
+                                                                    COUNT(*)
+                                                                        AS total_orders,
+                                                                    SUM(total)
+                                                                        AS total_sales
                                                                 FROM invoices
-                                                                WHERE cashier_name IS NOT NULL
+                                                                WHERE cashier_name
+                                                                    IS NOT NULL
                                                                 AND cashier_name != ''
                                                                 GROUP BY cashier_name
                                                                 ORDER BY total_sales DESC
@@ -1386,7 +1386,7 @@ app.get("/api/dashboard", (req, res) => {
                                                                 (err, rows) => {
 
                                                                     if (err) {
-                                                                        console.error("Top Cashier Error:", err);
+
                                                                         return res.status(500).json({
                                                                             success: false,
                                                                             message: err.message
@@ -1398,20 +1398,21 @@ app.get("/api/dashboard", (req, res) => {
                                                                             ? rows[0]
                                                                             : null;
 
-
                                                                     // ==================================================
-                                                                    // 9. TOTAL PRODUCTS
+                                                                    // TOTAL PRODUCTS
                                                                     // ==================================================
 
                                                                     db.query(
                                                                         `
-                                                                        SELECT COUNT(*) AS totalProducts
+                                                                        SELECT
+                                                                            COUNT(*)
+                                                                            AS totalProducts
                                                                         FROM products
                                                                         `,
                                                                         (err, rows) => {
 
                                                                             if (err) {
-                                                                                console.error("Total Products Error:", err);
+
                                                                                 return res.status(500).json({
                                                                                     success: false,
                                                                                     message: err.message
@@ -1421,20 +1422,21 @@ app.get("/api/dashboard", (req, res) => {
                                                                             dashboard.totalProducts =
                                                                                 rows[0].totalProducts;
 
-
                                                                             // ==================================================
-                                                                            // 10. TOTAL CUSTOMERS
+                                                                            // TOTAL CUSTOMERS
                                                                             // ==================================================
 
                                                                             db.query(
                                                                                 `
-                                                                                SELECT COUNT(*) AS totalCustomers
+                                                                                SELECT
+                                                                                    COUNT(*)
+                                                                                    AS totalCustomers
                                                                                 FROM customers
                                                                                 `,
                                                                                 (err, rows) => {
 
                                                                                     if (err) {
-                                                                                        console.error("Total Customers Error:", err);
+
                                                                                         return res.status(500).json({
                                                                                             success: false,
                                                                                             message: err.message
@@ -1444,22 +1446,27 @@ app.get("/api/dashboard", (req, res) => {
                                                                                     dashboard.totalCustomers =
                                                                                         rows[0].totalCustomers;
 
-
                                                                                     // ==================================================
-                                                                                    // 11. THIS MONTH'S SALES
+                                                                                    // MONTHLY SALES
                                                                                     // ==================================================
 
                                                                                     db.query(
                                                                                         `
-                                                                                        SELECT IFNULL(SUM(total), 0) AS monthlySales
+                                                                                        SELECT
+                                                                                            IFNULL(
+                                                                                                SUM(total),
+                                                                                                0
+                                                                                            ) AS monthlySales
                                                                                         FROM invoices
-                                                                                        WHERE YEAR(invoice_date) = YEAR(CURDATE())
-                                                                                        AND MONTH(invoice_date) = MONTH(CURDATE())
+                                                                                        WHERE YEAR(invoice_date)
+                                                                                            = YEAR(CURDATE())
+                                                                                        AND MONTH(invoice_date)
+                                                                                            = MONTH(CURDATE())
                                                                                         `,
                                                                                         (err, rows) => {
 
                                                                                             if (err) {
-                                                                                                console.error("Monthly Sales Error:", err);
+
                                                                                                 return res.status(500).json({
                                                                                                     success: false,
                                                                                                     message: err.message
@@ -1469,22 +1476,25 @@ app.get("/api/dashboard", (req, res) => {
                                                                                             dashboard.monthlySales =
                                                                                                 rows[0].monthlySales;
 
-
                                                                                             // ==================================================
-                                                                                            // 12. THIS MONTH'S ORDERS
+                                                                                            // MONTHLY ORDERS
                                                                                             // ==================================================
 
                                                                                             db.query(
                                                                                                 `
-                                                                                                SELECT COUNT(*) AS monthlyOrders
+                                                                                                SELECT
+                                                                                                    COUNT(*)
+                                                                                                    AS monthlyOrders
                                                                                                 FROM invoices
-                                                                                                WHERE YEAR(invoice_date) = YEAR(CURDATE())
-                                                                                                AND MONTH(invoice_date) = MONTH(CURDATE())
+                                                                                                WHERE YEAR(invoice_date)
+                                                                                                    = YEAR(CURDATE())
+                                                                                                AND MONTH(invoice_date)
+                                                                                                    = MONTH(CURDATE())
                                                                                                 `,
                                                                                                 (err, rows) => {
 
                                                                                                     if (err) {
-                                                                                                        console.error("Monthly Orders Error:", err);
+
                                                                                                         return res.status(500).json({
                                                                                                             success: false,
                                                                                                             message: err.message
@@ -1494,210 +1504,206 @@ app.get("/api/dashboard", (req, res) => {
                                                                                                     dashboard.monthlyOrders =
                                                                                                         rows[0].monthlyOrders;
 
-
-                                                                                                    // ==================================================
-                                                                                                    // FINAL RESPONSE
-                                                                                                    // ==================================================
-
                                                                                                     res.json({
                                                                                                         success: true,
                                                                                                         dashboard
                                                                                                     });
-
                                                                                                 }
                                                                                             );
-
                                                                                         }
                                                                                     );
-
                                                                                 }
                                                                             );
-
                                                                         }
                                                                     );
-
                                                                 }
                                                             );
-
                                                         }
                                                     );
-
                                                 }
                                             );
-
                                         }
                                     );
-
                                 }
                             );
-
                         }
                     );
-
                 }
             );
-
         }
     );
-
 });
-/* ======================================================
-   DAILY SALES ANALYSIS
-====================================================== */
 
-app.get("/api/dashboard/daily-sales", (req, res) => {
+// ======================================================
+// DAILY SALES ANALYSIS
+// ======================================================
 
-    const sql = `
-        SELECT
-            DATE(invoice_date) AS saleDate,
-            IFNULL(SUM(total), 0) AS sales,
-            COUNT(*) AS orders
-        FROM invoices
-        GROUP BY DATE(invoice_date)
-        ORDER BY saleDate ASC
-    `;
+app.get(
+    "/api/dashboard/daily-sales",
+    (req, res) => {
 
-    db.query(sql, (err, rows) => {
+        const sql = `
+            SELECT
+                DATE(invoice_date) AS saleDate,
+                IFNULL(SUM(total), 0) AS sales,
+                COUNT(*) AS orders
+            FROM invoices
+            GROUP BY DATE(invoice_date)
+            ORDER BY saleDate ASC
+        `;
 
-        if (err) {
+        db.query(sql, (err, rows) => {
 
-            console.error("Daily Sales Error:", err);
+            if (err) {
 
-            return res.status(500).json({
-                success: false,
-                message: err.message
+                console.error(
+                    "Daily Sales Error:",
+                    err
+                );
+
+                return res.status(500).json({
+                    success: false,
+                    message: err.message
+                });
+            }
+
+            res.json({
+                success: true,
+                dailySales: rows
             });
-
-        }
-
-        res.json({
-            success: true,
-            dailySales: rows
         });
+    }
+);
 
-    });
-
-});
-/* ======================================================
-   GET ALL INVOICES
-====================================================== */
+// ======================================================
+// GET ALL INVOICES
+// ======================================================
 
 app.get("/api/invoices", (req, res) => {
 
     const sql = `
-    SELECT
-        invoices.id,
-        invoices.invoice_number,
-        invoices.invoice_date,
-        invoices.invoice_time,
-        invoices.customer_name,
-        invoices.cashier_name,
-        customers.phone_number,
-        invoices.total,
-        invoices.payment_Method
-    FROM invoices
-    LEFT JOIN customers
-        ON invoices.customer_id = customers.id
-    ORDER BY invoices.id DESC
+        SELECT
+            invoices.id,
+            invoices.invoice_number,
+            invoices.invoice_date,
+            invoices.invoice_time,
+            invoices.customer_name,
+            invoices.cashier_name,
+            customers.phone_number,
+            invoices.total,
+            invoices.payment_Method
+        FROM invoices
+        LEFT JOIN customers
+            ON invoices.customer_id = customers.id
+        ORDER BY invoices.id DESC
     `;
 
     db.query(sql, (err, rows) => {
 
         if (err) {
 
-            console.error("Invoice History Error:", err);
+            console.error(
+                "Invoice History Error:",
+                err
+            );
 
             return res.status(500).json({
                 success: false,
                 message: err.message
             });
-
         }
 
         res.json({
             success: true,
             invoices: rows
         });
-
     });
-
 });
-/* ======================================================
-   GET SINGLE INVOICE
-====================================================== */
 
-app.get("/api/invoices/:id", (req, res) => {
+// ======================================================
+// GET SINGLE INVOICE
+// ======================================================
 
-    const invoiceId = req.params.id;
+app.get(
+    "/api/invoices/:id",
+    (req, res) => {
 
-const invoiceSql = `
-    SELECT
-        invoices.*,
-        customers.phone_number
-    FROM invoices
-    LEFT JOIN customers
-        ON invoices.customer_id = customers.id
-    WHERE invoices.id = ?
-`;
+        const invoiceId =
+            req.params.id;
 
-    db.query(invoiceSql, [invoiceId], (err, invoiceRows) => {
-
-        if (err) {
-
-            return res.status(500).json({
-                success: false,
-                message: err.message
-            });
-
-        }
-
-        if (invoiceRows.length === 0) {
-
-            return res.json({
-                success: false
-            });
-
-        }
-
-        const itemSql = `
-            SELECT *
-            FROM invoice_items
-            WHERE invoice_id = ?
+        const invoiceSql = `
+            SELECT
+                invoices.*,
+                customers.phone_number
+            FROM invoices
+            LEFT JOIN customers
+                ON invoices.customer_id = customers.id
+            WHERE invoices.id = ?
         `;
 
-        db.query(itemSql, [invoiceId], (err, itemRows) => {
+        db.query(
+            invoiceSql,
+            [invoiceId],
+            (err, invoiceRows) => {
 
-            if (err) {
+                if (err) {
 
-                return res.status(500).json({
-                    success: false,
-                    message: err.message
-                });
+                    return res.status(500).json({
+                        success: false,
+                        message: err.message
+                    });
+                }
 
+                if (invoiceRows.length === 0) {
+
+                    return res.json({
+                        success: false
+                    });
+                }
+
+                const itemSql = `
+                    SELECT *
+                    FROM invoice_items
+                    WHERE invoice_id = ?
+                `;
+
+                db.query(
+                    itemSql,
+                    [invoiceId],
+                    (err, itemRows) => {
+
+                        if (err) {
+
+                            return res.status(500).json({
+                                success: false,
+                                message: err.message
+                            });
+                        }
+
+                        res.json({
+                            success: true,
+                            invoice:
+                                invoiceRows[0],
+                            items:
+                                itemRows
+                        });
+                    }
+                );
             }
+        );
+    }
+);
 
-            res.json({
-
-                success: true,
-
-                invoice: invoiceRows[0],
-
-                items: itemRows
-
-            });
-
-        });
-
-    });
-
-});
-/* ======================================================
-SAVE INVOICE
-====================================================== */
+// ======================================================
+// SAVE INVOICE
+// ======================================================
 
 app.post("/api/invoices", (req, res) => {
 
-    console.log("POST /api/invoices called");
+    console.log(
+        "POST /api/invoices called"
+    );
+
     console.log(req.body);
 
     const {
@@ -1713,109 +1719,116 @@ app.post("/api/invoices", (req, res) => {
         paymentMethod
     } = req.body;
 
-    console.log("Redeem Points:", redeemPoints);
-
-
-    // ======================================================
-    // CHECK STOCK BEFORE SAVING INVOICE
-    // ======================================================
-
-    const validItems = (items || []).filter(
-        item => item.name && item.name.trim() !== ""
+    console.log(
+        "Redeem Points:",
+        redeemPoints
     );
+
+    // ======================================================
+    // VALID ITEMS
+    // ======================================================
+
+    const validItems =
+        (items || []).filter(
+            item =>
+                item.name &&
+                item.name.trim() !== ""
+        );
 
     if (validItems.length === 0) {
 
         return res.status(400).json({
             success: false,
-            message: "No products added to invoice"
+            message:
+                "No products added to invoice"
         });
-
     }
 
+    // ======================================================
+    // CHECK STOCK
+    // ======================================================
 
-    // Check every product stock
-    const checkStock = (index = 0) => {
+    const checkStock =
+        (index = 0) => {
 
-        if (index >= validItems.length) {
+            if (
+                index >=
+                validItems.length
+            ) {
 
-            // All products have enough stock
-            checkCustomer();
+                checkCustomer();
 
-            return;
-
-        }
-
-        const item = validItems[index];
-
-        const stockSql = `
-            SELECT
-                id,
-                product_name,
-                stock_quantity
-            FROM products
-            WHERE product_name = ?
-        `;
-
-        db.query(
-            stockSql,
-            [item.name],
-            (err, rows) => {
-
-                if (err) {
-
-                    console.error("Stock Check Error:", err);
-
-                    return res.status(500).json({
-                        success: false,
-                        message: err.message
-                    });
-
-                }
-
-
-                // Product does not exist
-                if (rows.length === 0) {
-
-                    return res.status(400).json({
-                        success: false,
-                        message: `${item.name} not found in products`
-                    });
-
-                }
-
-
-                const product = rows[0];
-
-                const currentStock =
-                    Number(product.stock_quantity) || 0;
-
-                const requestedQuantity =
-                    Number(item.qty) || 0;
-
-
-                // Insufficient stock
-                if (requestedQuantity > currentStock) {
-
-                    return res.status(400).json({
-                        success: false,
-                        message:
-                            `Insufficient stock for ${item.name}. ` +
-                            `Available: ${currentStock}, ` +
-                            `Requested: ${requestedQuantity}`
-                    });
-
-                }
-
-
-                // Check next product
-                checkStock(index + 1);
-
+                return;
             }
-        );
 
-    };
+            const item =
+                validItems[index];
 
+            const stockSql = `
+                SELECT
+                    id,
+                    product_name,
+                    stock_quantity
+                FROM products
+                WHERE product_name = ?
+            `;
+
+            db.query(
+                stockSql,
+                [item.name],
+                (err, rows) => {
+
+                    if (err) {
+
+                        console.error(
+                            "Stock Check Error:",
+                            err
+                        );
+
+                        return res.status(500).json({
+                            success: false,
+                            message: err.message
+                        });
+                    }
+
+                    if (rows.length === 0) {
+
+                        return res.status(400).json({
+                            success: false,
+                            message:
+                                `${item.name} not found in products`
+                        });
+                    }
+
+                    const product =
+                        rows[0];
+
+                    const currentStock =
+                        Number(
+                            product.stock_quantity
+                        ) || 0;
+
+                    const requestedQuantity =
+                        Number(item.qty) || 0;
+
+                    if (
+                        requestedQuantity >
+                        currentStock
+                    ) {
+
+                        return res.status(400).json({
+                            success: false,
+                            message:
+                                `Insufficient stock for ${item.name}. Available: ${currentStock}, Requested: ${requestedQuantity}`
+                        });
+                    }
+
+                    checkStock(
+                        index + 1
+                    );
+                }
+            );
+        };
 
     // ======================================================
     // CUSTOMER CHECK
@@ -1842,32 +1855,24 @@ app.post("/api/invoices", (req, res) => {
                         success: false,
                         message: err.message
                     });
-
                 }
 
-
-                // Existing customer
                 if (rows.length > 0) {
 
-                    const customerId = rows[0].id;
+                    const customerId =
+                        rows[0].id;
 
                     const loyaltyPoints =
-                        Number(rows[0].loyalty_points) || 0;
-
-                    console.log(
-                        "Existing Customer ID:",
-                        customerId
-                    );
+                        Number(
+                            rows[0].loyalty_points
+                        ) || 0;
 
                     saveInvoice(
                         customerId,
                         loyaltyPoints
                     );
 
-                }
-
-                // New customer
-                else {
+                } else {
 
                     const insertCustomerSql = `
                         INSERT INTO customers
@@ -1898,32 +1903,21 @@ app.post("/api/invoices", (req, res) => {
                                     success: false,
                                     message: err.message
                                 });
-
                             }
 
                             const customerId =
                                 result.insertId;
 
-                            console.log(
-                                "New Customer ID:",
-                                customerId
-                            );
-
                             saveInvoice(
                                 customerId,
                                 0
                             );
-
                         }
                     );
-
                 }
-
             }
         );
-
     };
-
 
     // ======================================================
     // SAVE INVOICE
@@ -1934,7 +1928,6 @@ app.post("/api/invoices", (req, res) => {
         loyaltyPoints
     ) {
 
-        // Get latest invoice number
         const getLastInvoice = `
             SELECT invoice_number
             FROM invoices
@@ -1948,18 +1941,14 @@ app.post("/api/invoices", (req, res) => {
 
                 if (err) {
 
-                    console.error(err);
-
                     return res.status(500).json({
                         success: false,
                         message: err.message
                     });
-
                 }
 
-
-                let invoiceNumber = "INV-0001";
-
+                let invoiceNumber =
+                    "INV-0001";
 
                 if (rows.length > 0) {
 
@@ -1976,11 +1965,10 @@ app.post("/api/invoices", (req, res) => {
 
                     invoiceNumber =
                         "INV-" +
-                        String(lastNumber + 1)
-                            .padStart(4, "0");
-
+                        String(
+                            lastNumber + 1
+                        ).padStart(4, "0");
                 }
-
 
                 // ======================================================
                 // INSERT INVOICE
@@ -2025,7 +2013,6 @@ app.post("/api/invoices", (req, res) => {
                     )
                 `;
 
-
                 db.query(
                     invoiceSql,
                     [
@@ -2057,22 +2044,82 @@ app.post("/api/invoices", (req, res) => {
                                 success: false,
                                 message: err.message
                             });
-
                         }
-
 
                         const invoiceId =
                             result.insertId;
 
-
-                        // ======================================================
-                        // INSERT INVOICE ITEMS
-                        // ======================================================
-
                         let completed = 0;
 
+                        // ======================================================
+                        // UPDATE LOYALTY POINTS
+                        // ======================================================
+
+                        const updateLoyaltyPoints =
+                            () => {
+
+                                const redeemedPoints =
+                                    redeemPoints
+                                        ? loyaltyPoints
+                                        : 0;
+
+                                const earnedPoints =
+                                    Math.floor(
+                                        Number(total) /
+                                        100
+                                    );
+
+                                const finalPoints =
+                                    loyaltyPoints -
+                                    redeemedPoints +
+                                    earnedPoints;
+
+                                const updatePointsSql = `
+                                    UPDATE customers
+                                    SET loyalty_points = ?
+                                    WHERE id = ?
+                                `;
+
+                                db.query(
+                                    updatePointsSql,
+                                    [
+                                        finalPoints,
+                                        customerId
+                                    ],
+                                    (err) => {
+
+                                        if (err) {
+
+                                            console.error(
+                                                "Loyalty Points Error:",
+                                                err
+                                            );
+                                        }
+
+                                        return res.json({
+                                            success: true,
+
+                                            message:
+                                                "Invoice Saved Successfully",
+
+                                            invoiceNumber,
+
+                                            earnedPoints,
+
+                                            redeemedPoints,
+
+                                            finalPoints
+                                        });
+                                    }
+                                );
+                            };
+
+                        // ======================================================
+                        // INSERT ITEMS + DEDUCT STOCK
+                        // ======================================================
+
                         validItems.forEach(
-                            (item) => {
+                            item => {
 
                                 const itemSql = `
                                     INSERT INTO invoice_items
@@ -2093,7 +2140,6 @@ app.post("/api/invoices", (req, res) => {
                                     )
                                 `;
 
-
                                 db.query(
                                     itemSql,
                                     [
@@ -2102,7 +2148,7 @@ app.post("/api/invoices", (req, res) => {
                                         item.qty,
                                         item.price,
                                         Number(item.qty) *
-                                        Number(item.price)
+                                            Number(item.price)
                                     ],
                                     (err) => {
 
@@ -2115,11 +2161,10 @@ app.post("/api/invoices", (req, res) => {
 
                                             return res.status(500).json({
                                                 success: false,
-                                                message: err.message
+                                                message:
+                                                    err.message
                                             });
-
                                         }
-
 
                                         // ======================================================
                                         // DEDUCT STOCK
@@ -2135,204 +2180,113 @@ app.post("/api/invoices", (req, res) => {
                                             WHERE product_name = ?
                                         `;
 
+                                        db.query(
+                                            updateStockSql,
+                                            [
+                                                Number(item.qty),
+                                                item.name
+                                            ],
+                                            (err) => {
 
-                                      db.query(
-    updateStockSql,
-    [
-        Number(item.qty),
-        item.name
-    ],
-    (err) => {
+                                                if (err) {
 
-        if (err) {
+                                                    console.error(
+                                                        "Stock Update Error:",
+                                                        err
+                                                    );
 
-            console.error(
-                "Stock Update Error:",
-                err
-            );
+                                                    return res.status(500).json({
+                                                        success: false,
+                                                        message:
+                                                            err.message
+                                                    });
+                                                }
 
-            return res.status(500).json({
-                success: false,
-                message: err.message
-            });
+                                                // ======================================================
+                                                // STOCK MOVEMENT
+                                                // ======================================================
 
-        }
+                                                const stockMovementSql = `
+                                                    INSERT INTO stock_movements
+                                                    (
+                                                        product_id,
+                                                        product_name,
+                                                        movement_type,
+                                                        quantity,
+                                                        stock_before,
+                                                        stock_after,
+                                                        reference_type,
+                                                        reference_id,
+                                                        performed_by
+                                                    )
+                                                    SELECT
+                                                        id,
+                                                        product_name,
+                                                        'STOCK_OUT',
+                                                        ?,
+                                                        stock_quantity + ?,
+                                                        stock_quantity,
+                                                        'SALE',
+                                                        ?,
+                                                        ?
+                                                    FROM products
+                                                    WHERE product_name = ?
+                                                `;
 
-        // ======================================================
-        // RECORD STOCK OUT / SALE
-        // ======================================================
+                                                db.query(
+                                                    stockMovementSql,
+                                                    [
+                                                        Number(item.qty),
+                                                        Number(item.qty),
+                                                        invoiceId,
+                                                        cashierName,
+                                                        item.name
+                                                    ],
+                                                    (err) => {
 
-const stockMovementSql = `
-    INSERT INTO stock_movements
-    (
-        product_id,
-        product_name,
-        movement_type,
-        quantity,
-        stock_before,
-        stock_after,
-        reference_type,
-        reference_id,
-        performed_by
-    )
-    SELECT
-        id,
-        product_name,
-        'STOCK_OUT',
-        ?,
-        stock_quantity + ?,
-        stock_quantity,
-        'SALE',
-        ?,
-        ?
-    FROM products
-    WHERE product_name = ?
-`;
+                                                        if (err) {
 
-        db.query(
-            stockMovementSql,
-            [
-                Number(item.qty),
-                Number(item.qty),
-                invoiceId,
-                cashierName,
-                item.name
-            ],
-            (err) => {
+                                                            console.error(
+                                                                "Stock Movement Error:",
+                                                                err
+                                                            );
 
-                if (err) {
+                                                            return res.status(500).json({
+                                                                success: false,
+                                                                message:
+                                                                    err.message
+                                                            });
+                                                        }
 
-                    console.error(
-                        "Stock Movement Error:",
-                        err
-                    );
+                                                        completed++;
 
-                    return res.status(500).json({
-                        success: false,
-                        message: err.message
-                    });
+                                                        if (
+                                                            completed ===
+                                                            validItems.length
+                                                        ) {
 
-                }
-
-                completed++;
-
-                // ======================================================
-                // ALL ITEMS COMPLETED
-                // ======================================================
-
-                if (
-                    completed ===
-                    validItems.length
-                ) {
-
-                    updateLoyaltyPoints();
-
-                }
-
-            }
-        );
-
-    }
-);
-
+                                                            updateLoyaltyPoints();
+                                                        }
+                                                    }
+                                                );
+                                            }
+                                        );
                                     }
                                 );
-
                             }
                         );
-
-
-                        // ======================================================
-                        // UPDATE LOYALTY POINTS
-                        // ======================================================
-
-                        const updateLoyaltyPoints = () => {
-
-                            const redeemedPoints =
-                                redeemPoints
-                                    ? loyaltyPoints
-                                    : 0;
-
-
-                            const earnedPoints =
-                                Math.floor(
-                                    Number(total) / 100
-                                );
-
-
-                            const finalPoints =
-                                loyaltyPoints -
-                                redeemedPoints +
-                                earnedPoints;
-
-
-                            const updatePointsSql = `
-                                UPDATE customers
-                                SET loyalty_points = ?
-                                WHERE id = ?
-                            `;
-
-
-                            db.query(
-                                updatePointsSql,
-                                [
-                                    finalPoints,
-                                    customerId
-                                ],
-                                (err) => {
-
-                                    if (err) {
-
-                                        console.error(
-                                            "Loyalty Points Error:",
-                                            err
-                                        );
-
-                                    }
-
-
-                                    // ======================================================
-                                    // FINAL RESPONSE
-                                    // ======================================================
-
-                                    return res.json({
-
-                                        success: true,
-
-                                        message:
-                                            "Invoice Saved Successfully",
-
-                                        invoiceNumber,
-
-                                        earnedPoints,
-
-                                        redeemedPoints,
-
-                                        finalPoints
-
-                                    });
-
-                                }
-                            );
-
-                        };
-
                     }
                 );
-
             }
         );
-
     }
 
-
-    // Start stock validation
     checkStock();
-
 });
-/* ======================================================
-   DELETE INVOICE
-====================================================== */
+
+// ======================================================
+// DELETE INVOICE
+// ======================================================
 
 app.delete(
     "/api/invoices/:id",
@@ -2340,20 +2294,29 @@ app.delete(
     (req, res) => {
 
         // Admin only
-        if (req.user.role !== "Admin") {
+        if (
+            req.user.role !== "Admin"
+        ) {
 
             return res.status(403).json({
                 success: false,
-                message: "Only Admin can delete invoices"
+                message:
+                    "Only Admin can delete invoices"
             });
-
         }
 
-        const invoiceId = req.params.id;
+        const invoiceId =
+            req.params.id;
 
-        // Delete invoice items first
+        // ======================================================
+        // DELETE INVOICE ITEMS
+        // ======================================================
+
         db.query(
-            "DELETE FROM invoice_items WHERE invoice_id = ?",
+            `
+            DELETE FROM invoice_items
+            WHERE invoice_id = ?
+            `,
             [invoiceId],
             (err) => {
 
@@ -2365,12 +2328,17 @@ app.delete(
                         success: false,
                         message: err.message
                     });
-
                 }
 
-                // Now delete invoice
+                // ======================================================
+                // DELETE INVOICE
+                // ======================================================
+
                 db.query(
-                    "DELETE FROM invoices WHERE id = ?",
+                    `
+                    DELETE FROM invoices
+                    WHERE id = ?
+                    `,
                     [invoiceId],
                     (err, result) => {
 
@@ -2382,24 +2350,39 @@ app.delete(
                                 success: false,
                                 message: err.message
                             });
-
                         }
 
                         res.json({
                             success: true,
-                            message: "Invoice deleted successfully"
+                            message:
+                                "Invoice deleted successfully"
                         });
-
                     }
                 );
-
             }
         );
-
     }
 );
+
 // ======================================================
 // RETURN / REFUND INVOICE ITEM
+// ======================================================
+//
+// IMPORTANT:
+// This is the new route.
+//
+// It is used from INVOICE HISTORY.
+// It does NOT delete the invoice.
+//
+// It:
+// 1. Checks the original invoice item
+// 2. Checks how many were already returned
+// 3. Prevents returning more than purchased
+// 4. Calculates refund
+// 5. Adds returned quantity back to stock
+// 6. Creates invoice_returns record
+// 7. Creates STOCK_IN movement
+//
 // ======================================================
 
 app.post(
@@ -2407,7 +2390,8 @@ app.post(
     authenticateToken,
     (req, res) => {
 
-        const invoiceId = req.params.invoiceId;
+        const invoiceId =
+            req.params.invoiceId;
 
         const {
             productName,
@@ -2415,28 +2399,39 @@ app.post(
             reason
         } = req.body;
 
-        const quantity = Number(returnQty);
-
         // ======================================================
-        // VALIDATION
+        // VALIDATE PRODUCT
         // ======================================================
 
-        if (!productName || !productName.trim()) {
+        if (
+            !productName ||
+            !productName.trim()
+        ) {
 
             return res.status(400).json({
                 success: false,
-                message: "Product name is required"
+                message:
+                    "Product name is required"
             });
-
         }
 
-        if (!Number.isInteger(quantity) || quantity <= 0) {
+        // ======================================================
+        // VALIDATE QUANTITY
+        // ======================================================
+
+        const quantity =
+            Number(returnQty);
+
+        if (
+            !Number.isInteger(quantity) ||
+            quantity <= 0
+        ) {
 
             return res.status(400).json({
                 success: false,
-                message: "Return quantity must be a positive whole number"
+                message:
+                    "Return quantity must be a positive whole number"
             });
-
         }
 
         // ======================================================
@@ -2445,16 +2440,20 @@ app.post(
 
         const invoiceItemSql = `
             SELECT
-                i.id,
+                i.id AS invoice_id,
                 i.invoice_number,
                 i.customer_id,
-                i.cashier_name,
+
                 ii.item_name,
                 ii.qty,
-                ii.price
+                ii.price,
+                ii.amount
+
             FROM invoices i
-            JOIN invoice_items ii
+
+            INNER JOIN invoice_items ii
                 ON i.id = ii.invoice_id
+
             WHERE i.id = ?
             AND ii.item_name = ?
         `;
@@ -2478,11 +2477,10 @@ app.post(
                         success: false,
                         message: err.message
                     });
-
                 }
 
                 // ======================================================
-                // INVOICE / PRODUCT NOT FOUND
+                // INVOICE ITEM NOT FOUND
                 // ======================================================
 
                 if (rows.length === 0) {
@@ -2490,46 +2488,45 @@ app.post(
                     return res.status(404).json({
                         success: false,
                         message:
-                            "Invoice or product not found"
+                            "Product was not found in this invoice"
                     });
-
                 }
 
-                const invoiceItem = rows[0];
+                const invoiceItem =
+                    rows[0];
 
                 const originalQty =
-                    Number(invoiceItem.qty);
-
-                const price =
-                    Number(invoiceItem.price);
+                    Number(
+                        invoiceItem.qty
+                    );
 
                 // ======================================================
-                // GET ALREADY RETURNED QUANTITY
+                // GET PREVIOUSLY RETURNED QUANTITY
                 // ======================================================
 
-                const returnedQtySql = `
+                const returnedSql = `
                     SELECT
                         COALESCE(
                             SUM(return_qty),
                             0
-                        ) AS returnedQty
+                        ) AS returned_qty
                     FROM invoice_returns
                     WHERE invoice_id = ?
                     AND product_name = ?
                 `;
 
                 db.query(
-                    returnedQtySql,
+                    returnedSql,
                     [
                         invoiceId,
                         productName.trim()
                     ],
-                    (err, returnRows) => {
+                    (err, returnedRows) => {
 
                         if (err) {
 
                             console.error(
-                                "Returned Quantity Error:",
+                                "Previous Return Check Error:",
                                 err
                             );
 
@@ -2537,42 +2534,54 @@ app.post(
                                 success: false,
                                 message: err.message
                             });
-
                         }
 
                         const alreadyReturned =
                             Number(
-                                returnRows[0].returnedQty
+                                returnedRows[0]
+                                    .returned_qty
                             ) || 0;
+
+                        // ======================================================
+                        // REMAINING QUANTITY
+                        // ======================================================
 
                         const remainingQty =
                             originalQty -
                             alreadyReturned;
 
                         // ======================================================
-                        // PREVENT EXCESS RETURN
+                        // PREVENT OVER-RETURN
                         // ======================================================
 
-                        if (quantity > remainingQty) {
+                        if (
+                            quantity >
+                            remainingQty
+                        ) {
 
                             return res.status(400).json({
                                 success: false,
+
                                 message:
                                     `Cannot return ${quantity}. ` +
-                                    `Only ${remainingQty} item(s) available for return.`
+                                    `Only ${remainingQty} item(s) remaining for return.`
                             });
-
                         }
 
                         // ======================================================
-                        // REFUND AMOUNT
+                        // REFUND CALCULATION
                         // ======================================================
+
+                        const price =
+                            Number(
+                                invoiceItem.price
+                            ) || 0;
 
                         const refundAmount =
                             quantity * price;
 
                         // ======================================================
-                        // GET CURRENT PRODUCT STOCK
+                        // GET PRODUCT STOCK
                         // ======================================================
 
                         const productSql = `
@@ -2600,17 +2609,17 @@ app.post(
                                         success: false,
                                         message: err.message
                                     });
-
                                 }
 
-                                if (productRows.length === 0) {
+                                if (
+                                    productRows.length === 0
+                                ) {
 
                                     return res.status(404).json({
                                         success: false,
                                         message:
-                                            "Product not found in inventory"
+                                            "Product not found in products table"
                                     });
-
                                 }
 
                                 const product =
@@ -2622,7 +2631,8 @@ app.post(
                                     ) || 0;
 
                                 const stockAfter =
-                                    stockBefore + quantity;
+                                    stockBefore +
+                                    quantity;
 
                                 // ======================================================
                                 // UPDATE STOCK
@@ -2651,13 +2661,13 @@ app.post(
 
                                             return res.status(500).json({
                                                 success: false,
-                                                message: err.message
+                                                message:
+                                                    err.message
                                             });
-
                                         }
 
                                         // ======================================================
-                                        // RECORD RETURN
+                                        // INSERT RETURN RECORD
                                         // ======================================================
 
                                         const returnSql = `
@@ -2697,7 +2707,9 @@ app.post(
                                                 originalQty,
                                                 quantity,
                                                 refundAmount,
-                                                reason || "Customer Return",
+                                                reason
+                                                    ? reason.trim()
+                                                    : null,
                                                 req.user.username
                                             ],
                                             (err) => {
@@ -2711,9 +2723,9 @@ app.post(
 
                                                     return res.status(500).json({
                                                         success: false,
-                                                        message: err.message
+                                                        message:
+                                                            err.message
                                                     });
-
                                                 }
 
                                                 // ======================================================
@@ -2769,9 +2781,9 @@ app.post(
 
                                                             return res.status(500).json({
                                                                 success: false,
-                                                                message: err.message
+                                                                message:
+                                                                    err.message
                                                             });
-
                                                         }
 
                                                         // ======================================================
@@ -2779,11 +2791,12 @@ app.post(
                                                         // ======================================================
 
                                                         res.json({
-
                                                             success: true,
 
                                                             message:
                                                                 "Product returned successfully",
+
+                                                            invoiceId,
 
                                                             invoiceNumber:
                                                                 invoiceItem.invoice_number,
@@ -2791,44 +2804,58 @@ app.post(
                                                             productName:
                                                                 product.product_name,
 
-                                                            returnedQuantity:
+                                                            originalQty,
+
+                                                            alreadyReturned,
+
+                                                            returnedQty:
                                                                 quantity,
+
+                                                            remainingQty:
+                                                                remainingQty -
+                                                                quantity,
+
+                                                            price,
 
                                                             refundAmount,
 
                                                             stockBefore,
 
-                                                            stockAfter
+                                                            stockAfter,
 
+                                                            reason:
+                                                                reason
+                                                                    ? reason.trim()
+                                                                    : null,
+
+                                                            returnedBy:
+                                                                req.user.username
                                                         });
-
                                                     }
                                                 );
-
                                             }
                                         );
-
                                     }
                                 );
-
                             }
                         );
-
                     }
                 );
-
             }
         );
-
     }
 );
-/* ======================================================
-   LOGIN
-====================================================== */
+
+// ======================================================
+// LOGIN
+// ======================================================
 
 app.post("/api/login", (req, res) => {
 
-    const { username, password } = req.body;
+    const {
+        username,
+        password
+    } = req.body;
 
     const sql = `
         SELECT
@@ -2840,68 +2867,84 @@ app.post("/api/login", (req, res) => {
         AND password = ?
     `;
 
-    db.query(sql, [username, password], (err, rows) => {
+    db.query(
+        sql,
+        [
+            username,
+            password
+        ],
+        (err, rows) => {
 
-        if (err) {
+            if (err) {
 
-            return res.status(500).json({
-                success: false,
-                message: err.message
-            });
-
-        }
-
-        if (rows.length === 0) {
-
-            return res.json({
-                success: false,
-                message: "Invalid Username or Password"
-            });
-
-        }
-
-        const user = rows[0];
-
-        // Create JWT token
-        const token = jwt.sign(
-            {
-                id: user.id,
-                username: user.username,
-                role: user.role
-            },
-            process.env.JWT_SECRET,
-            {
-                expiresIn: "8h"
+                return res.status(500).json({
+                    success: false,
+                    message: err.message
+                });
             }
-        );
 
-        res.json({
+            if (rows.length === 0) {
 
-            success: true,
+                return res.json({
+                    success: false,
+                    message:
+                        "Invalid Username or Password"
+                });
+            }
 
-            token: token,
+            const user =
+                rows[0];
 
-            user: user
+            // ======================================================
+            // CREATE JWT TOKEN
+            // ======================================================
 
-        });
+            const token =
+                jwt.sign(
+                    {
+                        id: user.id,
+                        username: user.username,
+                        role: user.role
+                    },
+                    process.env.JWT_SECRET,
+                    {
+                        expiresIn: "8h"
+                    }
+                );
 
-    });
-
+            res.json({
+                success: true,
+                token: token,
+                user: user
+            });
+        }
+    );
 });
-/* ======================================================
-   TEST ROUTE
-====================================================== */
+
+// ======================================================
+// TEST ROUTE
+// ======================================================
 
 app.get("/", (req, res) => {
-    res.send("Invoice Backend is Running...");
+
+    res.send(
+        "Invoice Backend is Running..."
+    );
 });
 
-/* ======================================================
-   START SERVER
-====================================================== */
+// ======================================================
+// START SERVER
+// ======================================================
 
-const PORT = process.env.PORT || 5000;
+const PORT =
+    process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+app.listen(
+    PORT,
+    () => {
+
+        console.log(
+            `Server running on port ${PORT}`
+        );
+    }
+);

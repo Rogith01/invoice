@@ -124,7 +124,10 @@ const InvoiceDetails = () => {
 
         } catch (err) {
 
-            console.log(err);
+            console.log(
+                "Fetch Invoice Error:",
+                err
+            );
 
             showToast(
                 "Failed to load invoice.",
@@ -168,10 +171,33 @@ const InvoiceDetails = () => {
 
     const openReturnModal = (item) => {
 
+        const remainingQty =
+            Number(item.remaining_qty) || 0;
+
+
+        // Prevent opening return modal
+        // when nothing is left to return
+
+        if (remainingQty <= 0) {
+
+            showToast(
+                "This product has already been fully returned.",
+                "warning"
+            );
+
+            return;
+
+        }
+
+
         setReturnModal({
+
             show: true,
+
             item: item
+
         });
+
 
         setReturnQty("");
 
@@ -189,13 +215,20 @@ const InvoiceDetails = () => {
     const closeReturnModal = () => {
 
         if (returnLoading) {
+
             return;
+
         }
 
+
         setReturnModal({
+
             show: false,
+
             item: null
+
         });
+
 
         setReturnQty("");
 
@@ -212,9 +245,12 @@ const InvoiceDetails = () => {
 
     const handleReturnQtyChange = (e) => {
 
-        const value = e.target.value;
+        const value =
+            e.target.value;
 
-        // Allow empty value
+
+        // Allow empty
+
         if (value === "") {
 
             setReturnQty("");
@@ -223,13 +259,24 @@ const InvoiceDetails = () => {
 
         }
 
+
         const number =
             Number(value);
 
+
+        const maximum =
+            Number(
+                returnModal.item?.remaining_qty
+            ) || 0;
+
+
         // Only positive whole numbers
+        // and cannot exceed remaining quantity
+
         if (
             Number.isInteger(number) &&
-            number > 0
+            number > 0 &&
+            number <= maximum
         ) {
 
             setReturnQty(value);
@@ -245,8 +292,10 @@ const InvoiceDetails = () => {
 
     const refundAmount =
         returnModal.item && returnQty
+
             ? Number(returnQty) *
               Number(returnModal.item.price)
+
             : 0;
 
 
@@ -257,7 +306,9 @@ const InvoiceDetails = () => {
     const handleReturn = async () => {
 
         if (!returnModal.item) {
+
             return;
+
         }
 
 
@@ -266,7 +317,23 @@ const InvoiceDetails = () => {
 
 
         const originalQty =
-            Number(returnModal.item.qty);
+            Number(
+                returnModal.item.qty
+            ) || 0;
+
+
+        const alreadyReturned =
+            Number(
+                returnModal.item.returned_qty
+            ) || 0;
+
+
+        const remainingQty =
+            Math.max(
+                originalQty -
+                alreadyReturned,
+                0
+            );
 
 
         // ==================================================
@@ -288,10 +355,15 @@ const InvoiceDetails = () => {
         }
 
 
-        if (quantity > originalQty) {
+        // ==================================================
+        // IMPORTANT:
+        // CANNOT RETURN MORE THAN REMAINING
+        // ==================================================
+
+        if (quantity > remainingQty) {
 
             showToast(
-                `You cannot return more than ${originalQty} item(s).`,
+                `You can return only ${remainingQty} item(s).`,
                 "error"
             );
 
@@ -365,9 +437,12 @@ const InvoiceDetails = () => {
 
                 {
                     headers: {
+
                         Authorization:
                             `Bearer ${token}`
+
                     }
+
                 }
 
             );
@@ -379,19 +454,42 @@ const InvoiceDetails = () => {
 
             if (res.data.success) {
 
+                const returned =
+                    Number(
+                        res.data.returnedQuantity
+                    ) || quantity;
+
+
+                const remaining =
+                    Number(
+                        res.data.remainingQuantity
+                    ) || 0;
+
+
                 showToast(
-                    `Product returned successfully. Refund: ₹${Number(
+
+                    `Product returned successfully. ` +
+                    `Returned: ${returned}. ` +
+                    `Remaining: ${remaining}. ` +
+                    `Refund: ₹${Number(
                         res.data.refundAmount
                     ).toFixed(2)}`,
+
                     "success"
+
                 );
 
 
-                // Close modal
+                // ==================================================
+                // CLOSE MODAL
+                // ==================================================
 
                 setReturnModal({
+
                     show: false,
+
                     item: null
+
                 });
 
 
@@ -402,16 +500,21 @@ const InvoiceDetails = () => {
                 );
 
 
-                // Refresh invoice
+                // ==================================================
+                // REFRESH INVOICE
+                // ==================================================
 
                 await fetchInvoice();
 
             } else {
 
                 showToast(
+
                     res.data.message ||
-                        "Failed to process return.",
+                    "Failed to process return.",
+
                     "error"
+
                 );
 
             }
@@ -449,9 +552,12 @@ const InvoiceDetails = () => {
             } else {
 
                 showToast(
+
                     err.response?.data?.message ||
-                        "Failed to process return.",
+                    "Failed to process return.",
+
                     "error"
+
                 );
 
             }
@@ -481,8 +587,11 @@ const InvoiceDetails = () => {
                     onClose={hideToast}
                 />
 
+
                 <h2 className="text-center mt-10">
+
                     Loading...
+
                 </h2>
 
             </>
@@ -521,7 +630,10 @@ const InvoiceDetails = () => {
 
                     <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6">
 
-                        {/* HEADER */}
+
+                        {/* ==================================================
+                            HEADER
+                        ================================================== */}
 
                         <div className="flex items-center justify-between mb-5">
 
@@ -538,53 +650,114 @@ const InvoiceDetails = () => {
                                 disabled={returnLoading}
                                 className="text-gray-500 hover:text-gray-800 text-2xl disabled:opacity-50"
                             >
+
                                 ×
+
                             </button>
 
                         </div>
 
 
-                        {/* PRODUCT */}
+                        {/* ==================================================
+                            PRODUCT INFORMATION
+                        ================================================== */}
 
                         <div className="bg-gray-50 rounded-lg p-4 mb-5">
+
+
+                            {/* PRODUCT */}
 
                             <div className="flex justify-between">
 
                                 <span className="font-semibold text-gray-700">
+
                                     Product
+
                                 </span>
 
                                 <span className="text-gray-900">
+
                                     {returnModal.item?.item_name}
+
                                 </span>
 
                             </div>
 
 
+                            {/* PURCHASED */}
+
                             <div className="flex justify-between mt-2">
 
                                 <span className="font-semibold text-gray-700">
+
                                     Purchased Quantity
+
                                 </span>
 
                                 <span>
+
                                     {returnModal.item?.qty}
+
                                 </span>
 
                             </div>
 
 
+                            {/* RETURNED */}
+
                             <div className="flex justify-between mt-2">
 
                                 <span className="font-semibold text-gray-700">
-                                    Price
+
+                                    Already Returned
+
                                 </span>
 
                                 <span>
+
+                                    {returnModal.item?.returned_qty || 0}
+
+                                </span>
+
+                            </div>
+
+
+                            {/* REMAINING */}
+
+                            <div className="flex justify-between mt-2">
+
+                                <span className="font-semibold text-gray-700">
+
+                                    Available to Return
+
+                                </span>
+
+                                <span className="font-bold text-red-600">
+
+                                    {returnModal.item?.remaining_qty || 0}
+
+                                </span>
+
+                            </div>
+
+
+                            {/* PRICE */}
+
+                            <div className="flex justify-between mt-2">
+
+                                <span className="font-semibold text-gray-700">
+
+                                    Price
+
+                                </span>
+
+                                <span>
+
                                     ₹
                                     {Number(
                                         returnModal.item?.price
                                     ).toFixed(2)}
+
                                 </span>
 
                             </div>
@@ -592,7 +765,9 @@ const InvoiceDetails = () => {
                         </div>
 
 
-                        {/* RETURN QUANTITY */}
+                        {/* ==================================================
+                            RETURN QUANTITY
+                        ================================================== */}
 
                         <div className="mb-4">
 
@@ -604,22 +779,39 @@ const InvoiceDetails = () => {
 
 
                             <input
+
                                 type="number"
+
                                 min="1"
-                                max={returnModal.item?.qty}
+
+                                max={
+                                    returnModal.item?.remaining_qty
+                                }
+
                                 value={returnQty}
-                                onChange={handleReturnQtyChange}
+
+                                onChange={
+                                    handleReturnQtyChange
+                                }
+
                                 placeholder="Enter quantity"
+
                                 disabled={returnLoading}
+
                                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100"
+
                             />
 
 
                             <p className="text-xs text-gray-500 mt-1">
 
-                                Maximum:
+                                Maximum available:
+
                                 {" "}
-                                {returnModal.item?.qty}
+
+                                {
+                                    returnModal.item?.remaining_qty
+                                }
 
                                 {" "}item(s)
 
@@ -628,7 +820,9 @@ const InvoiceDetails = () => {
                         </div>
 
 
-                        {/* REASON */}
+                        {/* ==================================================
+                            REASON
+                        ================================================== */}
 
                         <div className="mb-4">
 
@@ -640,38 +834,55 @@ const InvoiceDetails = () => {
 
 
                             <select
+
                                 value={returnReason}
+
                                 onChange={(e) =>
                                     setReturnReason(
                                         e.target.value
                                     )
                                 }
+
                                 disabled={returnLoading}
+
                                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100"
+
                             >
 
                                 <option value="Customer Return">
+
                                     Customer Return
+
                                 </option>
 
                                 <option value="Damaged Product">
+
                                     Damaged Product
+
                                 </option>
 
                                 <option value="Wrong Product">
+
                                     Wrong Product
+
                                 </option>
 
                                 <option value="Defective Product">
+
                                     Defective Product
+
                                 </option>
 
                                 <option value="Expired Product">
+
                                     Expired Product
+
                                 </option>
 
                                 <option value="Other">
+
                                     Other
+
                                 </option>
 
                             </select>
@@ -679,14 +890,18 @@ const InvoiceDetails = () => {
                         </div>
 
 
-                        {/* REFUND */}
+                        {/* ==================================================
+                            REFUND
+                        ================================================== */}
 
                         <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
 
                             <div className="flex justify-between items-center">
 
                                 <span className="font-semibold text-gray-700">
+
                                     Refund Amount
+
                                 </span>
 
                                 <span className="text-xl font-bold text-green-600">
@@ -701,15 +916,27 @@ const InvoiceDetails = () => {
                         </div>
 
 
-                        {/* BUTTONS */}
+                        {/* ==================================================
+                            BUTTONS
+                        ================================================== */}
 
                         <div className="flex gap-3">
 
+
+                            {/* CANCEL */}
+
                             <button
+
                                 type="button"
-                                onClick={closeReturnModal}
+
+                                onClick={
+                                    closeReturnModal
+                                }
+
                                 disabled={returnLoading}
+
                                 className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2.5 rounded-lg transition disabled:opacity-50"
+
                             >
 
                                 Cancel
@@ -717,19 +944,31 @@ const InvoiceDetails = () => {
                             </button>
 
 
+                            {/* CONFIRM */}
+
                             <button
+
                                 type="button"
-                                onClick={handleReturn}
+
+                                onClick={
+                                    handleReturn
+                                }
+
                                 disabled={
                                     returnLoading ||
                                     !returnQty
                                 }
+
                                 className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 rounded-lg transition disabled:opacity-50"
+
                             >
 
                                 {returnLoading
+
                                     ? "Processing..."
+
                                     : "Confirm Return"
+
                                 }
 
                             </button>
@@ -755,19 +994,31 @@ const InvoiceDetails = () => {
                 ================================================== */}
 
                 <div
+
                     ref={printRef}
+
                     id="print"
+
                     className="rounded-lg shadow-lg border border-gray-200"
+
                     style={{
+
                         width: "100mm",
+
                         margin: "0 auto",
+
                         background: "#fff",
+
                         padding: "18px"
+
                     }}
+
                 >
 
 
-                    {/* STORE NAME */}
+                    {/* ==================================================
+                        STORE NAME
+                    ================================================== */}
 
                     <h1 className="text-center text-xl font-bold tracking-wide text-gray-900 mb-3">
 
@@ -789,71 +1040,98 @@ const InvoiceDetails = () => {
 
 
                             <span className="font-bold text-[15px]">
+
                                 Date:
+
                             </span>
 
                             <span className="text-[15px]">
+
                                 {new Date(
                                     invoice.invoice_date
                                 ).toLocaleDateString(
                                     "en-GB"
                                 )}
+
                             </span>
 
 
                             <span className="font-bold text-[15px]">
+
                                 Time:
+
                             </span>
 
                             <span className="text-[15px]">
+
                                 {invoice.invoice_time}
+
                             </span>
 
 
                             <span className="font-bold text-[15px]">
+
                                 Invoice Number:
+
                             </span>
 
                             <span className="text-[15px]">
+
                                 {invoice.invoice_number}
+
                             </span>
 
 
                             <span className="font-bold text-[15px]">
+
                                 Cashier:
+
                             </span>
 
                             <span className="text-[15px]">
+
                                 {invoice.cashier_name}
+
                             </span>
 
 
                             <span className="font-bold text-[15px]">
+
                                 Customer:
+
                             </span>
 
                             <span className="text-[15px]">
+
                                 {invoice.customer_name}
+
                             </span>
 
 
                             <span className="font-bold text-[15px]">
+
                                 Phone:
+
                             </span>
 
                             <span className="text-[15px]">
+
                                 {invoice.phone_number}
+
                             </span>
 
 
                             <span className="font-bold text-[15px]">
+
                                 Payment:
+
                             </span>
 
                             <span className="text-[15px]">
-                                {invoice.payment_Method}
-                            </span>
 
+                                {invoice.payment_Method}
+
+                            </span>
 
                         </div>
 
@@ -871,19 +1149,27 @@ const InvoiceDetails = () => {
                             <tr className="border-y border-black/10 text-[15px]">
 
                                 <th className="text-left py-2">
+
                                     ITEM
+
                                 </th>
 
                                 <th className="text-center py-2">
+
                                     QTY
+
                                 </th>
 
                                 <th className="text-right py-2">
+
                                     PRICE
+
                                 </th>
 
                                 <th className="text-right py-2">
+
                                     AMOUNT
+
                                 </th>
 
                             </tr>
@@ -893,72 +1179,188 @@ const InvoiceDetails = () => {
 
                         <tbody>
 
-                            {items.map((item) => (
+                            {items.map((item) => {
 
-                                <React.Fragment
-                                    key={item.id}
-                                >
+                                const purchasedQty =
+                                    Number(item.qty) || 0;
 
-                                    <tr className="border-b border-black/10">
+                                const returnedQty =
+                                    Number(item.returned_qty) || 0;
 
-                                        <td className="w-full py-2">
-                                            {item.item_name}
-                                        </td>
+                                const remainingQty =
+                                    Math.max(
+                                        purchasedQty -
+                                        returnedQty,
+                                        0
+                                    );
 
-
-                                        <td className="min-w-[50px] text-center py-2">
-                                            {item.qty}
-                                        </td>
-
-
-                                        <td className="min-w-[80px] text-right py-2">
-                                            {Number(
-                                                item.price
-                                            ).toFixed(2)}
-                                        </td>
+                                const fullyReturned =
+                                    remainingQty === 0;
 
 
-                                        <td className="min-w-[90px] text-right py-2">
-                                            {Number(
-                                                item.amount
-                                            ).toFixed(2)}
-                                        </td>
+                                return (
 
-                                    </tr>
+                                    <React.Fragment
+                                        key={item.id}
+                                    >
+
+                                        {/* ==================================================
+                                            ITEM ROW
+                                        ================================================== */}
+
+                                        <tr className="border-b border-black/10">
+
+                                            <td className="w-full py-2">
+
+                                                {item.item_name}
+
+                                            </td>
 
 
-                                    {/* ==================================================
-                                        RETURN BUTTON
-                                    ================================================== */}
+                                            <td className="min-w-[50px] text-center py-2">
 
-                                    <tr>
+                                                {item.qty}
 
-                                        <td
-                                            colSpan="4"
-                                            className="py-1 text-right"
-                                        >
+                                            </td>
 
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    openReturnModal(
-                                                        item
-                                                    )
-                                                }
-                                                className="text-sm text-red-600 hover:text-red-800 font-semibold"
+
+                                            <td className="min-w-[80px] text-right py-2">
+
+                                                {Number(
+                                                    item.price
+                                                ).toFixed(2)}
+
+                                            </td>
+
+
+                                            <td className="min-w-[90px] text-right py-2">
+
+                                                {Number(
+                                                    item.amount
+                                                ).toFixed(2)}
+
+                                            </td>
+
+                                        </tr>
+
+
+                                        {/* ==================================================
+                                            RETURN INFORMATION
+                                            
+                                            no-print means:
+                                            NOTHING HERE WILL APPEAR
+                                            WHEN PRINTING THE BILL
+                                        ================================================== */}
+
+                                        <tr className="no-print">
+
+                                            <td
+                                                colSpan="4"
+                                                className="py-2"
                                             >
 
-                                                ↩ Return
+                                                <div className="bg-gray-50 rounded-lg px-3 py-2 text-xs">
 
-                                            </button>
+                                                    <div className="flex justify-between">
 
-                                        </td>
+                                                        <span>
 
-                                    </tr>
+                                                            Purchased:
 
-                                </React.Fragment>
+                                                        </span>
 
-                            ))}
+                                                        <span className="font-semibold">
+
+                                                            {purchasedQty}
+
+                                                        </span>
+
+                                                    </div>
+
+
+                                                    <div className="flex justify-between">
+
+                                                        <span>
+
+                                                            Returned:
+
+                                                        </span>
+
+                                                        <span className="font-semibold">
+
+                                                            {returnedQty}
+
+                                                        </span>
+
+                                                    </div>
+
+
+                                                    <div className="flex justify-between">
+
+                                                        <span>
+
+                                                            Remaining:
+
+                                                        </span>
+
+                                                        <span className="font-semibold">
+
+                                                            {remainingQty}
+
+                                                        </span>
+
+                                                    </div>
+
+
+                                                    {/* ==================================================
+                                                        RETURN BUTTON
+                                                    ================================================== */}
+
+                                                    <div className="text-right mt-1">
+
+                                                        {!fullyReturned ? (
+
+                                                            <button
+
+                                                                type="button"
+
+                                                                onClick={() =>
+                                                                    openReturnModal(
+                                                                        item
+                                                                    )
+                                                                }
+
+                                                                className="text-sm text-red-600 hover:text-red-800 font-semibold"
+
+                                                            >
+
+                                                                ↩ Return
+
+                                                            </button>
+
+                                                        ) : (
+
+                                                            <span className="text-sm text-gray-500 font-semibold">
+
+                                                                Fully Returned
+
+                                                            </span>
+
+                                                        )}
+
+                                                    </div>
+
+                                                </div>
+
+                                            </td>
+
+                                        </tr>
+
+                                    </React.Fragment>
+
+                                );
+
+                            })}
 
                         </tbody>
 
@@ -975,13 +1377,17 @@ const InvoiceDetails = () => {
                         <div className="flex w-full justify-between border-black/10 pt-2 text-[15px]">
 
                             <span className="font-bold">
+
                                 Subtotal:
+
                             </span>
 
                             <span>
+
                                 {Number(
                                     invoice.subtotal
                                 ).toFixed(2)}
+
                             </span>
 
                         </div>
@@ -990,13 +1396,17 @@ const InvoiceDetails = () => {
                         <div className="flex w-full justify-between text-[15px]">
 
                             <span className="font-bold">
+
                                 Discount:
+
                             </span>
 
                             <span>
+
                                 {Number(
                                     invoice.discount
                                 ).toFixed(2)}
+
                             </span>
 
                         </div>
@@ -1005,13 +1415,17 @@ const InvoiceDetails = () => {
                         <div className="flex w-full justify-between text-[15px]">
 
                             <span className="font-bold">
+
                                 Loyalty Discount:
+
                             </span>
 
                             <span>
+
                                 {Number(
                                     invoice.loyalty_discount
                                 ).toFixed(2)}
+
                             </span>
 
                         </div>
@@ -1020,13 +1434,17 @@ const InvoiceDetails = () => {
                         <div className="flex w-full justify-between text-[15px]">
 
                             <span className="font-bold">
+
                                 Tax:
+
                             </span>
 
                             <span>
+
                                 {Number(
                                     invoice.tax
                                 ).toFixed(2)}
+
                             </span>
 
                         </div>
@@ -1035,7 +1453,9 @@ const InvoiceDetails = () => {
                         <div className="flex w-full justify-between border-t border-black/10 py-2 text-[17px] font-bold">
 
                             <span>
+
                                 Grand Total:
+
                             </span>
 
                             <span className="text-[18px]">
@@ -1062,11 +1482,15 @@ const InvoiceDetails = () => {
                         <h4 className="font-semibold text-[15px]">
 
                             <p>
+
                                 Thank you for shopping!
+
                             </p>
 
                             <p>
+
                                 Visit us again! ❤️
+
                             </p>
 
                         </h4>
@@ -1076,76 +1500,114 @@ const InvoiceDetails = () => {
 
                     {/* ==================================================
                         BUTTONS
+
+                        no-print = these will NOT print
                     ================================================== */}
 
-                    <div className="mt-6 flex gap-2 w-full">
+                    <div className="no-print mt-6 flex gap-2 w-full">
 
 
-                        {/* PRINT */}
+                        {/* ==================================================
+                            PRINT
+                        ================================================== */}
 
                         <button
+
                             onClick={
                                 printInvoiceHandler
                             }
+
                             className="flex-1 flex items-center justify-center gap-2 rounded-md border border-red-500 py-2 text-sm text-red-500 shadow-sm hover:bg-green-500 hover:text-white transition"
+
                         >
 
                             <svg
+
                                 xmlns="http://www.w3.org/2000/svg"
+
                                 className="h-5 w-5 flex-shrink-0"
+
                                 fill="none"
+
                                 viewBox="0 0 24 24"
+
                                 stroke="currentColor"
+
                             >
 
                                 <path
+
                                     strokeLinecap="round"
+
                                     strokeLinejoin="round"
+
                                     strokeWidth={2}
+
                                     d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+
                                 />
 
                             </svg>
 
 
                             <span className="whitespace-nowrap">
+
                                 Print Bill
+
                             </span>
 
                         </button>
 
 
-                        {/* BACK */}
+                        {/* ==================================================
+                            BACK
+                        ================================================== */}
 
                         <button
+
                             onClick={() =>
                                 navigate(
                                     "/invoices"
                                 )
                             }
+
                             className="flex-1 flex items-center justify-center gap-2 rounded-md bg-red-500 py-2 text-sm text-white shadow-sm hover:bg-green-600 transition"
+
                         >
 
                             <svg
+
                                 xmlns="http://www.w3.org/2000/svg"
+
                                 className="h-5 w-5 flex-shrink-0"
+
                                 fill="none"
+
                                 viewBox="0 0 24 24"
+
                                 stroke="currentColor"
+
                             >
 
                                 <path
+
                                     strokeLinecap="round"
+
                                     strokeLinejoin="round"
+
                                     strokeWidth={2}
+
                                     d="M15 19l-7-7 7-7"
+
                                 />
 
                             </svg>
 
 
                             <span className="whitespace-nowrap">
+
                                 Back
+
                             </span>
 
                         </button>
@@ -1155,7 +1617,6 @@ const InvoiceDetails = () => {
 
 
                     <hr className="mt-5 border-gray-300" />
-
 
                 </div>
 
