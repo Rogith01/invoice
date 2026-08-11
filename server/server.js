@@ -1678,7 +1678,421 @@ app.get(
         });
     }
 );
+// ======================================================
+// REPORTS
+// ======================================================
 
+app.get(
+    "/api/reports",
+    authenticateToken,
+    (req, res) => {
+
+        const {
+            fromDate,
+            toDate
+        } = req.query;
+
+        // ======================================================
+        // VALIDATE DATES
+        // ======================================================
+
+        if (!fromDate || !toDate) {
+
+            return res.status(400).json({
+                success: false,
+                message: "From date and To date are required"
+            });
+        }
+
+        if (fromDate > toDate) {
+
+            return res.status(400).json({
+                success: false,
+                message: "From date cannot be after To date"
+            });
+        }
+
+        const report = {};
+
+        // ======================================================
+        // 1. SALES SUMMARY
+        // ======================================================
+
+        const salesSql = `
+            SELECT
+
+                COUNT(*) AS totalOrders,
+
+                COALESCE(
+                    SUM(subtotal),
+                    0
+                ) AS grossSales,
+
+                COALESCE(
+                    SUM(discount),
+                    0
+                ) AS totalDiscount,
+
+                COALESCE(
+                    SUM(loyalty_discount),
+                    0
+                ) AS totalLoyaltyDiscount,
+
+                COALESCE(
+                    SUM(tax),
+                    0
+                ) AS totalTax,
+
+                COALESCE(
+                    SUM(total),
+                    0
+                ) AS totalSales,
+
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN payment_Method = 'Cash'
+                            THEN total
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS cashSales,
+
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN payment_Method = 'Online'
+                            THEN total
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS onlineSales
+
+            FROM invoices
+
+            WHERE invoice_date
+            BETWEEN ? AND ?
+        `;
+
+        db.query(
+            salesSql,
+            [
+                fromDate,
+                toDate
+            ],
+            (err, rows) => {
+
+                if (err) {
+
+                    console.error(
+                        "Reports Sales Error:",
+                        err
+                    );
+
+                    return res.status(500).json({
+                        success: false,
+                        message: err.message
+                    });
+                }
+
+                report.summary = rows[0];
+
+                // ======================================================
+                // 2. REFUND SUMMARY
+                // ======================================================
+
+                const refundSql = `
+                    SELECT
+
+                        COUNT(*) AS refundRecords,
+
+                        COALESCE(
+                            SUM(return_qty),
+                            0
+                        ) AS returnedQuantity,
+
+                        COALESCE(
+                            SUM(refund_amount),
+                            0
+                        ) AS totalRefunds
+
+                    FROM invoice_returns
+
+                    WHERE DATE(created_at)
+                    BETWEEN ? AND ?
+                `;
+
+                db.query(
+                    refundSql,
+                    [
+                        fromDate,
+                        toDate
+                    ],
+                    (err, rows) => {
+
+                        if (err) {
+
+                            console.error(
+                                "Reports Refund Error:",
+                                err
+                            );
+
+                            return res.status(500).json({
+                                success: false,
+                                message: err.message
+                            });
+                        }
+
+                        report.refunds = rows[0];
+
+                        // ======================================================
+                        // 3. DAILY SALES
+                        // ======================================================
+
+                        const dailySalesSql = `
+                            SELECT
+
+                                DATE(invoice_date)
+                                    AS saleDate,
+
+                                COUNT(*) AS orders,
+
+                                COALESCE(
+                                    SUM(total),
+                                    0
+                                ) AS sales
+
+                            FROM invoices
+
+                            WHERE invoice_date
+                            BETWEEN ? AND ?
+
+                            GROUP BY
+                                DATE(invoice_date)
+
+                            ORDER BY
+                                saleDate ASC
+                        `;
+
+                        db.query(
+                            dailySalesSql,
+                            [
+                                fromDate,
+                                toDate
+                            ],
+                            (err, rows) => {
+
+                                if (err) {
+
+                                    console.error(
+                                        "Reports Daily Sales Error:",
+                                        err
+                                    );
+
+                                    return res.status(500).json({
+                                        success: false,
+                                        message: err.message
+                                    });
+                                }
+
+                                report.dailySales =
+                                    rows;
+
+                                // ======================================================
+                                // 4. TOP SELLING PRODUCTS
+                                // ======================================================
+
+                                const productsSql = `
+                                    SELECT
+
+                                        ii.item_name
+                                            AS productName,
+
+                                        SUM(ii.qty)
+                                            AS quantitySold,
+
+                                        COALESCE(
+                                            SUM(ii.amount),
+                                            0
+                                        ) AS sales
+
+                                    FROM invoice_items ii
+
+                                    INNER JOIN invoices i
+                                        ON ii.invoice_id = i.id
+
+                                    WHERE i.invoice_date
+                                    BETWEEN ? AND ?
+
+                                    GROUP BY
+                                        ii.item_name
+
+                                    ORDER BY
+                                        quantitySold DESC
+                                `;
+
+                                db.query(
+                                    productsSql,
+                                    [
+                                        fromDate,
+                                        toDate
+                                    ],
+                                    (err, rows) => {
+
+                                        if (err) {
+
+                                            console.error(
+                                                "Reports Products Error:",
+                                                err
+                                            );
+
+                                            return res.status(500).json({
+                                                success: false,
+                                                message: err.message
+                                            });
+                                        }
+
+                                        report.products =
+                                            rows;
+
+                                        // ======================================================
+                                        // 5. CASHIER SALES
+                                        // ======================================================
+
+                                        const cashierSql = `
+                                            SELECT
+
+                                                cashier_name
+                                                    AS cashierName,
+
+                                                COUNT(*) AS orders,
+
+                                                COALESCE(
+                                                    SUM(total),
+                                                    0
+                                                ) AS sales
+
+                                            FROM invoices
+
+                                            WHERE invoice_date
+                                            BETWEEN ? AND ?
+
+                                            GROUP BY
+                                                cashier_name
+
+                                            ORDER BY
+                                                sales DESC
+                                        `;
+
+                                        db.query(
+                                            cashierSql,
+                                            [
+                                                fromDate,
+                                                toDate
+                                            ],
+                                            (err, rows) => {
+
+                                                if (err) {
+
+                                                    console.error(
+                                                        "Reports Cashier Error:",
+                                                        err
+                                                    );
+
+                                                    return res.status(500).json({
+                                                        success: false,
+                                                        message: err.message
+                                                    });
+                                                }
+
+                                                report.cashiers =
+                                                    rows;
+
+                                                // ======================================================
+                                                // 6. TOTAL ITEMS SOLD
+                                                // ======================================================
+
+                                                const itemsSql = `
+                                                    SELECT
+
+                                                        COALESCE(
+                                                            SUM(ii.qty),
+                                                            0
+                                                        ) AS totalItemsSold
+
+                                                    FROM invoice_items ii
+
+                                                    INNER JOIN invoices i
+                                                        ON ii.invoice_id = i.id
+
+                                                    WHERE i.invoice_date
+                                                    BETWEEN ? AND ?
+                                                `;
+
+                                                db.query(
+                                                    itemsSql,
+                                                    [
+                                                        fromDate,
+                                                        toDate
+                                                    ],
+                                                    (err, rows) => {
+
+                                                        if (err) {
+
+                                                            console.error(
+                                                                "Reports Items Error:",
+                                                                err
+                                                            );
+
+                                                            return res.status(500).json({
+                                                                success: false,
+                                                                message: err.message
+                                                            });
+                                                        }
+
+                                                        report.totalItemsSold =
+                                                            rows[0].totalItemsSold;
+
+                                                        // ======================================================
+                                                        // 7. NET SALES
+                                                        // ======================================================
+
+                                                        report.netSales =
+                                                            Number(
+                                                                report.summary.totalSales || 0
+                                                            ) -
+                                                            Number(
+                                                                report.refunds.totalRefunds || 0
+                                                            );
+
+                                                        // ======================================================
+                                                        // FINAL RESPONSE
+                                                        // ======================================================
+
+                                                        res.json({
+                                                            success: true,
+
+                                                            fromDate,
+                                                            toDate,
+
+                                                            report
+                                                        });
+                                                    }
+                                                );
+                                            }
+                                        );
+                                    }
+                                );
+                            }
+                        );
+                    }
+                );
+            }
+        );
+    }
+);
 // ======================================================
 // GET ALL INVOICES
 // ======================================================

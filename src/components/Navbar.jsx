@@ -48,6 +48,13 @@ const Navbar = ({ onLogout }) => {
                                 </Link>
 
                                 <Link
+                                    to="/reports"
+                                    className="hover:text-gray-300"
+                                >
+                                    Reports
+                                </Link>
+
+                                <Link
                                     to="/products"
                                     className="hover:text-gray-300"
                                 >
@@ -167,6 +174,13 @@ const Navbar = ({ onLogout }) => {
                                 onClick={() => setMenuOpen(false)}
                             >
                                 Dashboard
+                            </Link>
+                            <Link
+                                className="p-3 border-b hover:bg-slate-600"
+                                to="/reports"
+                                onClick={() => setMenuOpen(false)}
+                            >
+                                Reports
                             </Link>
 
                             <Link

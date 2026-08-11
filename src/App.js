@@ -13,6 +13,7 @@ import UserManagement from "./components/UserManagement";
 import Navbar from "./components/Navbar";
 import Inventory from "./components/Inventory";
 import Customers from "./components/Customers";
+import Reports from "./components/Reports";
 
 // ======================================================
 // REFUND HISTORY
@@ -233,7 +234,18 @@ function App() {
                         </ProtectedRoute>
                     }
                 />
+  {/* ========================= */}
+{/* REPORTS */}
+{/* ========================= */}
 
+<Route
+  path="/reports"
+  element={
+    <ProtectedRoute allowedRoles={["Admin"]}>
+      <Reports />
+    </ProtectedRoute>
+  }
+/>
                 {/* ================================================== */}
                 {/* UNKNOWN URL → BILLING */}
                 {/* ================================================== */}
