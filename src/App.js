@@ -1,3 +1,4 @@
+
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useState } from "react";
 
@@ -13,154 +14,244 @@ import Navbar from "./components/Navbar";
 import Inventory from "./components/Inventory";
 import Customers from "./components/Customers";
 
+// ======================================================
+// REFUND HISTORY
+// ======================================================
+import RefundHistory from "./components/RefundHistory";
+
 function App() {
 
-  const [user, setUser] = useState(
-    JSON.parse(sessionStorage.getItem("user"))
-  );
+    const [user, setUser] = useState(
+        JSON.parse(sessionStorage.getItem("user"))
+    );
 
-  // Login handler
-  const handleLogin = (loggedInUser) => {
-    setUser(loggedInUser);
-  };
+    // ======================================================
+    // LOGIN HANDLER
+    // ======================================================
 
-  // Logout handler
-  const handleLogout = () => {
-    sessionStorage.removeItem("user");
-    sessionStorage.removeItem("token");
-    setUser(null);
-  };
+    const handleLogin = (loggedInUser) => {
+        setUser(loggedInUser);
+    };
 
-  // If user is not logged in, show only login routes
+    // ======================================================
+    // LOGOUT HANDLER
+    // ======================================================
 
-if (!user) {
-  return (
-    <Routes>
+    const handleLogout = () => {
+        sessionStorage.removeItem("user");
+        sessionStorage.removeItem("token");
+        setUser(null);
+    };
 
-      <Route
-        path="/login"
-        element={<Login onLogin={handleLogin} />}
-      />
+    // ======================================================
+    // NOT LOGGED IN
+    // ======================================================
 
-      <Route
-        path="*"
-        element={<Navigate to="/login" replace />}
-      />
+    if (!user) {
+        return (
+            <Routes>
 
-    </Routes>
-  );
-}
+                <Route
+                    path="/login"
+                    element={
+                        <Login onLogin={handleLogin} />
+                    }
+                />
 
-  return (
-    <div>
+                <Route
+                    path="*"
+                    element={
+                        <Navigate
+                            to="/login"
+                            replace
+                        />
+                    }
+                />
 
-      {/* Navbar */}
-      <Navbar onLogout={handleLogout} />
+            </Routes>
+        );
+    }
 
-      <Routes>
+    // ======================================================
+    // LOGGED IN
+    // ======================================================
 
-        {/* ========================= */}
-        {/* BILLING */}
-        {/* ========================= */}
+    return (
+        <div>
 
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute allowedRoles={["Admin", "Cashier"]}>
-              <InvoiceForm />
-            </ProtectedRoute>
-          }
-        />
+            {/* NAVBAR */}
+            <Navbar onLogout={handleLogout} />
 
-        {/* ========================= */}
-        {/* DASHBOARD */}
-        {/* ========================= */}
+            <Routes>
 
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute allowedRoles={["Admin"]}>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
+                {/* ================================================== */}
+                {/* BILLING */}
+                {/* ================================================== */}
 
-        {/* ========================= */}
-        {/* PRODUCTS */}
-        {/* ========================= */}
+                <Route
+                    path="/"
+                    element={
+                        <ProtectedRoute
+                            allowedRoles={[
+                                "Admin",
+                                "Cashier"
+                            ]}
+                        >
+                            <InvoiceForm />
+                        </ProtectedRoute>
+                    }
+                />
 
-        <Route
-          path="/products"
-          element={
-            <ProtectedRoute allowedRoles={["Admin"]}>
-              <ProductManagement />
-            </ProtectedRoute>
-          }
-        />
+                {/* ================================================== */}
+                {/* DASHBOARD */}
+                {/* ================================================== */}
 
-        {/* ========================= */}
-        {/* INVENTORY */}
-        {/* ========================= */}
+                <Route
+                    path="/dashboard"
+                    element={
+                        <ProtectedRoute
+                            allowedRoles={["Admin"]}
+                        >
+                            <Dashboard />
+                        </ProtectedRoute>
+                    }
+                />
 
-        <Route
-          path="/inventory"
-          element={
-            <ProtectedRoute allowedRoles={["Admin"]}>
-              <Inventory />
-            </ProtectedRoute>
-          }
-        />
+                {/* ================================================== */}
+                {/* PRODUCTS */}
+                {/* ================================================== */}
 
-        {/* ========================= */}
-        {/* USERS */}
-        {/* ========================= */}
+                <Route
+                    path="/products"
+                    element={
+                        <ProtectedRoute
+                            allowedRoles={["Admin"]}
+                        >
+                            <ProductManagement />
+                        </ProtectedRoute>
+                    }
+                />
 
-        <Route
-          path="/users"
-          element={
-            <ProtectedRoute allowedRoles={["Admin"]}>
-              <UserManagement />
-            </ProtectedRoute>
-          }
-        />
+                {/* ================================================== */}
+                {/* INVENTORY */}
+                {/* ================================================== */}
 
-        {/* ========================= */}
-        {/* INVOICE HISTORY */}
-        {/* ========================= */}
+                <Route
+                    path="/inventory"
+                    element={
+                        <ProtectedRoute
+                            allowedRoles={["Admin"]}
+                        >
+                            <Inventory />
+                        </ProtectedRoute>
+                    }
+                />
 
-        <Route
-          path="/invoices"
-          element={
-            <ProtectedRoute allowedRoles={["Admin", "Cashier"]}>
-              <InvoiceHistory />
-            </ProtectedRoute>
-          }
-        />
+                {/* ================================================== */}
+                {/* USERS */}
+                {/* ================================================== */}
 
-        {/* ========================= */}
-        {/* INVOICE DETAILS */}
-        {/* ========================= */}
+                <Route
+                    path="/users"
+                    element={
+                        <ProtectedRoute
+                            allowedRoles={["Admin"]}
+                        >
+                            <UserManagement />
+                        </ProtectedRoute>
+                    }
+                />
 
-        <Route
-          path="/invoice/:id"
-          element={
-            <ProtectedRoute allowedRoles={["Admin", "Cashier"]}>
-              <InvoiceDetails />
-            </ProtectedRoute>
-          }
-        />
+                {/* ================================================== */}
+                {/* INVOICE HISTORY */}
+                {/* ================================================== */}
 
-        {/* Unknown URL → Billing */}
-        <Route
-          path="*"
-          element={<Navigate to="/" replace />}
-        />
-        <Route path="/customers" element={<Customers />} />
+                <Route
+                    path="/invoices"
+                    element={
+                        <ProtectedRoute
+                            allowedRoles={[
+                                "Admin",
+                                "Cashier"
+                            ]}
+                        >
+                            <InvoiceHistory />
+                        </ProtectedRoute>
+                    }
+                />
 
-      </Routes>
+                {/* ================================================== */}
+                {/* INVOICE DETAILS */}
+                {/* ================================================== */}
 
-    </div>
-  );
+                <Route
+                    path="/invoice/:id"
+                    element={
+                        <ProtectedRoute
+                            allowedRoles={[
+                                "Admin",
+                                "Cashier"
+                            ]}
+                        >
+                            <InvoiceDetails />
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* ================================================== */}
+                {/* REFUND HISTORY */}
+                {/* ================================================== */}
+
+                <Route
+                    path="/refund-history"
+                    element={
+                        <ProtectedRoute
+                            allowedRoles={[
+                                "Admin",
+                                "Cashier"
+                            ]}
+                        >
+                            <RefundHistory />
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* ================================================== */}
+                {/* CUSTOMERS */}
+                {/* ================================================== */}
+
+                <Route
+                    path="/customers"
+                    element={
+                        <ProtectedRoute
+                            allowedRoles={[
+                                "Admin",
+                                "Cashier"
+                            ]}
+                        >
+                            <Customers />
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* ================================================== */}
+                {/* UNKNOWN URL → BILLING */}
+                {/* ================================================== */}
+
+                <Route
+                    path="*"
+                    element={
+                        <Navigate
+                            to="/"
+                            replace
+                        />
+                    }
+                />
+
+            </Routes>
+
+        </div>
+    );
 }
 
 export default App;
