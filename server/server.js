@@ -1661,11 +1661,37 @@ app.get(
                     });
                 }
 
-                const itemSql = `
-                    SELECT *
-                    FROM invoice_items
-                    WHERE invoice_id = ?
-                `;
+const itemSql = `
+    SELECT
+        ii.*,
+
+        COALESCE(
+            (
+                SELECT SUM(ir.return_qty)
+                FROM invoice_returns ir
+                WHERE ir.invoice_id = ii.invoice_id
+                AND ir.product_name = ii.item_name
+            ),
+            0
+        ) AS returned_qty,
+
+        (
+            ii.qty -
+            COALESCE(
+                (
+                    SELECT SUM(ir.return_qty)
+                    FROM invoice_returns ir
+                    WHERE ir.invoice_id = ii.invoice_id
+                    AND ir.product_name = ii.item_name
+                ),
+                0
+            )
+        ) AS remaining_qty
+
+    FROM invoice_items ii
+
+    WHERE ii.invoice_id = ?
+`;
 
                 db.query(
                     itemSql,
