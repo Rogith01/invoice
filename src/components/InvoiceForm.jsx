@@ -804,91 +804,119 @@ useEffect(() => {
     // ==========================================
     // CLEAN CAMERA WHEN COMPONENT UNMOUNTS
     // ==========================================
+useEffect(() => {
 
-    useEffect(() => {
+    // Capture the video element when this effect runs.
+    // This prevents the React Hooks cleanup warning.
+    const videoElement = videoRef.current;
 
-        return () => {
+    return () => {
 
-            // Invalidate current scanner
-            scannerSessionRef.current += 1;
+        // ==========================================
+        // INVALIDATE CURRENT SCANNER
+        // ==========================================
 
-            barcodeScanLockRef.current =
-                true;
+        scannerSessionRef.current += 1;
 
-            scannerStartingRef.current =
-                false;
+        barcodeScanLockRef.current = true;
 
-            // Cancel pending timeout
-            if (scannerTimeoutRef.current) {
+        scannerStartingRef.current = false;
 
-                clearTimeout(
-                    scannerTimeoutRef.current
+        // ==========================================
+        // CANCEL PENDING TIMEOUT
+        // ==========================================
+
+        if (scannerTimeoutRef.current) {
+
+            clearTimeout(
+                scannerTimeoutRef.current
+            );
+
+            scannerTimeoutRef.current = null;
+        }
+
+        // ==========================================
+        // STOP ZXING CONTROLS
+        // ==========================================
+
+        if (scannerControlsRef.current) {
+
+            try {
+
+                scannerControlsRef.current.stop();
+
+            } catch (error) {
+
+                console.log(
+                    "ZXing controls stop error:",
+                    error
                 );
 
-                scannerTimeoutRef.current =
-                    null;
             }
 
-            // Stop ZXing controls
-            if (scannerControlsRef.current) {
+            scannerControlsRef.current = null;
+        }
 
-                try {
+        // ==========================================
+        // RESET ZXING READER
+        // ==========================================
 
-                    scannerControlsRef.current.stop();
+        if (codeReaderRef.current) {
 
-                } catch (error) {
+            try {
 
-                    console.log(error);
-                }
+                codeReaderRef.current.reset();
 
-                scannerControlsRef.current =
-                    null;
+            } catch (error) {
+
+                console.log(
+                    "ZXing reader reset error:",
+                    error
+                );
+
             }
 
-            // Reset reader
-            if (codeReaderRef.current) {
+            codeReaderRef.current = null;
+        }
 
-                try {
+        // ==========================================
+        // STOP CAMERA STREAM
+        // ==========================================
 
-                    codeReaderRef.current.reset();
+        if (videoElement) {
 
-                } catch (error) {
+            const stream =
+                videoElement.srcObject;
 
-                    console.log(error);
-                }
+            if (stream) {
 
-                codeReaderRef.current =
-                    null;
+                stream
+                    .getTracks()
+                    .forEach((track) => {
+
+                        try {
+
+                            track.stop();
+
+                        } catch (error) {
+
+                            console.log(
+                                "Camera track stop error:",
+                                error
+                            );
+
+                        }
+
+                    });
+
             }
 
-            // Stop camera tracks
-            if (videoRef.current) {
+            videoElement.srcObject = null;
+        }
 
-                const stream =
-                    videoRef.current.srcObject;
+    };
 
-                if (stream) {
-
-                    stream
-                        .getTracks()
-                        .forEach((track) => {
-
-                            try {
-                                track.stop();
-                            } catch (error) {
-                                console.log(error);
-                            }
-
-                        });
-                }
-
-                videoRef.current.srcObject =
-                    null;
-            }
-
-        };
-
-    }, []);
+}, []);
 
     // ==========================================
     // AUTO FOCUS BARCODE INPUT
