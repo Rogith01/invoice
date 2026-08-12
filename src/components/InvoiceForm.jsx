@@ -4,6 +4,7 @@ import React, {
     useRef,
     useCallback,
 } from "react";
+import { BrowserMultiFormatReader } from "@zxing/browser";
 import axios from "axios";
 import { uid } from "uid";
 import InvoiceItem from "./InvoiceItem";
@@ -91,6 +92,9 @@ const InvoiceForm = () => {
 
     const [barcode, setBarcode] = useState("");
     const barcodeInputRef = useRef(null);
+    const [showScanner, setShowScanner] = useState(false);
+    const videoRef = useRef(null);
+    const codeReaderRef = useRef(null);
 
     // ==========================================
     // REVIEW BUTTON REF
@@ -352,6 +356,103 @@ const InvoiceForm = () => {
         fetchInvoiceNumber,
         fetchProducts,
     ]);
+// ==========================================
+// START CAMERA BARCODE SCANNER
+// ==========================================
+
+const startBarcodeScanner = async () => {
+    try {
+        setShowScanner(true);
+
+        const codeReader = new BrowserMultiFormatReader();
+
+        codeReaderRef.current = codeReader;
+
+        // Wait for the video element to appear
+        setTimeout(async () => {
+            if (!videoRef.current) {
+                showToast(
+                    "Camera could not be started.",
+                    "error"
+                );
+                setShowScanner(false);
+                return;
+            }
+
+            await codeReader.decodeFromVideoDevice(
+                undefined,
+                videoRef.current,
+                (result, error) => {
+                    if (result) {
+                        const scannedBarcode =
+                            result.getText();
+
+                        console.log(
+                            "Scanned Barcode:",
+                            scannedBarcode
+                        );
+
+                        handleBarcodeScan(
+                            scannedBarcode
+                        );
+
+                        stopBarcodeScanner();
+                    }
+                }
+            );
+        }, 100);
+
+    } catch (error) {
+        console.error(
+            "Camera Scanner Error:",
+            error
+        );
+
+        showToast(
+            "Unable to access camera. Please allow camera permission.",
+            "error"
+        );
+
+        setShowScanner(false);
+    }
+};
+// ==========================================
+// STOP CAMERA BARCODE SCANNER
+// ==========================================
+
+const stopBarcodeScanner = () => {
+    try {
+        // Stop ZXing reader
+        if (codeReaderRef.current) {
+            codeReaderRef.current.reset();
+            codeReaderRef.current = null;
+        }
+
+        // Stop camera tracks
+        if (videoRef.current) {
+            const stream =
+                videoRef.current.srcObject;
+
+            if (stream) {
+                stream
+                    .getTracks()
+                    .forEach((track) => {
+                        track.stop();
+                    });
+            }
+
+            videoRef.current.srcObject = null;
+        }
+
+    } catch (error) {
+        console.error(
+            "Stop Camera Error:",
+            error
+        );
+    }
+
+    setShowScanner(false);
+};
 // ==========================================
 // AUTO FOCUS BARCODE INPUT
 // ==========================================
@@ -1278,6 +1379,14 @@ setTimeout(() => {
         Barcode:
     </label>
 
+    <button
+    type="button"
+    onClick={startBarcodeScanner}
+    className="mt-2 w-full md:w-auto bg-purple-600 hover:bg-purple-700 text-white font-semibold px-5 py-2.5 rounded-lg transition"
+>
+    📷 Scan Barcode
+    </button>
+
 <input
     type="text"
     id="barcode"
@@ -1610,6 +1719,83 @@ setTimeout(() => {
                 </div>
 
             </form>
+            {/* ========================================== */}
+{/* CAMERA BARCODE SCANNER */}
+{/* ========================================== */}
+
+{showScanner && (
+    <div className="fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center p-4">
+
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+
+            {/* HEADER */}
+
+            <div className="flex items-center justify-between p-4 border-b">
+
+                <div>
+                    <h2 className="text-lg font-bold text-gray-800">
+                        Scan Barcode
+                    </h2>
+
+                    <p className="text-sm text-gray-500">
+                        Point your camera at the barcode
+                    </p>
+                </div>
+
+                <button
+                    type="button"
+                    onClick={stopBarcodeScanner}
+                    className="text-gray-500 hover:text-red-600 text-2xl"
+                >
+                    ×
+                </button>
+
+            </div>
+
+            {/* CAMERA */}
+
+            <div className="relative bg-black">
+
+                <video
+                    ref={videoRef}
+                    className="w-full aspect-video object-cover bg-black"
+                    autoPlay
+                    muted
+                    playsInline
+                />
+
+                {/* SCANNER FRAME */}
+
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+
+                    <div className="w-64 h-32 border-2 border-white rounded-lg relative">
+
+                        <div className="absolute left-0 right-0 top-1/2 h-0.5 bg-red-500" />
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            {/* FOOTER */}
+
+            <div className="p-4">
+
+                <button
+                    type="button"
+                    onClick={stopBarcodeScanner}
+                    className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-lg transition"
+                >
+                    Cancel
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+)}
 
             {/* ========================================== */}
             {/* INVOICE MODAL */}
