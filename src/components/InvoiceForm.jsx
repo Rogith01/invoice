@@ -87,14 +87,53 @@ const InvoiceForm = () => {
         useState([]);
 
     // ==========================================
-    // BARCODE
+    // BARCODE INPUT
     // ==========================================
 
-    const [barcode, setBarcode] = useState("");
+    const [barcode, setBarcode] =
+        useState("");
+
     const barcodeInputRef = useRef(null);
-    const [showScanner, setShowScanner] = useState(false);
+    const scanSoundRef = useRef(null);
+
+useEffect(() => {
+    scanSoundRef.current = new Audio("/barcode-beep.mp3");
+    scanSoundRef.current.volume = 1.0;
+}, []);
+
+    // ==========================================
+    // CAMERA SCANNER
+    // ==========================================
+
+    const [showScanner, setShowScanner] =
+        useState(false);
+
     const videoRef = useRef(null);
+
     const codeReaderRef = useRef(null);
+
+    // IMPORTANT:
+    // Stores ZXing scanner controls returned by
+    // decodeFromVideoDevice().
+    const scannerControlsRef = useRef(null);
+
+    // IMPORTANT:
+    // Stores timeout used while starting scanner.
+    // This prevents old scanner startup callbacks.
+    const scannerTimeoutRef = useRef(null);
+
+    // IMPORTANT:
+    // Every time a new scanner starts, this number
+    // changes. Old callbacks are then ignored.
+    const scannerSessionRef = useRef(0);
+
+    // Prevent clicking Scan Barcode multiple times
+    // while scanner is starting.
+    const scannerStartingRef = useRef(false);
+
+    // Prevent multiple results from the SAME
+    // scanner session.
+    const barcodeScanLockRef = useRef(true);
 
     // ==========================================
     // REVIEW BUTTON REF
@@ -106,13 +145,17 @@ const InvoiceForm = () => {
     // CURRENT TIME
     // ==========================================
 
-    const [currentTime, setCurrentTime] = useState(
-        new Date().toLocaleTimeString("en-GB", {
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-        })
-    );
+    const [currentTime, setCurrentTime] =
+        useState(
+            new Date().toLocaleTimeString(
+                "en-GB",
+                {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                }
+            )
+        );
 
     // ==========================================
     // ITEMS
@@ -129,7 +172,7 @@ const InvoiceForm = () => {
     ]);
 
     // ==========================================
-    // TOAST STATE
+    // TOAST
     // ==========================================
 
     const [toast, setToast] = useState({
@@ -143,10 +186,12 @@ const InvoiceForm = () => {
 
     const showToast = useCallback(
         (message, type = "success") => {
+
             setToast({
                 message,
                 type,
             });
+
         },
         []
     );
@@ -156,10 +201,12 @@ const InvoiceForm = () => {
     // ==========================================
 
     const closeToast = useCallback(() => {
+
         setToast({
             message: "",
             type: "success",
         });
+
     }, []);
 
     // ==========================================
@@ -168,7 +215,6 @@ const InvoiceForm = () => {
 
     const fetchCustomer = async (phone) => {
 
-        // Only search when 10 digits are entered
         if (phone.length !== 10) {
             return;
         }
@@ -254,17 +300,22 @@ const InvoiceForm = () => {
 
             if (res.data.success) {
 
-                    const products =
-                        res.data.products.map((p) => ({
-                            id: p.id,
-                            name: p.product_name,
-                            price: Number(p.price),
-                            stock:
-                                Number(
-                                    p.stock_quantity
-                                ) || 0,
-                            barcode: p.barcode || "",
-                        }));
+                const products =
+                    res.data.products.map((p) => ({
+                        id: p.id,
+
+                        name: p.product_name,
+
+                        price: Number(p.price),
+
+                        stock:
+                            Number(
+                                p.stock_quantity
+                            ) || 0,
+
+                        barcode:
+                            p.barcode || "",
+                    }));
 
                 setItemOptions(products);
             }
@@ -356,132 +407,511 @@ const InvoiceForm = () => {
         fetchInvoiceNumber,
         fetchProducts,
     ]);
-// ==========================================
-// START CAMERA BARCODE SCANNER
-// ==========================================
 
-const startBarcodeScanner = async () => {
-    try {
-        setShowScanner(true);
+    // ==========================================
+    // STOP / CLEAN CAMERA SCANNER
+    // ==========================================
 
-        const codeReader = new BrowserMultiFormatReader();
+    const stopBarcodeScanner = useCallback(() => {
 
-        codeReaderRef.current = codeReader;
+        console.log(
+            "Stopping barcode scanner..."
+        );
 
-        // Wait for the video element to appear
-        setTimeout(async () => {
-            if (!videoRef.current) {
-                showToast(
-                    "Camera could not be started.",
-                    "error"
+        // ==========================================
+        // INVALIDATE CURRENT SCANNER SESSION
+        // ==========================================
+
+        scannerSessionRef.current += 1;
+
+        // Do not accept any more results
+        barcodeScanLockRef.current = true;
+
+        // Scanner is no longer starting
+        scannerStartingRef.current = false;
+
+        // ==========================================
+        // CANCEL PENDING START TIMEOUT
+        // ==========================================
+
+        if (scannerTimeoutRef.current) {
+
+            clearTimeout(
+                scannerTimeoutRef.current
+            );
+
+            scannerTimeoutRef.current = null;
+        }
+
+        // ==========================================
+        // STOP ZXING CONTROLS
+        // ==========================================
+
+        if (scannerControlsRef.current) {
+
+            try {
+
+                scannerControlsRef.current.stop();
+
+            } catch (error) {
+
+                console.log(
+                    "ZXing controls stop error:",
+                    error
                 );
-                setShowScanner(false);
-                return;
             }
 
-            await codeReader.decodeFromVideoDevice(
-                undefined,
-                videoRef.current,
-                (result, error) => {
-                    if (result) {
-                        const scannedBarcode =
-                            result.getText();
+            scannerControlsRef.current = null;
+        }
 
-                        console.log(
-                            "Scanned Barcode:",
-                            scannedBarcode
-                        );
+        // ==========================================
+        // RESET ZXING READER
+        // ==========================================
 
-                        handleBarcodeScan(
-                            scannedBarcode
-                        );
-
-                        stopBarcodeScanner();
-                    }
-                }
-            );
-        }, 100);
-
-    } catch (error) {
-        console.error(
-            "Camera Scanner Error:",
-            error
-        );
-
-        showToast(
-            "Unable to access camera. Please allow camera permission.",
-            "error"
-        );
-
-        setShowScanner(false);
-    }
-};
-// ==========================================
-// STOP CAMERA BARCODE SCANNER
-// ==========================================
-
-const stopBarcodeScanner = () => {
-    try {
-        // Stop ZXing reader
         if (codeReaderRef.current) {
-            codeReaderRef.current.reset();
+
+            try {
+
+                codeReaderRef.current.reset();
+
+            } catch (error) {
+
+                console.log(
+                    "ZXing reader reset error:",
+                    error
+                );
+            }
+
             codeReaderRef.current = null;
         }
 
-        // Stop camera tracks
+        // ==========================================
+        // STOP CAMERA STREAM
+        // ==========================================
+
         if (videoRef.current) {
+
             const stream =
                 videoRef.current.srcObject;
 
             if (stream) {
+
                 stream
                     .getTracks()
                     .forEach((track) => {
-                        track.stop();
+
+                        try {
+                            track.stop();
+                        } catch (error) {
+                            console.log(error);
+                        }
+
                     });
             }
 
             videoRef.current.srcObject = null;
         }
 
-    } catch (error) {
-        console.error(
-            "Stop Camera Error:",
-            error
+        // ==========================================
+        // CLOSE CAMERA MODAL
+        // ==========================================
+
+        setShowScanner(false);
+
+    }, []);
+
+    // ==========================================
+    // START CAMERA BARCODE SCANNER
+    // ==========================================
+
+    const startBarcodeScanner = async () => {
+
+        // ==========================================
+        // PREVENT DOUBLE CLICK WHILE STARTING
+        // ==========================================
+
+        if (scannerStartingRef.current) {
+
+            console.log(
+                "Scanner is already starting."
+            );
+
+            return;
+        }
+
+        // ==========================================
+        // IF OLD SCANNER EXISTS, CLEAN IT FIRST
+        // ==========================================
+
+        if (
+            codeReaderRef.current ||
+            scannerControlsRef.current ||
+            scannerTimeoutRef.current
+        ) {
+
+            stopBarcodeScanner();
+
+            // Give browser a moment to release camera
+            await new Promise((resolve) =>
+                setTimeout(resolve, 100)
+            );
+        }
+
+        // ==========================================
+        // CREATE NEW SCANNER SESSION
+        // ==========================================
+
+        const sessionId =
+            scannerSessionRef.current + 1;
+
+        scannerSessionRef.current =
+            sessionId;
+
+        scannerStartingRef.current = true;
+
+        // Allow ONE scan for this session
+        barcodeScanLockRef.current = false;
+
+        setShowScanner(true);
+
+        console.log(
+            "Starting scanner session:",
+            sessionId
         );
-    }
 
-    setShowScanner(false);
-};
-// ==========================================
-// AUTO FOCUS BARCODE INPUT
-// ==========================================
+        // ==========================================
+        // WAIT FOR VIDEO ELEMENT
+        // ==========================================
 
-useEffect(() => {
+        scannerTimeoutRef.current =
+            setTimeout(async () => {
 
-    barcodeInputRef.current?.focus();
+                scannerTimeoutRef.current =
+                    null;
 
-}, []);
+                // Check whether this scanner session
+                // is still valid.
+                if (
+                    sessionId !==
+                    scannerSessionRef.current
+                ) {
+
+                    console.log(
+                        "Old scanner session ignored."
+                    );
+
+                    scannerStartingRef.current =
+                        false;
+
+                    return;
+                }
+
+                if (!videoRef.current) {
+
+                    console.error(
+                        "Video element not found."
+                    );
+
+                    scannerStartingRef.current =
+                        false;
+
+                    barcodeScanLockRef.current =
+                        true;
+
+                    setShowScanner(false);
+
+                    showToast(
+                        "Camera could not be started.",
+                        "error"
+                    );
+
+                    return;
+                }
+
+                try {
+
+                    // ==========================================
+                    // CREATE COMPLETELY NEW ZXING READER
+                    // ==========================================
+
+                    const codeReader =
+                        new BrowserMultiFormatReader();
+
+                    codeReaderRef.current =
+                        codeReader;
+
+                    // ==========================================
+                    // START CAMERA
+                    // ==========================================
+
+                    const controls =
+                        await codeReader.decodeFromVideoDevice(
+                            undefined,
+                            videoRef.current,
+                            (result, error) => {
+
+                                // ==========================================
+                                // IGNORE OLD SCANNER SESSION
+                                // ==========================================
+
+                                if (
+                                    sessionId !==
+                                    scannerSessionRef.current
+                                ) {
+
+                                    console.log(
+                                        "Ignoring old scanner callback."
+                                    );
+
+                                    return;
+                                }
+
+                                // ==========================================
+                                // IGNORE IF ALREADY SCANNED
+                                // ==========================================
+
+                                if (
+                                    barcodeScanLockRef.current
+                                ) {
+
+                                    return;
+                                }
+
+                                // ==========================================
+                                // NO RESULT
+                                // ==========================================
+
+                                if (!result) {
+
+                                    return;
+                                }
+
+                                // ==========================================
+                                // LOCK IMMEDIATELY
+                                // ==========================================
+
+                                barcodeScanLockRef.current =
+                                    true;
+
+                                const scannedBarcode =
+                                    result
+                                        .getText()
+                                        .trim();
+
+                                console.log(
+                                    "Barcode scanned:",
+                                    scannedBarcode
+                                );
+
+                                // ==========================================
+                                // PROCESS EXACTLY ONE SCAN
+                                // ==========================================
+
+                                handleBarcodeScan(
+                                    scannedBarcode
+                                );
+
+                                // ==========================================
+                                // STOP CAMERA IMMEDIATELY
+                                // ==========================================
+
+                                stopBarcodeScanner();
+                            }
+                        );
+
+                    // ==========================================
+                    // CHECK IF SCANNER WAS STOPPED WHILE
+                    // ZXING WAS INITIALIZING
+                    // ==========================================
+
+                    if (
+                        sessionId !==
+                        scannerSessionRef.current
+                    ) {
+
+                        console.log(
+                            "Scanner became outdated while starting."
+                        );
+
+                        try {
+                            controls.stop();
+                        } catch (error) {
+                            console.log(error);
+                        }
+
+                        scannerStartingRef.current =
+                            false;
+
+                        return;
+                    }
+
+                    scannerControlsRef.current =
+                        controls;
+
+                    scannerStartingRef.current =
+                        false;
+
+                    console.log(
+                        "Scanner started successfully:",
+                        sessionId
+                    );
+
+                } catch (error) {
+
+                    console.error(
+                        "ZXing Scanner Error:",
+                        error
+                    );
+
+                    // ==========================================
+                    // ONLY SHOW ERROR IF THIS IS STILL
+                    // THE CURRENT SESSION
+                    // ==========================================
+
+                    if (
+                        sessionId ===
+                        scannerSessionRef.current
+                    ) {
+
+                        barcodeScanLockRef.current =
+                            true;
+
+                        scannerStartingRef.current =
+                            false;
+
+                        showToast(
+                            "Unable to start camera. Please allow camera permission and try again.",
+                            "error"
+                        );
+
+                        stopBarcodeScanner();
+                    }
+
+                }
+
+            }, 300);
+    };
+
+    // ==========================================
+    // CLEAN CAMERA WHEN COMPONENT UNMOUNTS
+    // ==========================================
+
+    useEffect(() => {
+
+        return () => {
+
+            // Invalidate current scanner
+            scannerSessionRef.current += 1;
+
+            barcodeScanLockRef.current =
+                true;
+
+            scannerStartingRef.current =
+                false;
+
+            // Cancel pending timeout
+            if (scannerTimeoutRef.current) {
+
+                clearTimeout(
+                    scannerTimeoutRef.current
+                );
+
+                scannerTimeoutRef.current =
+                    null;
+            }
+
+            // Stop ZXing controls
+            if (scannerControlsRef.current) {
+
+                try {
+
+                    scannerControlsRef.current.stop();
+
+                } catch (error) {
+
+                    console.log(error);
+                }
+
+                scannerControlsRef.current =
+                    null;
+            }
+
+            // Reset reader
+            if (codeReaderRef.current) {
+
+                try {
+
+                    codeReaderRef.current.reset();
+
+                } catch (error) {
+
+                    console.log(error);
+                }
+
+                codeReaderRef.current =
+                    null;
+            }
+
+            // Stop camera tracks
+            if (videoRef.current) {
+
+                const stream =
+                    videoRef.current.srcObject;
+
+                if (stream) {
+
+                    stream
+                        .getTracks()
+                        .forEach((track) => {
+
+                            try {
+                                track.stop();
+                            } catch (error) {
+                                console.log(error);
+                            }
+
+                        });
+                }
+
+                videoRef.current.srcObject =
+                    null;
+            }
+
+        };
+
+    }, []);
+
+    // ==========================================
+    // AUTO FOCUS BARCODE INPUT
+    // ==========================================
+
+    useEffect(() => {
+
+        barcodeInputRef.current?.focus();
+
+    }, []);
+
     // ==========================================
     // CURRENT TIME
     // ==========================================
 
     useEffect(() => {
 
-        const timer = setInterval(() => {
+        const timer =
+            setInterval(() => {
 
-            setCurrentTime(
-                new Date().toLocaleTimeString(
-                    "en-GB",
-                    {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        second: "2-digit",
-                    }
-                )
-            );
+                setCurrentTime(
+                    new Date().toLocaleTimeString(
+                        "en-GB",
+                        {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            second: "2-digit",
+                        }
+                    )
+                );
 
-        }, 1000);
+            }, 1000);
 
         return () =>
             clearInterval(timer);
@@ -510,6 +940,7 @@ useEffect(() => {
             }
 
             return prev;
+
         },
         0
     );
@@ -539,59 +970,69 @@ useEffect(() => {
 
         event.preventDefault();
 
-// ==========================================
-// VALIDATION
-// ==========================================
+        // ==========================================
+        // CUSTOMER NAME VALIDATION
+        // ==========================================
 
-// CUSTOMER NAME VALIDATION
-if (!customerName || customerName.trim().length === 0) {
+        if (
+            !customerName ||
+            customerName.trim().length === 0
+        ) {
 
-    showToast(
-        "Please enter customer name.",
-        "warning"
-    );
+            showToast(
+                "Please enter customer name.",
+                "warning"
+            );
 
-    return;
-}
+            return;
+        }
 
-// PHONE NUMBER VALIDATION
-if (!phoneNumber || phoneNumber.trim().length === 0) {
+        // ==========================================
+        // PHONE VALIDATION
+        // ==========================================
 
-    showToast(
-        "Please enter phone number.",
-        "warning"
-    );
+        if (
+            !phoneNumber ||
+            phoneNumber.trim().length === 0
+        ) {
 
-    return;
-}
+            showToast(
+                "Please enter phone number.",
+                "warning"
+            );
 
-// PHONE NUMBER LENGTH VALIDATION
-if (phoneNumber.length !== 10) {
+            return;
+        }
 
-    showToast(
-        "Please enter a valid 10-digit phone number.",
-        "warning"
-    );
+        if (phoneNumber.length !== 10) {
 
-    return;
-}
+            showToast(
+                "Please enter a valid 10-digit phone number.",
+                "warning"
+            );
 
-// PRODUCT VALIDATION
-const validItems = items.filter(
-    (item) =>
-        item.name &&
-        item.name.trim().length > 0
-);
+            return;
+        }
 
-if (validItems.length === 0) {
+        // ==========================================
+        // PRODUCT VALIDATION
+        // ==========================================
 
-    showToast(
-        "Please add at least one product to the invoice.",
-        "warning"
-    );
+        const validItems = items.filter(
+            (item) =>
+                item.name &&
+                item.name.trim().length > 0
+        );
 
-    return;
-}
+        if (validItems.length === 0) {
+
+            showToast(
+                "Please add at least one product to the invoice.",
+                "warning"
+            );
+
+            return;
+        }
 
         if (total < 0) {
 
@@ -630,9 +1071,7 @@ if (validItems.length === 0) {
                     Number(item.qty || 0)
                 );
 
-            if (
-                requestedQty <= 0
-            ) {
+            if (requestedQty <= 0) {
 
                 showToast(
                     `Please enter a valid quantity for ${item.name}.`,
@@ -666,7 +1105,7 @@ if (validItems.length === 0) {
                 : 0;
 
         // ==========================================
-        // CALCULATE FINAL TOTAL
+        // FINAL TOTAL
         // ==========================================
 
         const invoiceTotal =
@@ -676,12 +1115,11 @@ if (validItems.length === 0) {
             taxRate;
 
         // ==========================================
-        // IMPORTANT:
-        // CREATE FINAL ITEMS WITH AMOUNT
+        // FINAL ITEMS
         // ==========================================
 
-        const invoiceItems = validItems.map(
-            (item) => {
+        const invoiceItems =
+            validItems.map((item) => {
 
                 const itemQty =
                     Math.floor(
@@ -696,15 +1134,11 @@ if (validItems.length === 0) {
 
                 return {
                     ...item,
-
                     qty: itemQty,
-
                     price: itemPrice,
-
                     amount: itemAmount,
                 };
-            }
-        );
+            });
 
         // ==========================================
         // INVOICE DATA
@@ -772,7 +1206,7 @@ if (validItems.length === 0) {
             await fetchProducts();
 
             // ==========================================
-            // REFRESH CUSTOMER LOYALTY POINTS
+            // REFRESH CUSTOMER LOYALTY
             // ==========================================
 
             await fetchCustomer(
@@ -780,7 +1214,7 @@ if (validItems.length === 0) {
             );
 
             // ==========================================
-            // OPEN INVOICE MODAL
+            // OPEN MODAL
             // ==========================================
 
             setIsOpen(true);
@@ -815,6 +1249,9 @@ if (validItems.length === 0) {
 
     const addNextInvoiceHandler = async () => {
 
+        // Make absolutely sure camera is stopped
+        stopBarcodeScanner();
+
         await fetchInvoiceNumber();
 
         setItems([
@@ -841,7 +1278,6 @@ if (validItems.length === 0) {
 
         setAvailablePoints(0);
 
-        // Reset frozen receipt values
         setRedeemedAmount(0);
 
         setReviewTotal(0);
@@ -851,6 +1287,14 @@ if (validItems.length === 0) {
         setTax("5");
 
         setPaymentMethod("Cash");
+
+        setBarcode("");
+
+        setTimeout(() => {
+
+            barcodeInputRef.current?.focus();
+
+        }, 100);
 
         showToast(
             "Ready for a new invoice.",
@@ -878,164 +1322,283 @@ if (validItems.length === 0) {
 
         ]);
     };
-// ==========================================
-// BARCODE SCAN HANDLER
-// ==========================================
 
-const handleBarcodeScan = (value) => {
+    // ==========================================
+    // BARCODE SCAN HANDLER
+    // ==========================================
 
-    const scannedBarcode = value.trim();
+    const handleBarcodeScan = (value) => {
 
-    if (!scannedBarcode) {
-        return;
-    }
+        const scannedBarcode =
+            String(value || "").trim();
 
-    // Find product using barcode
-    const product = itemOptions.find(
-        (item) =>
-            item.barcode &&
-            String(item.barcode) === scannedBarcode
-    );
+        if (!scannedBarcode) {
+            return;
+        }
 
-    // Product not found
-    if (!product) {
-
-        showToast(
-            `No product found for barcode: ${scannedBarcode}`,
-            "warning"
+        console.log(
+            "Processing barcode:",
+            scannedBarcode
         );
 
-        setBarcode("");
+        // ==========================================
+        // FIND PRODUCT
+        // ==========================================
 
-        return;
-    }
-
-    // Check stock
-    if (Number(product.stock) <= 0) {
-
-        showToast(
-            `${product.name} is out of stock.`,
-            "warning"
-        );
-
-        setBarcode("");
-
-        return;
-    }
-
-    // Check whether product already exists in invoice
-    const existingItem = items.find(
-        (item) => item.name === product.name
-    );
-
-    if (existingItem) {
-
-        const currentQty =
-            Math.floor(
-                Number(existingItem.qty || 0)
+        const product =
+            itemOptions.find(
+                (item) =>
+                    item.barcode &&
+                    String(item.barcode).trim() ===
+                        scannedBarcode
             );
 
-        if (
-            currentQty + 1 >
-            Number(product.stock)
-        ) {
+        // ==========================================
+        // PRODUCT NOT FOUND
+        // ==========================================
+
+        if (!product) {
 
             showToast(
-                `Only ${product.stock} stock available for ${product.name}.`,
+                `No product found for barcode: ${scannedBarcode}`,
                 "warning"
             );
 
             setBarcode("");
 
+            setTimeout(() => {
+
+                barcodeInputRef.current?.focus();
+
+            }, 100);
+
+            return;
+        }
+        // ==========================================
+// PLAY BARCODE SCAN SOUND
+// ==========================================
+
+if (scanSoundRef.current) {
+    scanSoundRef.current.currentTime = 0;
+
+    scanSoundRef.current
+        .play()
+        .catch((error) => {
+            console.log("Scan sound could not play:", error);
+        });
+}
+        // ==========================================
+        // CHECK STOCK
+        // ==========================================
+
+        if (
+            Number(product.stock) <= 0
+        ) {
+
+            showToast(
+                `${product.name} is out of stock.`,
+                "warning"
+            );
+
+            setBarcode("");
+
+            setTimeout(() => {
+
+                barcodeInputRef.current?.focus();
+
+            }, 100);
+
             return;
         }
 
-        // Increase existing quantity
-        setItems((prevItems) =>
-            prevItems.map((item) => {
+        // ==========================================
+        // CHECK EXISTING ITEM
+        // ==========================================
 
-                if (item.id === existingItem.id) {
+        const existingItem =
+            items.find(
+                (item) =>
+                    item.name === product.name
+            );
 
-                    const newQty =
-                        Math.floor(
-                            Number(item.qty || 0)
-                        ) + 1;
+        // ==========================================
+        // PRODUCT ALREADY IN INVOICE
+        // ==========================================
 
-                    return {
-                        ...item,
-                        qty: newQty,
-                        price: product.price,
-                        amount:
-                            product.price *
-                            newQty,
-                    };
-                }
+        if (existingItem) {
 
-                return item;
-            })
-        );
-
-    } else {
-
-        // Add new product to invoice
-        setItems((prevItems) => {
-
-            // If the first row is empty, use it
-            const firstEmptyItem =
-                prevItems.find(
-                    (item) =>
-                        !item.name ||
-                        item.name.trim() === ""
+            const currentQty =
+                Math.floor(
+                    Number(
+                        existingItem.qty || 0
+                    )
                 );
 
-            if (firstEmptyItem) {
+            // ==========================================
+            // STOCK LIMIT
+            // ==========================================
 
-                return prevItems.map((item) => {
+            if (
+                currentQty + 1 >
+                Number(product.stock)
+            ) {
+
+                showToast(
+                    `Only ${product.stock} stock available for ${product.name}.`,
+                    "warning"
+                );
+
+                setBarcode("");
+
+                setTimeout(() => {
+
+                    barcodeInputRef.current?.focus();
+
+                }, 100);
+
+                return;
+            }
+
+            // ==========================================
+            // INCREASE QTY BY EXACTLY ONE
+            // ==========================================
+
+            const newQty =
+                currentQty + 1;
+
+            setItems((prevItems) =>
+
+                prevItems.map((item) => {
 
                     if (
                         item.id ===
-                        firstEmptyItem.id
+                        existingItem.id
                     ) {
 
                         return {
+
                             ...item,
-                            name: product.name,
-                            qty: 1,
-                            price: product.price,
-                            amount: product.price,
+
+                            qty: newQty,
+
+                            price:
+                                product.price,
+
+                            amount:
+                                product.price *
+                                newQty,
                         };
                     }
 
                     return item;
-                });
-            }
+                })
+            );
 
-            // Otherwise add a new row
-            return [
-                ...prevItems,
-                {
-                    id: uid(6),
-                    name: product.name,
-                    qty: 1,
-                    price: product.price,
-                    amount: product.price,
-                },
-            ];
-        });
-    }
+        } else {
 
-    showToast(
-        `${product.name} added successfully.`,
-        "success"
-    );
+            // ==========================================
+            // ADD NEW PRODUCT
+            // ==========================================
 
-    // Clear barcode input
-    setBarcode("");
+            setItems((prevItems) => {
 
-setTimeout(() => {
-    barcodeInputRef.current?.focus();
-}, 0);
-};
+                // Find empty row
+                const firstEmptyItem =
+                    prevItems.find(
+                        (item) =>
+                            !item.name ||
+                            item.name.trim() === ""
+                    );
+
+                // ==========================================
+                // USE EMPTY ROW
+                // ==========================================
+
+                if (firstEmptyItem) {
+
+                    return prevItems.map(
+                        (item) => {
+
+                            if (
+                                item.id ===
+                                firstEmptyItem.id
+                            ) {
+
+                                return {
+
+                                    ...item,
+
+                                    name:
+                                        product.name,
+
+                                    qty: 1,
+
+                                    price:
+                                        product.price,
+
+                                    amount:
+                                        product.price,
+                                };
+                            }
+
+                            return item;
+                        }
+                    );
+                }
+
+                // ==========================================
+                // ADD NEW ROW
+                // ==========================================
+
+                return [
+
+                    ...prevItems,
+
+                    {
+                        id: uid(6),
+
+                        name:
+                            product.name,
+
+                        qty: 1,
+
+                        price:
+                            product.price,
+
+                        amount:
+                            product.price,
+                    },
+
+                ];
+            });
+        }
+
+        // ==========================================
+        // SUCCESS MESSAGE
+        // ==========================================
+
+        showToast(
+            `${product.name} added successfully.`,
+            "success"
+        );
+
+        // ==========================================
+        // CLEAR BARCODE
+        // ==========================================
+
+        setBarcode("");
+
+        // ==========================================
+        // FOCUS BARCODE INPUT
+        // ==========================================
+
+        setTimeout(() => {
+
+            barcodeInputRef.current?.focus();
+
+        }, 100);
+    };
+
     // ==========================================
     // DELETE ITEM
     // ==========================================
@@ -1092,13 +1655,12 @@ setTimeout(() => {
                             newItem.price =
                                 selectedItem.price;
 
-                            // Reset quantity
                             newItem.qty = 1;
                         }
                     }
 
                     // ==========================================
-                    // CALCULATE ITEM AMOUNT
+                    // CALCULATE AMOUNT
                     // ==========================================
 
                     const itemPrice =
@@ -1134,9 +1696,9 @@ setTimeout(() => {
 
         <div className="max-w-6xl mx-auto p-4 md:p-6">
 
-            {/* ========================================== */}
-            {/* TOAST */}
-            {/* ========================================== */}
+            {/* ==========================================
+                TOAST
+            ========================================== */}
 
             <Toast
                 message={toast.message}
@@ -1144,18 +1706,18 @@ setTimeout(() => {
                 onClose={closeToast}
             />
 
-            {/* ========================================== */}
-            {/* MAIN FORM */}
-            {/* ========================================== */}
+            {/* ==========================================
+                MAIN FORM
+            ========================================== */}
 
             <form
                 onSubmit={reviewInvoiceHandler}
                 className="bg-white rounded-xl shadow-lg p-5 md:p-8"
             >
 
-                {/* ========================================== */}
-                {/* HEADER */}
-                {/* ========================================== */}
+                {/* ==========================================
+                    HEADER
+                ========================================== */}
 
                 <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
 
@@ -1193,9 +1755,9 @@ setTimeout(() => {
 
                 </div>
 
-                {/* ========================================== */}
-                {/* INVOICE NUMBER */}
-                {/* ========================================== */}
+                {/* ==========================================
+                    INVOICE NUMBER
+                ========================================== */}
 
                 <div className="mt-6">
 
@@ -1216,13 +1778,11 @@ setTimeout(() => {
 
                 </div>
 
-                {/* ========================================== */}
-                {/* CASHIER & CUSTOMER */}
-                {/* ========================================== */}
+                {/* ==========================================
+                    CASHIER & CUSTOMER
+                ========================================== */}
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 pt-6">
-
-                    {/* CASHIER */}
 
                     <div className="flex flex-col">
 
@@ -1242,8 +1802,6 @@ setTimeout(() => {
                         />
 
                     </div>
-
-                    {/* CUSTOMER */}
 
                     <div className="flex flex-col">
 
@@ -1271,13 +1829,11 @@ setTimeout(() => {
 
                 </div>
 
-                {/* ========================================== */}
-                {/* PHONE & LOYALTY */}
-                {/* ========================================== */}
+                {/* ==========================================
+                    PHONE & LOYALTY
+                ========================================== */}
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-
-                    {/* PHONE */}
 
                     <div className="flex flex-col">
 
@@ -1320,8 +1876,6 @@ setTimeout(() => {
 
                     </div>
 
-                    {/* LOYALTY POINTS */}
-
                     <div className="flex flex-col">
 
                         <label className="text-sm font-bold">
@@ -1336,8 +1890,6 @@ setTimeout(() => {
                         />
 
                     </div>
-
-                    {/* REDEEM */}
 
                     <div className="flex items-center gap-2 mt-6 md:mt-0">
 
@@ -1366,67 +1918,72 @@ setTimeout(() => {
                     </div>
 
                 </div>
-{/* ========================================== */}
-{/* BARCODE SCANNER */}
-{/* ========================================== */}
 
-<div className="mt-6">
+                {/* ==========================================
+                    BARCODE SCANNER
+                ========================================== */}
 
-    <label
-        htmlFor="barcode"
-        className="text-sm font-bold"
-    >
-        Barcode:
-    </label>
+                <div className="mt-6">
+
+
 
     <button
-    type="button"
-    onClick={startBarcodeScanner}
-    className="mt-2 w-full md:w-auto bg-purple-600 hover:bg-purple-700 text-white font-semibold px-5 py-2.5 rounded-lg transition"
->
-    📷 Scan Barcode
+        type="button"
+        onClick={startBarcodeScanner}
+        className="bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold px-3 py-2 rounded-md transition shadow-sm whitespace-nowrap"
+    >
+        📷 Scan Barcode
     </button>
 
-<input
-    type="text"
-    id="barcode"
-    value={barcode}
-    ref={barcodeInputRef}
-    onChange={(e) => {
-        const value = e.target.value;
 
-        setBarcode(value);
+                    <input
+                        type="text"
+                        id="barcode"
+                        value={barcode}
+                        ref={barcodeInputRef}
+                        onChange={(e) => {
 
-        // Automatically process barcode
-        // when scanner sends Enter
-        if (value.endsWith("\n") || value.endsWith("\r")) {
+                            const value =
+                                e.target.value;
 
-            handleBarcodeScan(
-                value.replace(/[\r\n]/g, "")
-            );
-        }
-    }}
-    onKeyDown={(e) => {
+                            const cleanValue =
+                                value.replace(
+                                    /[\r\n]/g,
+                                    ""
+                                );
 
-        if (e.key === "Enter") {
+                            setBarcode(
+                                cleanValue
+                            );
 
-            e.preventDefault();
+                        }}
+                        onKeyDown={(e) => {
 
-            handleBarcodeScan(barcode);
-        }
-    }}
-    placeholder="Scan or enter barcode"
-    className="w-full border rounded px-3 py-2 mt-1"
-/>
+                            if (
+                                e.key === "Enter"
+                            ) {
 
-    <p className="text-xs text-gray-500 mt-1">
-        Scan a product barcode or enter it manually.
-    </p>
+                                e.preventDefault();
 
-</div>
-                {/* ========================================== */}
-                {/* ITEM TABLE */}
-                {/* ========================================== */}
+                                handleBarcodeScan(
+                                    barcode
+                                );
+                            }
+
+                        }}
+                        placeholder="Scan or enter barcode"
+                        className="w-full border rounded px-3 py-2 mt-1"
+                    />
+
+                    <p className="text-xs text-gray-500 mt-1">
+                        Scan or enter a barcode manually.
+                    </p>
+
+                </div>
+
+                {/* ==========================================
+                    ITEM TABLE
+                ========================================== */}
 
                 <div className="overflow-x-auto mt-6">
 
@@ -1469,28 +2026,50 @@ setTimeout(() => {
                                 ) => (
 
                                     <InvoiceItem
-                                        key={item.id}
-                                        id={item.id}
-                                        name={item.name}
-                                        qty={item.qty}
-                                        price={item.price}
-                                        amount={item.amount}
+                                        key={
+                                            item.id
+                                        }
+
+                                        id={
+                                            item.id
+                                        }
+
+                                        name={
+                                            item.name
+                                        }
+
+                                        qty={
+                                            item.qty
+                                        }
+
+                                        price={
+                                            item.price
+                                        }
+
+                                        amount={
+                                            item.amount
+                                        }
+
                                         onDeleteItem={
                                             deleteItemHandler
                                         }
+
                                         onEdtiItem={
                                             edtiItemHandler
                                         }
+
                                         itemOptions={
                                             itemOptions
                                         }
+
                                         onAddItem={
                                             addItemHandler
                                         }
+
                                         autoFocus={
                                             index ===
                                             items.length -
-                                                1
+                                            1
                                         }
                                     />
 
@@ -1503,9 +2082,9 @@ setTimeout(() => {
 
                 </div>
 
-                {/* ========================================== */}
-                {/* ADD ITEM */}
-                {/* ========================================== */}
+                {/* ==========================================
+                    ADD ITEM
+                ========================================== */}
 
                 <button
                     type="button"
@@ -1515,13 +2094,11 @@ setTimeout(() => {
                     ➕ Add Item
                 </button>
 
-                {/* ========================================== */}
-                {/* TAX & DISCOUNT */}
-                {/* ========================================== */}
+                {/* ==========================================
+                    TAX & DISCOUNT
+                ========================================== */}
 
                 <div className="grid grid-cols-2 gap-4 pt-6 md:w-1/2">
-
-                    {/* DISCOUNT */}
 
                     <div className="flex flex-col">
 
@@ -1546,8 +2123,6 @@ setTimeout(() => {
                         />
 
                     </div>
-
-                    {/* TAX */}
 
                     <div className="flex flex-col">
 
@@ -1575,13 +2150,11 @@ setTimeout(() => {
 
                 </div>
 
-                {/* ========================================== */}
-                {/* TOTALS */}
-                {/* ========================================== */}
+                {/* ==========================================
+                    TOTALS
+                ========================================== */}
 
                 <div className="flex flex-col items-end space-y-3 pt-6 md:w-1/2">
-
-                    {/* SUBTOTAL */}
 
                     <div className="flex justify-between w-full">
 
@@ -1594,8 +2167,6 @@ setTimeout(() => {
                         </span>
 
                     </div>
-
-                    {/* DISCOUNT */}
 
                     <div className="flex justify-between w-full">
 
@@ -1610,8 +2181,6 @@ setTimeout(() => {
 
                     </div>
 
-                    {/* LOYALTY DISCOUNT */}
-
                     <div className="flex justify-between w-full">
 
                         <span className="font-bold">
@@ -1619,17 +2188,16 @@ setTimeout(() => {
                         </span>
 
                         <span className="text-purple-600 font-semibold">
-                            
+
                             {redeemPoints
                                 ? Number(
-                                      availablePoints
-                                  ).toFixed(2)
+                                    availablePoints
+                                ).toFixed(2)
                                 : "0.00"}
+
                         </span>
 
                     </div>
-
-                    {/* TAX */}
 
                     <div className="flex justify-between w-full">
 
@@ -1643,7 +2211,9 @@ setTimeout(() => {
 
                     </div>
 
-                    {/* PAYMENT METHOD */}
+                    {/* ==========================================
+                        PAYMENT METHOD
+                    ========================================== */}
 
                     <div className="w-full mt-2">
 
@@ -1677,7 +2247,9 @@ setTimeout(() => {
 
                     </div>
 
-                    {/* GRAND TOTAL */}
+                    {/* ==========================================
+                        GRAND TOTAL
+                    ========================================== */}
 
                     <div className="flex justify-between w-full border-t pt-4 mt-2">
 
@@ -1691,7 +2263,9 @@ setTimeout(() => {
 
                     </div>
 
-                    {/* REVIEW BUTTON DESKTOP */}
+                    {/* ==========================================
+                        REVIEW BUTTON
+                    ========================================== */}
 
                     <button
                         className="hidden md:block mt-4 w-full rounded-lg bg-blue-600 py-3 text-white font-semibold hover:bg-blue-700 transition"
@@ -1703,9 +2277,9 @@ setTimeout(() => {
 
                 </div>
 
-                {/* ========================================== */}
-                {/* MOBILE REVIEW BUTTON */}
-                {/* ========================================== */}
+                {/* ==========================================
+                    MOBILE REVIEW BUTTON
+                ========================================== */}
 
                 <div className="md:hidden w-full pt-4">
 
@@ -1719,93 +2293,103 @@ setTimeout(() => {
                 </div>
 
             </form>
-            {/* ========================================== */}
-{/* CAMERA BARCODE SCANNER */}
-{/* ========================================== */}
 
-{showScanner && (
-    <div className="fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center p-4">
+            {/* ==========================================
+                CAMERA BARCODE SCANNER
+            ========================================== */}
 
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+            {showScanner && (
 
-            {/* HEADER */}
+                <div className="fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center p-4">
 
-            <div className="flex items-center justify-between p-4 border-b">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
 
-                <div>
-                    <h2 className="text-lg font-bold text-gray-800">
-                        Scan Barcode
-                    </h2>
+                        {/* HEADER */}
 
-                    <p className="text-sm text-gray-500">
-                        Point your camera at the barcode
-                    </p>
-                </div>
+                        <div className="flex items-center justify-between p-4 border-b">
 
-                <button
-                    type="button"
-                    onClick={stopBarcodeScanner}
-                    className="text-gray-500 hover:text-red-600 text-2xl"
-                >
-                    ×
-                </button>
+                            <div>
 
-            </div>
+                                <h2 className="text-lg font-bold text-gray-800">
+                                    Scan Barcode
+                                </h2>
 
-            {/* CAMERA */}
+                                <p className="text-sm text-gray-500">
+                                    Point your camera at the barcode
+                                </p>
 
-            <div className="relative bg-black">
+                            </div>
 
-                <video
-                    ref={videoRef}
-                    className="w-full aspect-video object-cover bg-black"
-                    autoPlay
-                    muted
-                    playsInline
-                />
+                            <button
+                                type="button"
+                                onClick={
+                                    stopBarcodeScanner
+                                }
+                                className="text-gray-500 hover:text-red-600 text-2xl"
+                            >
+                                ×
+                            </button>
 
-                {/* SCANNER FRAME */}
+                        </div>
 
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        {/* CAMERA */}
 
-                    <div className="w-64 h-32 border-2 border-white rounded-lg relative">
+                        <div className="relative bg-black">
 
-                        <div className="absolute left-0 right-0 top-1/2 h-0.5 bg-red-500" />
+                            <video
+                                ref={videoRef}
+                                className="w-full aspect-video object-cover bg-black"
+                                autoPlay
+                                muted
+                                playsInline
+                            />
+
+                            {/* SCANNER FRAME */}
+
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+
+                                <div className="w-64 h-32 border-2 border-white rounded-lg relative">
+
+                                    <div className="absolute left-0 right-0 top-1/2 h-0.5 bg-red-500" />
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        {/* FOOTER */}
+
+                        <div className="p-4">
+
+                            <button
+                                type="button"
+                                onClick={
+                                    stopBarcodeScanner
+                                }
+                                className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-lg transition"
+                            >
+                                Cancel
+                            </button>
+
+                        </div>
 
                     </div>
 
                 </div>
 
-            </div>
+            )}
 
-            {/* FOOTER */}
-
-            <div className="p-4">
-
-                <button
-                    type="button"
-                    onClick={stopBarcodeScanner}
-                    className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-lg transition"
-                >
-                    Cancel
-                </button>
-
-            </div>
-
-        </div>
-
-    </div>
-)}
-
-            {/* ========================================== */}
-            {/* INVOICE MODAL */}
-            {/* ========================================== */}
+            {/* ==========================================
+                INVOICE MODAL
+            ========================================== */}
 
             <InvoiceModal
                 isOpen={isOpen}
                 setIsOpen={setIsOpen}
 
                 invoiceInfo={{
+
                     invoiceNumber,
 
                     cashierName,
@@ -1827,6 +2411,7 @@ setTimeout(() => {
 
                     total:
                         reviewTotal,
+
                 }}
 
                 items={items}
