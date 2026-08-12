@@ -86,6 +86,13 @@ const InvoiceForm = () => {
         useState([]);
 
     // ==========================================
+    // BARCODE
+    // ==========================================
+
+    const [barcode, setBarcode] = useState("");
+    const barcodeInputRef = useRef(null);
+
+    // ==========================================
     // REVIEW BUTTON REF
     // ==========================================
 
@@ -243,16 +250,17 @@ const InvoiceForm = () => {
 
             if (res.data.success) {
 
-                const products =
-                    res.data.products.map((p) => ({
-                        id: p.id,
-                        name: p.product_name,
-                        price: Number(p.price),
-                        stock:
-                            Number(
-                                p.stock_quantity
-                            ) || 0,
-                    }));
+                    const products =
+                        res.data.products.map((p) => ({
+                            id: p.id,
+                            name: p.product_name,
+                            price: Number(p.price),
+                            stock:
+                                Number(
+                                    p.stock_quantity
+                                ) || 0,
+                            barcode: p.barcode || "",
+                        }));
 
                 setItemOptions(products);
             }
@@ -344,7 +352,15 @@ const InvoiceForm = () => {
         fetchInvoiceNumber,
         fetchProducts,
     ]);
+// ==========================================
+// AUTO FOCUS BARCODE INPUT
+// ==========================================
 
+useEffect(() => {
+
+    barcodeInputRef.current?.focus();
+
+}, []);
     // ==========================================
     // CURRENT TIME
     // ==========================================
@@ -761,7 +777,164 @@ if (validItems.length === 0) {
 
         ]);
     };
+// ==========================================
+// BARCODE SCAN HANDLER
+// ==========================================
 
+const handleBarcodeScan = (value) => {
+
+    const scannedBarcode = value.trim();
+
+    if (!scannedBarcode) {
+        return;
+    }
+
+    // Find product using barcode
+    const product = itemOptions.find(
+        (item) =>
+            item.barcode &&
+            String(item.barcode) === scannedBarcode
+    );
+
+    // Product not found
+    if (!product) {
+
+        showToast(
+            `No product found for barcode: ${scannedBarcode}`,
+            "warning"
+        );
+
+        setBarcode("");
+
+        return;
+    }
+
+    // Check stock
+    if (Number(product.stock) <= 0) {
+
+        showToast(
+            `${product.name} is out of stock.`,
+            "warning"
+        );
+
+        setBarcode("");
+
+        return;
+    }
+
+    // Check whether product already exists in invoice
+    const existingItem = items.find(
+        (item) => item.name === product.name
+    );
+
+    if (existingItem) {
+
+        const currentQty =
+            Math.floor(
+                Number(existingItem.qty || 0)
+            );
+
+        if (
+            currentQty + 1 >
+            Number(product.stock)
+        ) {
+
+            showToast(
+                `Only ${product.stock} stock available for ${product.name}.`,
+                "warning"
+            );
+
+            setBarcode("");
+
+            return;
+        }
+
+        // Increase existing quantity
+        setItems((prevItems) =>
+            prevItems.map((item) => {
+
+                if (item.id === existingItem.id) {
+
+                    const newQty =
+                        Math.floor(
+                            Number(item.qty || 0)
+                        ) + 1;
+
+                    return {
+                        ...item,
+                        qty: newQty,
+                        price: product.price,
+                        amount:
+                            product.price *
+                            newQty,
+                    };
+                }
+
+                return item;
+            })
+        );
+
+    } else {
+
+        // Add new product to invoice
+        setItems((prevItems) => {
+
+            // If the first row is empty, use it
+            const firstEmptyItem =
+                prevItems.find(
+                    (item) =>
+                        !item.name ||
+                        item.name.trim() === ""
+                );
+
+            if (firstEmptyItem) {
+
+                return prevItems.map((item) => {
+
+                    if (
+                        item.id ===
+                        firstEmptyItem.id
+                    ) {
+
+                        return {
+                            ...item,
+                            name: product.name,
+                            qty: 1,
+                            price: product.price,
+                            amount: product.price,
+                        };
+                    }
+
+                    return item;
+                });
+            }
+
+            // Otherwise add a new row
+            return [
+                ...prevItems,
+                {
+                    id: uid(6),
+                    name: product.name,
+                    qty: 1,
+                    price: product.price,
+                    amount: product.price,
+                },
+            ];
+        });
+    }
+
+    showToast(
+        `${product.name} added successfully.`,
+        "success"
+    );
+
+    // Clear barcode input
+    setBarcode("");
+
+setTimeout(() => {
+    barcodeInputRef.current?.focus();
+}, 0);
+};
     // ==========================================
     // DELETE ITEM
     // ==========================================
@@ -1092,7 +1265,56 @@ if (validItems.length === 0) {
                     </div>
 
                 </div>
+{/* ========================================== */}
+{/* BARCODE SCANNER */}
+{/* ========================================== */}
 
+<div className="mt-6">
+
+    <label
+        htmlFor="barcode"
+        className="text-sm font-bold"
+    >
+        Barcode:
+    </label>
+
+<input
+    type="text"
+    id="barcode"
+    value={barcode}
+    ref={barcodeInputRef}
+    onChange={(e) => {
+        const value = e.target.value;
+
+        setBarcode(value);
+
+        // Automatically process barcode
+        // when scanner sends Enter
+        if (value.endsWith("\n") || value.endsWith("\r")) {
+
+            handleBarcodeScan(
+                value.replace(/[\r\n]/g, "")
+            );
+        }
+    }}
+    onKeyDown={(e) => {
+
+        if (e.key === "Enter") {
+
+            e.preventDefault();
+
+            handleBarcodeScan(barcode);
+        }
+    }}
+    placeholder="Scan or enter barcode"
+    className="w-full border rounded px-3 py-2 mt-1"
+/>
+
+    <p className="text-xs text-gray-500 mt-1">
+        Scan a product barcode or enter it manually.
+    </p>
+
+</div>
                 {/* ========================================== */}
                 {/* ITEM TABLE */}
                 {/* ========================================== */}
