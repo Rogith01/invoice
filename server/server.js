@@ -484,7 +484,8 @@ app.get("/api/products", (req, res) => {
             id,
             product_name,
             price,
-            stock_quantity
+            stock_quantity,
+            barcode
         FROM products
         ORDER BY product_name
     `;
@@ -519,7 +520,8 @@ app.post("/api/products", (req, res) => {
 
     const {
         productName,
-        price
+        price,
+        barcode
     } = req.body;
 
     const sql = `
@@ -565,7 +567,8 @@ app.put("/api/products/:id", (req, res) => {
 
     const {
         productName,
-        price
+        price,
+        barcode
     } = req.body;
 
     const id = req.params.id;
