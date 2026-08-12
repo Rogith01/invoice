@@ -523,23 +523,16 @@ app.post("/api/products", (req, res) => {
     } = req.body;
 
     const sql = `
-        INSERT INTO products
-        (
-            product_name,
-            price
-        )
-        VALUES
-        (
-            ?,
-            ?
-        )
+INSERT INTO products (product_name, price, barcode)
+VALUES (?, ?, ?)
     `;
 
     db.query(
         sql,
         [
             productName,
-            price
+            price,
+            barcode
         ],
         (err) => {
 
@@ -578,11 +571,9 @@ app.put("/api/products/:id", (req, res) => {
     const id = req.params.id;
 
     const sql = `
-        UPDATE products
-        SET
-            product_name = ?,
-            price = ?
-        WHERE id = ?
+UPDATE products
+SET product_name = ?, price = ?, barcode = ?
+WHERE id = ?
     `;
 
     db.query(
@@ -590,6 +581,7 @@ app.put("/api/products/:id", (req, res) => {
         [
             productName,
             price,
+            barcode,
             id
         ],
         (err) => {

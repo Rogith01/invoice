@@ -6,6 +6,7 @@ const ProductManagement = () => {
     const [products, setProducts] = useState([]);
     const [productName, setProductName] = useState("");
     const [price, setPrice] = useState("");
+    const [barcode, setBarcode] = useState("");
     const [editingId, setEditingId] = useState(null);
 
     // ===============================
@@ -80,27 +81,29 @@ const fetchProducts = useCallback(async () => {
     // ===============================
     // Edit Product
     // ===============================
-    const editProduct = (product) => {
-        setEditingId(product.id);
-        setProductName(product.product_name);
-        setPrice(product.price);
+const editProduct = (product) => {
+    setEditingId(product.id);
+    setProductName(product.product_name);
+    setPrice(product.price);
+    setBarcode(product.barcode || "");
 
-        showToast(
-            `"${product.product_name}" selected for editing.`,
-            "info"
-        );
-    };
+    showToast(
+        `"${product.product_name}" selected for editing.`,
+        "info"
+    );
+};
 
     // ===============================
     // Cancel Edit
     // ===============================
-    const cancelEdit = () => {
-        setEditingId(null);
-        setProductName("");
-        setPrice("");
+const cancelEdit = () => {
+    setEditingId(null);
+    setProductName("");
+    setPrice("");
+    setBarcode("");
 
-        showToast("Edit cancelled.", "info");
-    };
+    showToast("Edit cancelled.", "info");
+};
 
     // ===============================
     // Open Delete Confirmation
@@ -198,8 +201,11 @@ const fetchProducts = useCallback(async () => {
                 const res = await axios.put(
                     `https://invoice-backend-78hd.onrender.com/api/products/${editingId}`,
                     {
+
                         productName: productName.trim(),
                         price,
+                        barcode: barcode.trim(),
+
                     }
                 );
 
@@ -209,6 +215,7 @@ const fetchProducts = useCallback(async () => {
                     setEditingId(null);
                     setProductName("");
                     setPrice("");
+                    setBarcode("");
 
                     showToast(
                         "Product updated successfully!",
@@ -242,6 +249,7 @@ const fetchProducts = useCallback(async () => {
                 {
                     productName: productName.trim(),
                     price,
+                    barcode: barcode.trim(),
                 }
             );
 
@@ -250,6 +258,7 @@ const fetchProducts = useCallback(async () => {
 
                 setProductName("");
                 setPrice("");
+                setBarcode("");
 
                 showToast(
                     "Product added successfully!",
@@ -453,7 +462,7 @@ const fetchProducts = useCallback(async () => {
 
                 </h2>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
 
                     <input
                         type="text"
@@ -474,6 +483,13 @@ const fetchProducts = useCallback(async () => {
                         onChange={(e) =>
                             setPrice(e.target.value)
                         }
+                        className="border rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <input
+                        type="text"
+                        placeholder="Barcode"
+                        value={barcode}
+                        onChange={(e) => setBarcode(e.target.value)}
                         className="border rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
 
@@ -527,6 +543,10 @@ const fetchProducts = useCallback(async () => {
                             </th>
 
                             <th className="border p-3 text-center">
+                                Barcode
+                            </th>
+
+                            <th className="border p-3 text-center">
                                 Action
                             </th>
 
@@ -554,6 +574,10 @@ const fetchProducts = useCallback(async () => {
                                         {Number(
                                             product.price
                                         ).toFixed(2)}
+                                    </td>
+
+                                    <td className="border p-3 text-center font-medium">
+                                        {product.barcode || "-"}
                                     </td>
 
                                     <td className="border p-3">
@@ -628,7 +652,7 @@ const fetchProducts = useCallback(async () => {
                             <tr>
 
                                 <td
-                                    colSpan="3"
+                                    colSpan="4"
                                     className="border p-8 text-center text-gray-500"
                                 >
                                     {search
