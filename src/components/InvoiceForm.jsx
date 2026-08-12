@@ -96,9 +96,18 @@ const InvoiceForm = () => {
     const barcodeInputRef = useRef(null);
     const scanSoundRef = useRef(null);
 
+    const errorSoundRef = useRef(null);
+
 useEffect(() => {
+
+    // Successful barcode scan sound
     scanSoundRef.current = new Audio("/barcode-beep.mp3");
     scanSoundRef.current.volume = 1.0;
+
+    // Wrong barcode / out-of-stock sound
+    errorSoundRef.current = new Audio("/barcode-error.mp3");
+    errorSoundRef.current.volume = 1.0;
+
 }, []);
 
     // ==========================================
@@ -1357,24 +1366,39 @@ useEffect(() => {
         // PRODUCT NOT FOUND
         // ==========================================
 
-        if (!product) {
+if (!product) {
 
-            showToast(
-                `No product found for barcode: ${scannedBarcode}`,
-                "warning"
-            );
+    // ❌ Wrong barcode sound
+    if (errorSoundRef.current) {
 
-            setBarcode("");
+        errorSoundRef.current.currentTime = 0;
 
-            setTimeout(() => {
+        errorSoundRef.current
+            .play()
+            .catch((error) => {
+                console.log(
+                    "Error sound could not play:",
+                    error
+                );
+            });
+    }
 
-                barcodeInputRef.current?.focus();
+    showToast(
+        `No product found for barcode: ${scannedBarcode}`,
+        "warning"
+    );
 
-            }, 100);
+    setBarcode("");
 
-            return;
-        }
-        // ==========================================
+    setTimeout(() => {
+
+        barcodeInputRef.current?.focus();
+
+    }, 100);
+
+    return;
+}
+// ==========================================
 // PLAY BARCODE SCAN SOUND
 // ==========================================
 
@@ -1391,25 +1415,40 @@ if (scanSoundRef.current) {
         // CHECK STOCK
         // ==========================================
 
-        if (
-            Number(product.stock) <= 0
-        ) {
+if (
+    Number(product.stock) <= 0
+) {
 
-            showToast(
-                `${product.name} is out of stock.`,
-                "warning"
-            );
+    // ⚠️ Out of stock sound
+    if (errorSoundRef.current) {
 
-            setBarcode("");
+        errorSoundRef.current.currentTime = 0;
 
-            setTimeout(() => {
+        errorSoundRef.current
+            .play()
+            .catch((error) => {
+                console.log(
+                    "Error sound could not play:",
+                    error
+                );
+            });
+    }
 
-                barcodeInputRef.current?.focus();
+    showToast(
+        `${product.name} is out of stock.`,
+        "warning"
+    );
 
-            }, 100);
+    setBarcode("");
 
-            return;
-        }
+    setTimeout(() => {
+
+        barcodeInputRef.current?.focus();
+
+    }, 100);
+
+    return;
+}
 
         // ==========================================
         // CHECK EXISTING ITEM
@@ -1931,6 +1970,14 @@ if (scanSoundRef.current) {
                     >
                         Barcode:
                     </label>
+
+                    <button
+                        type="button"
+                        onClick={startBarcodeScanner}
+                        className="mt-2 w-full md:w-auto bg-purple-600 hover:bg-purple-700 text-white font-semibold px-5 py-2.5 rounded-lg transition"
+                    >
+                        📷 Scan Barcode
+                    </button>
 
                     <input
                         type="text"
