@@ -94,21 +94,82 @@ const InvoiceForm = () => {
         useState("");
 
     const barcodeInputRef = useRef(null);
+
+    // ==========================================
+    // BARCODE SOUNDS
+    // ==========================================
+
     const scanSoundRef = useRef(null);
 
-    const errorSoundRef = useRef(null);
+    const barcodeErrorSoundRef = useRef(null);
 
-useEffect(() => {
+    // ==========================================
+    // NORMAL TOAST SOUNDS
+    // ==========================================
 
-    // Successful barcode scan sound
-    scanSoundRef.current = new Audio("/barcode-beep.mp3");
-    scanSoundRef.current.volume = 1.0;
+    const successSoundRef = useRef(null);
 
-    // Wrong barcode / out-of-stock sound
-    errorSoundRef.current = new Audio("/barcode-error.mp3");
-    errorSoundRef.current.volume = 1.0;
+    const toastErrorSoundRef = useRef(null);
 
-}, []);
+    // ==========================================
+    // INITIALIZE ALL SOUNDS
+    // ==========================================
+
+    useEffect(() => {
+
+        // ==========================================
+        // BARCODE SUCCESS BEEP
+        // ==========================================
+
+        scanSoundRef.current =
+            new Audio("/barcode-beep.mp3");
+
+        scanSoundRef.current.volume = 1.0;
+
+        // ==========================================
+        // BARCODE ERROR BEEP
+        // ==========================================
+
+        barcodeErrorSoundRef.current =
+            new Audio("/barcode-error.mp3");
+
+        barcodeErrorSoundRef.current.volume = 1.0;
+
+        // ==========================================
+        // NORMAL SUCCESS TOAST SOUND
+        // ==========================================
+
+        successSoundRef.current =
+            new Audio("/success-tone.mp3");
+
+        successSoundRef.current.volume = 1.0;
+
+        // ==========================================
+        // NORMAL ERROR / WARNING TOAST SOUND
+        // ==========================================
+
+        toastErrorSoundRef.current =
+            new Audio("/error-tone.mp3");
+
+        toastErrorSoundRef.current.volume = 1.0;
+
+        // ==========================================
+        // CLEANUP
+        // ==========================================
+
+        return () => {
+
+            scanSoundRef.current = null;
+
+            barcodeErrorSoundRef.current = null;
+
+            successSoundRef.current = null;
+
+            toastErrorSoundRef.current = null;
+
+        };
+
+    }, []);
 
     // ==========================================
     // CAMERA SCANNER
@@ -121,27 +182,14 @@ useEffect(() => {
 
     const codeReaderRef = useRef(null);
 
-    // IMPORTANT:
-    // Stores ZXing scanner controls returned by
-    // decodeFromVideoDevice().
     const scannerControlsRef = useRef(null);
 
-    // IMPORTANT:
-    // Stores timeout used while starting scanner.
-    // This prevents old scanner startup callbacks.
     const scannerTimeoutRef = useRef(null);
 
-    // IMPORTANT:
-    // Every time a new scanner starts, this number
-    // changes. Old callbacks are then ignored.
     const scannerSessionRef = useRef(0);
 
-    // Prevent clicking Scan Barcode multiple times
-    // while scanner is starting.
     const scannerStartingRef = useRef(false);
 
-    // Prevent multiple results from the SAME
-    // scanner session.
     const barcodeScanLockRef = useRef(true);
 
     // ==========================================
@@ -192,9 +240,95 @@ useEffect(() => {
     // ==========================================
     // SHOW TOAST
     // ==========================================
+    //
+    // playSound = true
+    //
+    // Normal success:
+    //     success-tone.mp3
+    //
+    // Normal error/warning:
+    //     error-tone.mp3
+    //
+    // Info:
+    //     no sound
+    //
+    // Barcode Toast:
+    //     playSound = false
+    //
+    // Because barcode has its own sound.
+    // ==========================================
 
     const showToast = useCallback(
-        (message, type = "success") => {
+        (
+            message,
+            type = "success",
+            playSound = true
+        ) => {
+
+            // ==========================================
+            // NORMAL TOAST SOUND
+            // ==========================================
+
+            if (playSound) {
+
+                // ==========================================
+                // SUCCESS
+                // ==========================================
+
+                if (type === "success") {
+
+                    if (successSoundRef.current) {
+
+                        successSoundRef.current.currentTime = 0;
+
+                        successSoundRef.current
+                            .play()
+                            .catch((error) => {
+
+                                console.log(
+                                    "Success toast sound could not play:",
+                                    error
+                                );
+
+                            });
+
+                    }
+
+                }
+
+                // ==========================================
+                // ERROR / WARNING
+                // ==========================================
+
+                else if (
+                    type === "error" ||
+                    type === "warning"
+                ) {
+
+                    if (toastErrorSoundRef.current) {
+
+                        toastErrorSoundRef.current.currentTime = 0;
+
+                        toastErrorSoundRef.current
+                            .play()
+                            .catch((error) => {
+
+                                console.log(
+                                    "Error toast sound could not play:",
+                                    error
+                                );
+
+                            });
+
+                    }
+
+                }
+
+            }
+
+            // ==========================================
+            // SHOW TOAST
+            // ==========================================
 
             setToast({
                 message,
@@ -410,6 +544,7 @@ useEffect(() => {
                 "keydown",
                 handleShortcut
             );
+
         };
 
     }, [
@@ -433,10 +568,8 @@ useEffect(() => {
 
         scannerSessionRef.current += 1;
 
-        // Do not accept any more results
         barcodeScanLockRef.current = true;
 
-        // Scanner is no longer starting
         scannerStartingRef.current = false;
 
         // ==========================================
@@ -468,6 +601,7 @@ useEffect(() => {
                     "ZXing controls stop error:",
                     error
                 );
+
             }
 
             scannerControlsRef.current = null;
@@ -489,6 +623,7 @@ useEffect(() => {
                     "ZXing reader reset error:",
                     error
                 );
+
             }
 
             codeReaderRef.current = null;
@@ -510,12 +645,17 @@ useEffect(() => {
                     .forEach((track) => {
 
                         try {
+
                             track.stop();
+
                         } catch (error) {
+
                             console.log(error);
+
                         }
 
                     });
+
             }
 
             videoRef.current.srcObject = null;
@@ -535,10 +675,6 @@ useEffect(() => {
 
     const startBarcodeScanner = async () => {
 
-        // ==========================================
-        // PREVENT DOUBLE CLICK WHILE STARTING
-        // ==========================================
-
         if (scannerStartingRef.current) {
 
             console.log(
@@ -549,7 +685,7 @@ useEffect(() => {
         }
 
         // ==========================================
-        // IF OLD SCANNER EXISTS, CLEAN IT FIRST
+        // CLEAN OLD SCANNER
         // ==========================================
 
         if (
@@ -560,14 +696,14 @@ useEffect(() => {
 
             stopBarcodeScanner();
 
-            // Give browser a moment to release camera
             await new Promise((resolve) =>
                 setTimeout(resolve, 100)
             );
+
         }
 
         // ==========================================
-        // CREATE NEW SCANNER SESSION
+        // CREATE NEW SESSION
         // ==========================================
 
         const sessionId =
@@ -578,7 +714,6 @@ useEffect(() => {
 
         scannerStartingRef.current = true;
 
-        // Allow ONE scan for this session
         barcodeScanLockRef.current = false;
 
         setShowScanner(true);
@@ -589,7 +724,7 @@ useEffect(() => {
         );
 
         // ==========================================
-        // WAIT FOR VIDEO ELEMENT
+        // WAIT FOR VIDEO
         // ==========================================
 
         scannerTimeoutRef.current =
@@ -598,21 +733,16 @@ useEffect(() => {
                 scannerTimeoutRef.current =
                     null;
 
-                // Check whether this scanner session
-                // is still valid.
                 if (
                     sessionId !==
                     scannerSessionRef.current
                 ) {
 
-                    console.log(
-                        "Old scanner session ignored."
-                    );
-
                     scannerStartingRef.current =
                         false;
 
                     return;
+
                 }
 
                 if (!videoRef.current) {
@@ -635,12 +765,13 @@ useEffect(() => {
                     );
 
                     return;
+
                 }
 
                 try {
 
                     // ==========================================
-                    // CREATE COMPLETELY NEW ZXING READER
+                    // CREATE ZXING READER
                     // ==========================================
 
                     const codeReader =
@@ -660,7 +791,7 @@ useEffect(() => {
                             (result, error) => {
 
                                 // ==========================================
-                                // IGNORE OLD SCANNER SESSION
+                                // IGNORE OLD SESSION
                                 // ==========================================
 
                                 if (
@@ -668,15 +799,12 @@ useEffect(() => {
                                     scannerSessionRef.current
                                 ) {
 
-                                    console.log(
-                                        "Ignoring old scanner callback."
-                                    );
-
                                     return;
+
                                 }
 
                                 // ==========================================
-                                // IGNORE IF ALREADY SCANNED
+                                // IGNORE AFTER SCAN
                                 // ==========================================
 
                                 if (
@@ -684,6 +812,7 @@ useEffect(() => {
                                 ) {
 
                                     return;
+
                                 }
 
                                 // ==========================================
@@ -693,6 +822,7 @@ useEffect(() => {
                                 if (!result) {
 
                                     return;
+
                                 }
 
                                 // ==========================================
@@ -713,7 +843,7 @@ useEffect(() => {
                                 );
 
                                 // ==========================================
-                                // PROCESS EXACTLY ONE SCAN
+                                // PROCESS BARCODE
                                 // ==========================================
 
                                 handleBarcodeScan(
@@ -721,16 +851,16 @@ useEffect(() => {
                                 );
 
                                 // ==========================================
-                                // STOP CAMERA IMMEDIATELY
+                                // STOP CAMERA
                                 // ==========================================
 
                                 stopBarcodeScanner();
+
                             }
                         );
 
                     // ==========================================
-                    // CHECK IF SCANNER WAS STOPPED WHILE
-                    // ZXING WAS INITIALIZING
+                    // CHECK SESSION
                     // ==========================================
 
                     if (
@@ -738,20 +868,21 @@ useEffect(() => {
                         scannerSessionRef.current
                     ) {
 
-                        console.log(
-                            "Scanner became outdated while starting."
-                        );
-
                         try {
+
                             controls.stop();
+
                         } catch (error) {
+
                             console.log(error);
+
                         }
 
                         scannerStartingRef.current =
                             false;
 
                         return;
+
                     }
 
                     scannerControlsRef.current =
@@ -772,11 +903,6 @@ useEffect(() => {
                         error
                     );
 
-                    // ==========================================
-                    // ONLY SHOW ERROR IF THIS IS STILL
-                    // THE CURRENT SESSION
-                    // ==========================================
-
                     if (
                         sessionId ===
                         scannerSessionRef.current
@@ -794,6 +920,7 @@ useEffect(() => {
                         );
 
                         stopBarcodeScanner();
+
                     }
 
                 }
@@ -804,119 +931,110 @@ useEffect(() => {
     // ==========================================
     // CLEAN CAMERA WHEN COMPONENT UNMOUNTS
     // ==========================================
-useEffect(() => {
 
-    // Capture the video element when this effect runs.
-    // This prevents the React Hooks cleanup warning.
-    const videoElement = videoRef.current;
+    useEffect(() => {
 
-    return () => {
+        const videoElement =
+            videoRef.current;
 
-        // ==========================================
-        // INVALIDATE CURRENT SCANNER
-        // ==========================================
+        return () => {
 
-        scannerSessionRef.current += 1;
+            scannerSessionRef.current += 1;
 
-        barcodeScanLockRef.current = true;
+            barcodeScanLockRef.current = true;
 
-        scannerStartingRef.current = false;
+            scannerStartingRef.current = false;
 
-        // ==========================================
-        // CANCEL PENDING TIMEOUT
-        // ==========================================
+            // ==========================================
+            // CANCEL TIMEOUT
+            // ==========================================
 
-        if (scannerTimeoutRef.current) {
+            if (scannerTimeoutRef.current) {
 
-            clearTimeout(
-                scannerTimeoutRef.current
-            );
-
-            scannerTimeoutRef.current = null;
-        }
-
-        // ==========================================
-        // STOP ZXING CONTROLS
-        // ==========================================
-
-        if (scannerControlsRef.current) {
-
-            try {
-
-                scannerControlsRef.current.stop();
-
-            } catch (error) {
-
-                console.log(
-                    "ZXing controls stop error:",
-                    error
+                clearTimeout(
+                    scannerTimeoutRef.current
                 );
 
-            }
-
-            scannerControlsRef.current = null;
-        }
-
-        // ==========================================
-        // RESET ZXING READER
-        // ==========================================
-
-        if (codeReaderRef.current) {
-
-            try {
-
-                codeReaderRef.current.reset();
-
-            } catch (error) {
-
-                console.log(
-                    "ZXing reader reset error:",
-                    error
-                );
+                scannerTimeoutRef.current = null;
 
             }
 
-            codeReaderRef.current = null;
-        }
+            // ==========================================
+            // STOP ZXING CONTROLS
+            // ==========================================
 
-        // ==========================================
-        // STOP CAMERA STREAM
-        // ==========================================
+            if (scannerControlsRef.current) {
 
-        if (videoElement) {
+                try {
 
-            const stream =
-                videoElement.srcObject;
+                    scannerControlsRef.current.stop();
 
-            if (stream) {
+                } catch (error) {
 
-                stream
-                    .getTracks()
-                    .forEach((track) => {
+                    console.log(error);
 
-                        try {
+                }
 
-                            track.stop();
-
-                        } catch (error) {
-
-                            console.log(
-                                "Camera track stop error:",
-                                error
-                            );
-
-                        }
-
-                    });
+                scannerControlsRef.current = null;
 
             }
 
-            videoElement.srcObject = null;
-        }
+            // ==========================================
+            // RESET READER
+            // ==========================================
 
-    };
+            if (codeReaderRef.current) {
 
-}, []);
+                try {
+
+                    codeReaderRef.current.reset();
+
+                } catch (error) {
+
+                    console.log(error);
+
+                }
+
+                codeReaderRef.current = null;
+
+            }
+
+            // ==========================================
+            // STOP CAMERA
+            // ==========================================
+
+            if (videoElement) {
+
+                const stream =
+                    videoElement.srcObject;
+
+                if (stream) {
+
+                    stream
+                        .getTracks()
+                        .forEach((track) => {
+
+                            try {
+
+                                track.stop();
+
+                            } catch (error) {
+
+                                console.log(error);
+
+                            }
+
+                        });
+
+                }
+
+                videoElement.srcObject = null;
+
+            }
+
+        };
+
+    }, []);
 
     // ==========================================
     // AUTO FOCUS BARCODE INPUT
@@ -974,6 +1092,7 @@ useEffect(() => {
                             Number(curr.qty || 0)
                         )
                 );
+
             }
 
             return prev;
@@ -1022,6 +1141,7 @@ useEffect(() => {
             );
 
             return;
+
         }
 
         // ==========================================
@@ -1039,6 +1159,7 @@ useEffect(() => {
             );
 
             return;
+
         }
 
         if (phoneNumber.length !== 10) {
@@ -1049,6 +1170,7 @@ useEffect(() => {
             );
 
             return;
+
         }
 
         // ==========================================
@@ -1069,6 +1191,7 @@ useEffect(() => {
             );
 
             return;
+
         }
 
         if (total < 0) {
@@ -1079,6 +1202,7 @@ useEffect(() => {
             );
 
             return;
+
         }
 
         // ==========================================
@@ -1101,6 +1225,7 @@ useEffect(() => {
                 );
 
                 return;
+
             }
 
             const requestedQty =
@@ -1116,6 +1241,7 @@ useEffect(() => {
                 );
 
                 return;
+
             }
 
             if (
@@ -1129,7 +1255,9 @@ useEffect(() => {
                 );
 
                 return;
+
             }
+
         }
 
         // ==========================================
@@ -1175,6 +1303,7 @@ useEffect(() => {
                     price: itemPrice,
                     amount: itemAmount,
                 };
+
             });
 
         // ==========================================
@@ -1202,6 +1331,7 @@ useEffect(() => {
             redeemPoints,
 
             paymentMethod,
+
         };
 
         try {
@@ -1257,7 +1387,9 @@ useEffect(() => {
             setIsOpen(true);
 
             // ==========================================
-            // SUCCESS TOAST
+            // NORMAL SUCCESS TOAST
+            //
+            // This DOES play success-tone.mp3
             // ==========================================
 
             showToast(
@@ -1277,7 +1409,9 @@ useEffect(() => {
                     "Failed to save invoice.",
                 "error"
             );
+
         }
+
     };
 
     // ==========================================
@@ -1286,7 +1420,6 @@ useEffect(() => {
 
     const addNextInvoiceHandler = async () => {
 
-        // Make absolutely sure camera is stopped
         stopBarcodeScanner();
 
         await fetchInvoiceNumber();
@@ -1333,10 +1466,14 @@ useEffect(() => {
 
         }, 100);
 
+        // INFO TOAST
+        // No sound
+
         showToast(
             "Ready for a new invoice.",
             "info"
         );
+
     };
 
     // ==========================================
@@ -1358,6 +1495,57 @@ useEffect(() => {
             },
 
         ]);
+
+    };
+
+    // ==========================================
+    // PLAY BARCODE SUCCESS SOUND
+    // ==========================================
+
+    const playBarcodeSuccessSound = () => {
+
+        if (scanSoundRef.current) {
+
+            scanSoundRef.current.currentTime = 0;
+
+            scanSoundRef.current
+                .play()
+                .catch((error) => {
+
+                    console.log(
+                        "Barcode success sound could not play:",
+                        error
+                    );
+
+                });
+
+        }
+
+    };
+
+    // ==========================================
+    // PLAY BARCODE ERROR SOUND
+    // ==========================================
+
+    const playBarcodeErrorSound = () => {
+
+        if (barcodeErrorSoundRef.current) {
+
+            barcodeErrorSoundRef.current.currentTime = 0;
+
+            barcodeErrorSoundRef.current
+                .play()
+                .catch((error) => {
+
+                    console.log(
+                        "Barcode error sound could not play:",
+                        error
+                    );
+
+                });
+
+        }
+
     };
 
     // ==========================================
@@ -1369,8 +1557,14 @@ useEffect(() => {
         const scannedBarcode =
             String(value || "").trim();
 
+        // ==========================================
+        // EMPTY BARCODE
+        // ==========================================
+
         if (!scannedBarcode) {
+
             return;
+
         }
 
         console.log(
@@ -1391,92 +1585,66 @@ useEffect(() => {
             );
 
         // ==========================================
-        // PRODUCT NOT FOUND
+        // WRONG BARCODE
         // ==========================================
 
-if (!product) {
+        if (!product) {
 
-    // ❌ Wrong barcode sound
-    if (errorSoundRef.current) {
+            // BARCODE ERROR SOUND ONLY
 
-        errorSoundRef.current.currentTime = 0;
+            playBarcodeErrorSound();
 
-        errorSoundRef.current
-            .play()
-            .catch((error) => {
-                console.log(
-                    "Error sound could not play:",
-                    error
-                );
-            });
-    }
+            // SHOW WARNING WITHOUT TOAST SOUND
 
-    showToast(
-        `No product found for barcode: ${scannedBarcode}`,
-        "warning"
-    );
+            showToast(
+                `No product found for barcode: ${scannedBarcode}`,
+                "warning",
+                false
+            );
 
-    setBarcode("");
+            setBarcode("");
 
-    setTimeout(() => {
+            setTimeout(() => {
 
-        barcodeInputRef.current?.focus();
+                barcodeInputRef.current?.focus();
 
-    }, 100);
+            }, 100);
 
-    return;
-}
-// ==========================================
-// PLAY BARCODE SCAN SOUND
-// ==========================================
+            return;
 
-if (scanSoundRef.current) {
-    scanSoundRef.current.currentTime = 0;
+        }
 
-    scanSoundRef.current
-        .play()
-        .catch((error) => {
-            console.log("Scan sound could not play:", error);
-        });
-}
         // ==========================================
         // CHECK STOCK
         // ==========================================
 
-if (
-    Number(product.stock) <= 0
-) {
+        if (
+            Number(product.stock) <= 0
+        ) {
 
-    // ⚠️ Out of stock sound
-    if (errorSoundRef.current) {
+            // BARCODE ERROR SOUND ONLY
 
-        errorSoundRef.current.currentTime = 0;
+            playBarcodeErrorSound();
 
-        errorSoundRef.current
-            .play()
-            .catch((error) => {
-                console.log(
-                    "Error sound could not play:",
-                    error
-                );
-            });
-    }
+            // SHOW WARNING WITHOUT TOAST SOUND
 
-    showToast(
-        `${product.name} is out of stock.`,
-        "warning"
-    );
+            showToast(
+                `${product.name} is out of stock.`,
+                "warning",
+                false
+            );
 
-    setBarcode("");
+            setBarcode("");
 
-    setTimeout(() => {
+            setTimeout(() => {
 
-        barcodeInputRef.current?.focus();
+                barcodeInputRef.current?.focus();
 
-    }, 100);
+            }, 100);
 
-    return;
-}
+            return;
+
+        }
 
         // ==========================================
         // CHECK EXISTING ITEM
@@ -1510,9 +1678,16 @@ if (
                 Number(product.stock)
             ) {
 
+                // BARCODE ERROR SOUND ONLY
+
+                playBarcodeErrorSound();
+
+                // WARNING TOAST WITHOUT SOUND
+
                 showToast(
                     `Only ${product.stock} stock available for ${product.name}.`,
-                    "warning"
+                    "warning",
+                    false
                 );
 
                 setBarcode("");
@@ -1524,10 +1699,11 @@ if (
                 }, 100);
 
                 return;
+
             }
 
             // ==========================================
-            // INCREASE QTY BY EXACTLY ONE
+            // INCREASE QTY
             // ==========================================
 
             const newQty =
@@ -1554,11 +1730,15 @@ if (
                             amount:
                                 product.price *
                                 newQty,
+
                         };
+
                     }
 
                     return item;
+
                 })
+
             );
 
         } else {
@@ -1569,7 +1749,10 @@ if (
 
             setItems((prevItems) => {
 
-                // Find empty row
+                // ==========================================
+                // FIND EMPTY ROW
+                // ==========================================
+
                 const firstEmptyItem =
                     prevItems.find(
                         (item) =>
@@ -1605,12 +1788,16 @@ if (
 
                                     amount:
                                         product.price,
+
                                 };
+
                             }
 
                             return item;
+
                         }
                     );
+
                 }
 
                 // ==========================================
@@ -1634,19 +1821,32 @@ if (
 
                         amount:
                             product.price,
+
                     },
 
                 ];
+
             });
+
         }
 
         // ==========================================
-        // SUCCESS MESSAGE
+        // BARCODE SUCCESS SOUND
+        //
+        // IMPORTANT:
+        // Do NOT play normal success tone.
+        // ==========================================
+
+        playBarcodeSuccessSound();
+
+        // ==========================================
+        // SUCCESS TOAST WITHOUT NORMAL SOUND
         // ==========================================
 
         showToast(
             `${product.name} added successfully.`,
-            "success"
+            "success",
+            false
         );
 
         // ==========================================
@@ -1664,6 +1864,7 @@ if (
             barcodeInputRef.current?.focus();
 
         }, 100);
+
     };
 
     // ==========================================
@@ -1678,6 +1879,7 @@ if (
                     item.id !== id
             )
         );
+
     };
 
     // ==========================================
@@ -1723,7 +1925,9 @@ if (
                                 selectedItem.price;
 
                             newItem.qty = 1;
+
                         }
+
                     }
 
                     // ==========================================
@@ -1747,12 +1951,15 @@ if (
                         itemQty;
 
                     return newItem;
+
                 }
 
                 return item;
+
             });
 
         setItems(updatedItems);
+
     };
 
     // ==========================================
@@ -1936,6 +2143,7 @@ if (
                                     fetchCustomer(
                                         value
                                     );
+
                                 }
 
                             }}
@@ -1992,19 +2200,49 @@ if (
 
                 <div className="mt-6">
 
-                    <label
-                        htmlFor="barcode"
-                        className="text-sm font-bold"
-                    >
-                        Barcode:
-                    </label>
-
                     <button
                         type="button"
                         onClick={startBarcodeScanner}
-                        className="mt-2 w-full md:w-auto bg-purple-600 hover:bg-purple-700 text-white font-semibold px-5 py-2.5 rounded-lg transition"
+                        className="mt-2 mb-3 inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white text-sm font-semibold px-4 py-2 rounded-md shadow-sm transition-all duration-200"
                     >
-                        📷 Scan Barcode
+
+                        <span className="text-base">
+
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="21"
+                                height="21"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            >
+
+                                <path d="M7 3H5a2 2 0 0 0-2 2v2" />
+
+                                <path d="M17 3h2a2 2 0 0 1 2 2v2" />
+
+                                <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
+
+                                <path d="M17 21h2a2 2 0 0 0 2-2v-2" />
+
+                                <line
+                                    x1="5"
+                                    y1="12"
+                                    x2="19"
+                                    y2="12"
+                                />
+
+                            </svg>
+
+                        </span>
+
+                        <span>
+                            Scan Barcode
+                        </span>
+
                     </button>
 
                     <input
@@ -2039,6 +2277,7 @@ if (
                                 handleBarcodeScan(
                                     barcode
                                 );
+
                             }
 
                         }}

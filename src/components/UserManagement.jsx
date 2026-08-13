@@ -1,4 +1,9 @@
-import React, {useCallback,useEffect,useState} from "react";
+import React, {
+    useCallback,
+    useEffect,
+    useRef,
+    useState,
+} from "react";
 import axios from "axios";
 import Toast from "./Toast";
 
@@ -24,30 +29,109 @@ const [deleteConfirm, setDeleteConfirm] = useState({
     id: null,
     username: "",
 });
+// ===============================
+// Toast State
+// ===============================
 
-    // ===============================
-    // Toast State
-    // ===============================
+const [toast, setToast] = useState({
+    message: "",
+    type: "success",
+});
 
-    const [toast, setToast] = useState({
-        message: "",
-        type: "success",
-    });
+// ===============================
+// Toast Sound
+// ===============================
 
-    // ===============================
-    // Show Toast
-    // ===============================
+const successSoundRef = useRef(null);
+const errorSoundRef = useRef(null);
 
-    const showToast = (
-        message,
-        type = "success"
-    ) => {
-        setToast({
-            message,
-            type,
-        });
+useEffect(() => {
+
+    successSoundRef.current =
+        new Audio("/success-tone.mp3");
+
+    successSoundRef.current.volume = 1.0;
+
+    errorSoundRef.current =
+        new Audio("/error-tone.mp3");
+
+    errorSoundRef.current.volume = 1.0;
+
+    return () => {
+
+        successSoundRef.current = null;
+        errorSoundRef.current = null;
+
     };
 
+}, []);
+
+// ===============================
+// Show Toast
+// ===============================
+
+const showToast = (
+    message,
+    type = "success"
+) => {
+
+    // ===============================
+    // PLAY TOAST SOUND
+    // ===============================
+
+    if (type === "success") {
+
+        if (successSoundRef.current) {
+
+            successSoundRef.current.currentTime = 0;
+
+            successSoundRef.current
+                .play()
+                .catch((error) => {
+
+                    console.log(
+                        "Success sound could not play:",
+                        error
+                    );
+
+                });
+
+        }
+
+    } else if (
+        type === "error" ||
+        type === "warning"
+    ) {
+
+        if (errorSoundRef.current) {
+
+            errorSoundRef.current.currentTime = 0;
+
+            errorSoundRef.current
+                .play()
+                .catch((error) => {
+
+                    console.log(
+                        "Error sound could not play:",
+                        error
+                    );
+
+                });
+
+        }
+
+    }
+
+    // ===============================
+    // SHOW TOAST
+    // ===============================
+
+    setToast({
+        message,
+        type,
+    });
+
+};
     // ===============================
     // Close Toast
     // ===============================

@@ -1,4 +1,9 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, {
+    useEffect,
+    useState,
+    useCallback,
+    useRef,
+} from "react";
 import axios from "axios";
 import Toast from "./Toast";
 
@@ -15,13 +20,76 @@ const Inventory = () => {
         message: "",
         type: "success",
     });
+// ==========================================
+// TOAST SOUND
+// ==========================================
 
-    const showToast = useCallback((message, type = "success") => {
-        setToast({
-            message,
-            type,
-        });
-    }, []);
+const successSoundRef = useRef(null);
+const errorSoundRef = useRef(null);
+
+useEffect(() => {
+    successSoundRef.current = new Audio("/success-tone.mp3");
+    successSoundRef.current.volume = 1.0;
+
+    errorSoundRef.current = new Audio("/error-tone.mp3");
+    errorSoundRef.current.volume = 1.0;
+
+    return () => {
+        successSoundRef.current = null;
+        errorSoundRef.current = null;
+    };
+}, []);
+const showToast = useCallback((message, type = "success") => {
+
+    // ==========================================
+    // PLAY TOAST SOUND
+    // ==========================================
+
+    if (type === "success") {
+
+        if (successSoundRef.current) {
+            successSoundRef.current.currentTime = 0;
+
+            successSoundRef.current
+                .play()
+                .catch((error) => {
+                    console.log(
+                        "Success sound could not play:",
+                        error
+                    );
+                });
+        }
+
+    } else if (
+        type === "error" ||
+        type === "warning"
+    ) {
+
+        if (errorSoundRef.current) {
+            errorSoundRef.current.currentTime = 0;
+
+            errorSoundRef.current
+                .play()
+                .catch((error) => {
+                    console.log(
+                        "Error sound could not play:",
+                        error
+                    );
+                });
+        }
+
+    }
+
+    // ==========================================
+    // SHOW TOAST
+    // ==========================================
+
+    setToast({
+        message,
+        type,
+    });
+
+}, []);
 
     const closeToast = useCallback(() => {
         setToast({

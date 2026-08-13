@@ -2,6 +2,7 @@ import React, {
     useEffect,
     useState,
     useCallback,
+    useRef,
 } from "react";
 
 import "../index.css";
@@ -21,14 +22,94 @@ const InvoiceItem = ({
     autoFocus,
 }) => {
 
+    // =====================================================
+    // TOAST
+    // =====================================================
+
     const [toast, setToast] = useState({
         message: "",
         type: "warning",
     });
 
-    // ===============================
-    // Show Toast
-    // ===============================
+    // =====================================================
+    // SOUND REFS
+    // =====================================================
+
+    const successSoundRef = useRef(null);
+
+    const errorSoundRef = useRef(null);
+
+    // =====================================================
+    // INITIALIZE SOUNDS
+    // =====================================================
+
+    useEffect(() => {
+
+        successSoundRef.current =
+            new Audio("/success-tone.mp3");
+
+        successSoundRef.current.volume = 1.0;
+
+        errorSoundRef.current =
+            new Audio("/error-tone.mp3");
+
+        errorSoundRef.current.volume = 1.0;
+
+    }, []);
+
+    // =====================================================
+    // PLAY SUCCESS SOUND
+    // =====================================================
+
+    const playSuccessSound = useCallback(() => {
+
+        if (!successSoundRef.current) {
+            return;
+        }
+
+        successSoundRef.current.currentTime = 0;
+
+        successSoundRef.current
+            .play()
+            .catch((error) => {
+
+                console.log(
+                    "Success sound could not play:",
+                    error
+                );
+
+            });
+
+    }, []);
+
+    // =====================================================
+    // PLAY ERROR SOUND
+    // =====================================================
+
+    const playErrorSound = useCallback(() => {
+
+        if (!errorSoundRef.current) {
+            return;
+        }
+
+        errorSoundRef.current.currentTime = 0;
+
+        errorSoundRef.current
+            .play()
+            .catch((error) => {
+
+                console.log(
+                    "Error sound could not play:",
+                    error
+                );
+
+            });
+
+    }, []);
+
+    // =====================================================
+    // SHOW TOAST
+    // =====================================================
 
     const showToast = useCallback(
         (message, type = "warning") => {
@@ -38,13 +119,35 @@ const InvoiceItem = ({
                 type,
             });
 
+            // =================================================
+            // SUCCESS → SUCCESS TONE
+            // ERROR → ERROR TONE
+            // WARNING → ERROR TONE
+            // =================================================
+
+            if (type === "success") {
+
+                playSuccessSound();
+
+            } else if (
+                type === "error" ||
+                type === "warning"
+            ) {
+
+                playErrorSound();
+
+            }
+
         },
-        []
+        [
+            playSuccessSound,
+            playErrorSound,
+        ]
     );
 
-    // ===============================
-    // Hide Toast
-    // ===============================
+    // =====================================================
+    // HIDE TOAST
+    // =====================================================
 
     const hideToast = useCallback(() => {
 
@@ -55,19 +158,19 @@ const InvoiceItem = ({
 
     }, []);
 
-    // ===============================
-    // Refs
-    // ===============================
+    // =====================================================
+    // REFS
+    // =====================================================
 
-    const itemRef = React.useRef(null);
+    const itemRef = useRef(null);
 
-    const qtyRef = React.useRef(null);
+    const qtyRef = useRef(null);
 
-    const priceRef = React.useRef(null);
+    const priceRef = useRef(null);
 
-    // ===============================
-    // Auto Focus
-    // ===============================
+    // =====================================================
+    // AUTO FOCUS
+    // =====================================================
 
     useEffect(() => {
 
@@ -77,28 +180,32 @@ const InvoiceItem = ({
         ) {
 
             itemRef.current.focus();
+
         }
 
     }, [autoFocus]);
 
-    // ===============================
-    // Delete Item
-    // ===============================
+    // =====================================================
+    // DELETE ITEM
+    // =====================================================
 
     const deleteItemHandler = (event) => {
 
         event.preventDefault();
 
         onDeleteItem(id);
+
     };
 
-    // ===============================
-    // Keyboard Navigation
-    // ===============================
+    // =====================================================
+    // KEYBOARD NAVIGATION
+    // =====================================================
 
     const handleKeyDown = (event) => {
 
-        // Delete current row
+        // =================================================
+        // DELETE CURRENT ROW
+        // =================================================
 
         if (
             event.key === "Delete"
@@ -109,19 +216,26 @@ const InvoiceItem = ({
             onDeleteItem(id);
 
             return;
+
         }
 
-        // Only handle Enter
+        // =================================================
+        // ONLY HANDLE ENTER
+        // =================================================
 
         if (
             event.key !== "Enter"
         ) {
+
             return;
+
         }
 
         event.preventDefault();
 
-        // Product → Quantity
+        // =================================================
+        // PRODUCT → QUANTITY
+        // =================================================
 
         if (
             event.target.name === "name"
@@ -130,9 +244,12 @@ const InvoiceItem = ({
             qtyRef.current?.focus();
 
             return;
+
         }
 
-        // Quantity → Next Item
+        // =================================================
+        // QUANTITY → NEXT ITEM
+        // =================================================
 
         if (
             event.target.name === "qty"
@@ -141,13 +258,14 @@ const InvoiceItem = ({
             onAddItem();
 
             return;
+
         }
 
     };
 
-    // ===============================
-    // Calculate Amount
-    // ===============================
+    // =====================================================
+    // CALCULATE AMOUNT
+    // =====================================================
 
     const calculatedAmount =
         Number(price || 0) *
@@ -155,17 +273,17 @@ const InvoiceItem = ({
             Number(qty || 0)
         );
 
-    // ===============================
+    // =====================================================
     // RETURN
-    // ===============================
+    // =====================================================
 
     return (
 
         <>
 
-            {/* =============================== */}
-            {/* TOAST */}
-            {/* =============================== */}
+            {/* =================================================
+                TOAST
+            ================================================= */}
 
             <Toast
                 message={toast.message}
@@ -173,15 +291,15 @@ const InvoiceItem = ({
                 onClose={hideToast}
             />
 
-            {/* =============================== */}
-            {/* ITEM ROW */}
-            {/* =============================== */}
+            {/* =================================================
+                ITEM ROW
+            ================================================= */}
 
             <tr>
 
-                {/* =============================== */}
-                {/* PRODUCT NAME */}
-                {/* =============================== */}
+                {/* =================================================
+                    PRODUCT NAME
+                ================================================= */}
 
                 <td className="min-w-[180px] p-1">
 
@@ -211,7 +329,9 @@ const InvoiceItem = ({
                                         key={opt.id}
                                         value={opt.name}
                                     >
+
                                         {opt.name}
+
                                     </option>
 
                                 )
@@ -221,9 +341,9 @@ const InvoiceItem = ({
 
                 </td>
 
-                {/* =============================== */}
-                {/* QUANTITY */}
-                {/* =============================== */}
+                {/* =================================================
+                    QUANTITY
+                ================================================= */}
 
                 <td className="min-w-[65px] md:min-w-[80px] p-1">
 
@@ -260,9 +380,9 @@ const InvoiceItem = ({
                                     e.target.value
                                 );
 
-                            // ===============================
+                            // =================================================
                             // STOCK VALIDATION
-                            // ===============================
+                            // =================================================
 
                             if (
                                 enteredQty >
@@ -275,15 +395,19 @@ const InvoiceItem = ({
                                 );
 
                                 return;
+
                             }
 
-                            // Prevent quantity below 1
+                            // =================================================
+                            // PREVENT QUANTITY BELOW 1
+                            // =================================================
 
                             if (
                                 enteredQty < 1
                             ) {
 
                                 return;
+
                             }
 
                             onEdtiItem(e);
@@ -297,9 +421,9 @@ const InvoiceItem = ({
 
                 </td>
 
-                {/* =============================== */}
-                {/* PRICE */}
-                {/* =============================== */}
+                {/* =================================================
+                    PRICE
+                ================================================= */}
 
                 <td className="relative min-w-[100px] md:min-w-[150px] p-1">
 
@@ -321,24 +445,27 @@ const InvoiceItem = ({
 
                 </td>
 
-                {/* =============================== */}
-                {/* AMOUNT */}
-                {/* =============================== */}
+                {/* =================================================
+                    AMOUNT
+                ================================================= */}
 
                 <td className="relative min-w-[100px] md:min-w-[150px] p-1">
 
                     <div className="w-full text-center rounded bg-gray-100 p-1">
-                    {Number(
-                        amount !== undefined
-                            ? amount
-                            : calculatedAmount
-                    ).toFixed(2)}
+
+                        {Number(
+                            amount !== undefined
+                                ? amount
+                                : calculatedAmount
+                        ).toFixed(2)}
+
                     </div>
+
                 </td>
 
-                {/* =============================== */}
-                {/* DELETE */}
-                {/* =============================== */}
+                {/* =================================================
+                    DELETE
+                ================================================= */}
 
                 <td className="p-1">
 
@@ -382,6 +509,7 @@ const InvoiceItem = ({
         </>
 
     );
+
 };
 
 export default InvoiceItem;
