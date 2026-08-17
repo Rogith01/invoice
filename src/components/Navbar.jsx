@@ -105,7 +105,14 @@ const Navbar = ({ onLogout }) => {
                             Invoices
                         </Link>
 
+{/* Cash Register */}
 
+<Link
+    to="/cash-register"
+    className="hover:text-gray-300"
+>
+    Cash Register
+</Link>
                         {/* Username */}
 
                         <span className="text-sm text-gray-300">
@@ -240,6 +247,16 @@ const Navbar = ({ onLogout }) => {
                     >
                         Invoices
                     </Link>
+
+                    {/* Cash Register */}
+
+<Link
+    className="p-3 border-b hover:bg-slate-600"
+    to="/cash-register"
+    onClick={() => setMenuOpen(false)}
+>
+    Cash Register
+</Link>
 
 
                     {/* Logout */}
