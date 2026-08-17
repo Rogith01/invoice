@@ -4,12 +4,15 @@ import React, {
     useRef,
     useCallback,
 } from "react";
+
 import { BrowserMultiFormatReader } from "@zxing/browser";
 import axios from "axios";
 import { uid } from "uid";
+
 import InvoiceItem from "./InvoiceItem";
 import InvoiceModal from "./InvoiceModal";
 import Toast from "./Toast";
+
 import "../index.css";
 
 const date = new Date();
@@ -117,45 +120,33 @@ const InvoiceForm = () => {
 
     useEffect(() => {
 
-        // ==========================================
-        // BARCODE SUCCESS BEEP
-        // ==========================================
+        // BARCODE SUCCESS
 
         scanSoundRef.current =
             new Audio("/barcode-beep.mp3");
 
         scanSoundRef.current.volume = 1.0;
 
-        // ==========================================
-        // BARCODE ERROR BEEP
-        // ==========================================
+        // BARCODE ERROR
 
         barcodeErrorSoundRef.current =
             new Audio("/barcode-error.mp3");
 
         barcodeErrorSoundRef.current.volume = 1.0;
 
-        // ==========================================
-        // NORMAL SUCCESS TOAST SOUND
-        // ==========================================
+        // NORMAL SUCCESS
 
         successSoundRef.current =
             new Audio("/success-tone.mp3");
 
         successSoundRef.current.volume = 1.0;
 
-        // ==========================================
-        // NORMAL ERROR / WARNING TOAST SOUND
-        // ==========================================
+        // NORMAL ERROR / WARNING
 
         toastErrorSoundRef.current =
             new Audio("/error-tone.mp3");
 
         toastErrorSoundRef.current.volume = 1.0;
-
-        // ==========================================
-        // CLEANUP
-        // ==========================================
 
         return () => {
 
@@ -229,6 +220,39 @@ const InvoiceForm = () => {
     ]);
 
     // ==========================================
+    // HOLD / RESUME BILL
+    // ==========================================
+
+    const [showHeldBills, setShowHeldBills] =
+        useState(false);
+
+    const [heldBills, setHeldBills] = useState(() => {
+
+        try {
+
+            const savedBills =
+                localStorage.getItem(
+                    "ak_held_bills"
+                );
+
+            return savedBills
+                ? JSON.parse(savedBills)
+                : [];
+
+        } catch (error) {
+
+            console.error(
+                "Error loading held bills:",
+                error
+            );
+
+            return [];
+
+        }
+
+    });
+
+    // ==========================================
     // TOAST
     // ==========================================
 
@@ -240,23 +264,6 @@ const InvoiceForm = () => {
     // ==========================================
     // SHOW TOAST
     // ==========================================
-    //
-    // playSound = true
-    //
-    // Normal success:
-    //     success-tone.mp3
-    //
-    // Normal error/warning:
-    //     error-tone.mp3
-    //
-    // Info:
-    //     no sound
-    //
-    // Barcode Toast:
-    //     playSound = false
-    //
-    // Because barcode has its own sound.
-    // ==========================================
 
     const showToast = useCallback(
         (
@@ -265,15 +272,7 @@ const InvoiceForm = () => {
             playSound = true
         ) => {
 
-            // ==========================================
-            // NORMAL TOAST SOUND
-            // ==========================================
-
             if (playSound) {
-
-                // ==========================================
-                // SUCCESS
-                // ==========================================
 
                 if (type === "success") {
 
@@ -295,10 +294,6 @@ const InvoiceForm = () => {
                     }
 
                 }
-
-                // ==========================================
-                // ERROR / WARNING
-                // ==========================================
 
                 else if (
                     type === "error" ||
@@ -326,10 +321,6 @@ const InvoiceForm = () => {
 
             }
 
-            // ==========================================
-            // SHOW TOAST
-            // ==========================================
-
             setToast({
                 message,
                 type,
@@ -351,6 +342,30 @@ const InvoiceForm = () => {
         });
 
     }, []);
+
+    // ==========================================
+    // SAVE HELD BILLS
+    // ==========================================
+
+    useEffect(() => {
+
+        try {
+
+            localStorage.setItem(
+                "ak_held_bills",
+                JSON.stringify(heldBills)
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Error saving held bills:",
+                error
+            );
+
+        }
+
+    }, [heldBills]);
 
     // ==========================================
     // FETCH CUSTOMER
@@ -405,6 +420,7 @@ const InvoiceForm = () => {
                     "Customer not found. You can continue as a new customer.",
                     "info"
                 );
+
             }
 
         } catch (err) {
@@ -426,7 +442,9 @@ const InvoiceForm = () => {
                 "Unable to find customer.",
                 "error"
             );
+
         }
+
     };
 
     // ==========================================
@@ -461,6 +479,7 @@ const InvoiceForm = () => {
                     }));
 
                 setItemOptions(products);
+
             }
 
         } catch (err) {
@@ -474,6 +493,7 @@ const InvoiceForm = () => {
                 "Failed to load products.",
                 "error"
             );
+
         }
 
     }, [showToast]);
@@ -496,6 +516,7 @@ const InvoiceForm = () => {
                 setInvoiceNumber(
                     response.data.invoiceNumber
                 );
+
             }
 
         } catch (error) {
@@ -509,6 +530,7 @@ const InvoiceForm = () => {
                 "Failed to generate invoice number.",
                 "error"
             );
+
         }
 
     }, [showToast]);
@@ -530,7 +552,9 @@ const InvoiceForm = () => {
                 event.preventDefault();
 
                 reviewBtnRef.current?.click();
+
             }
+
         };
 
         window.addEventListener(
@@ -562,19 +586,11 @@ const InvoiceForm = () => {
             "Stopping barcode scanner..."
         );
 
-        // ==========================================
-        // INVALIDATE CURRENT SCANNER SESSION
-        // ==========================================
-
         scannerSessionRef.current += 1;
 
         barcodeScanLockRef.current = true;
 
         scannerStartingRef.current = false;
-
-        // ==========================================
-        // CANCEL PENDING START TIMEOUT
-        // ==========================================
 
         if (scannerTimeoutRef.current) {
 
@@ -583,11 +599,8 @@ const InvoiceForm = () => {
             );
 
             scannerTimeoutRef.current = null;
-        }
 
-        // ==========================================
-        // STOP ZXING CONTROLS
-        // ==========================================
+        }
 
         if (scannerControlsRef.current) {
 
@@ -605,11 +618,8 @@ const InvoiceForm = () => {
             }
 
             scannerControlsRef.current = null;
-        }
 
-        // ==========================================
-        // RESET ZXING READER
-        // ==========================================
+        }
 
         if (codeReaderRef.current) {
 
@@ -627,11 +637,8 @@ const InvoiceForm = () => {
             }
 
             codeReaderRef.current = null;
-        }
 
-        // ==========================================
-        // STOP CAMERA STREAM
-        // ==========================================
+        }
 
         if (videoRef.current) {
 
@@ -659,11 +666,8 @@ const InvoiceForm = () => {
             }
 
             videoRef.current.srcObject = null;
-        }
 
-        // ==========================================
-        // CLOSE CAMERA MODAL
-        // ==========================================
+        }
 
         setShowScanner(false);
 
@@ -682,11 +686,8 @@ const InvoiceForm = () => {
             );
 
             return;
-        }
 
-        // ==========================================
-        // CLEAN OLD SCANNER
-        // ==========================================
+        }
 
         if (
             codeReaderRef.current ||
@@ -701,10 +702,6 @@ const InvoiceForm = () => {
             );
 
         }
-
-        // ==========================================
-        // CREATE NEW SESSION
-        // ==========================================
 
         const sessionId =
             scannerSessionRef.current + 1;
@@ -722,10 +719,6 @@ const InvoiceForm = () => {
             "Starting scanner session:",
             sessionId
         );
-
-        // ==========================================
-        // WAIT FOR VIDEO
-        // ==========================================
 
         scannerTimeoutRef.current =
             setTimeout(async () => {
@@ -770,29 +763,17 @@ const InvoiceForm = () => {
 
                 try {
 
-                    // ==========================================
-                    // CREATE ZXING READER
-                    // ==========================================
-
                     const codeReader =
                         new BrowserMultiFormatReader();
 
                     codeReaderRef.current =
                         codeReader;
 
-                    // ==========================================
-                    // START CAMERA
-                    // ==========================================
-
                     const controls =
                         await codeReader.decodeFromVideoDevice(
                             undefined,
                             videoRef.current,
                             (result, error) => {
-
-                                // ==========================================
-                                // IGNORE OLD SESSION
-                                // ==========================================
 
                                 if (
                                     sessionId !==
@@ -803,10 +784,6 @@ const InvoiceForm = () => {
 
                                 }
 
-                                // ==========================================
-                                // IGNORE AFTER SCAN
-                                // ==========================================
-
                                 if (
                                     barcodeScanLockRef.current
                                 ) {
@@ -815,19 +792,11 @@ const InvoiceForm = () => {
 
                                 }
 
-                                // ==========================================
-                                // NO RESULT
-                                // ==========================================
-
                                 if (!result) {
 
                                     return;
 
                                 }
-
-                                // ==========================================
-                                // LOCK IMMEDIATELY
-                                // ==========================================
 
                                 barcodeScanLockRef.current =
                                     true;
@@ -842,26 +811,14 @@ const InvoiceForm = () => {
                                     scannedBarcode
                                 );
 
-                                // ==========================================
-                                // PROCESS BARCODE
-                                // ==========================================
-
                                 handleBarcodeScan(
                                     scannedBarcode
                                 );
-
-                                // ==========================================
-                                // STOP CAMERA
-                                // ==========================================
 
                                 stopBarcodeScanner();
 
                             }
                         );
-
-                    // ==========================================
-                    // CHECK SESSION
-                    // ==========================================
 
                     if (
                         sessionId !==
@@ -926,6 +883,7 @@ const InvoiceForm = () => {
                 }
 
             }, 300);
+
     };
 
     // ==========================================
@@ -945,10 +903,6 @@ const InvoiceForm = () => {
 
             scannerStartingRef.current = false;
 
-            // ==========================================
-            // CANCEL TIMEOUT
-            // ==========================================
-
             if (scannerTimeoutRef.current) {
 
                 clearTimeout(
@@ -958,10 +912,6 @@ const InvoiceForm = () => {
                 scannerTimeoutRef.current = null;
 
             }
-
-            // ==========================================
-            // STOP ZXING CONTROLS
-            // ==========================================
 
             if (scannerControlsRef.current) {
 
@@ -979,10 +929,6 @@ const InvoiceForm = () => {
 
             }
 
-            // ==========================================
-            // RESET READER
-            // ==========================================
-
             if (codeReaderRef.current) {
 
                 try {
@@ -998,10 +944,6 @@ const InvoiceForm = () => {
                 codeReaderRef.current = null;
 
             }
-
-            // ==========================================
-            // STOP CAMERA
-            // ==========================================
 
             if (videoElement) {
 
@@ -1119,6 +1061,331 @@ const InvoiceForm = () => {
         taxRate;
 
     // ==========================================
+    // HOLD CURRENT BILL
+    // ==========================================
+
+    const holdBillHandler = () => {
+
+        // ==========================================
+        // VALID ITEMS
+        // ==========================================
+
+        const validItems = items.filter(
+            (item) =>
+                item.name &&
+                item.name.trim().length > 0
+        );
+
+        if (validItems.length === 0) {
+
+            showToast(
+                "Add at least one product before holding the bill.",
+                "warning"
+            );
+
+            return;
+
+        }
+
+        // ==========================================
+        // CHECK VALID QUANTITIES
+        // ==========================================
+
+        for (const item of validItems) {
+
+            const quantity =
+                Math.floor(
+                    Number(item.qty || 0)
+                );
+
+            if (quantity <= 0) {
+
+                showToast(
+                    `Please enter a valid quantity for ${item.name}.`,
+                    "warning"
+                );
+
+                return;
+
+            }
+
+        }
+
+        // ==========================================
+        // CREATE HELD BILL
+        // ==========================================
+
+        const heldBill = {
+
+            id: uid(8),
+
+            invoiceNumber,
+
+            cashierName,
+
+            customerName,
+
+            phoneNumber,
+
+            loyaltyPoints,
+
+            redeemPoints,
+
+            availablePoints,
+
+            redeemedAmount,
+
+            discount,
+
+            tax,
+
+            paymentMethod,
+
+            items: validItems.map((item) => ({
+                ...item,
+            })),
+
+            subtotal,
+
+            discountRate,
+
+            taxRate,
+
+            loyaltyDiscount,
+
+            total,
+
+            createdAt:
+                new Date().toISOString(),
+
+        };
+
+        // ==========================================
+        // SAVE HELD BILL
+        // ==========================================
+
+        setHeldBills((prevBills) => [
+
+            ...prevBills,
+
+            heldBill,
+
+        ]);
+
+        // ==========================================
+        // STOP SCANNER
+        // ==========================================
+
+        stopBarcodeScanner();
+
+        // ==========================================
+        // RESET CURRENT BILL
+        // ==========================================
+
+        setItems([
+            {
+                id: uid(6),
+                name: "",
+                qty: 1,
+                price: "0.00",
+                amount: 0,
+            },
+        ]);
+
+        setPhoneNumber("");
+
+        setCustomerName("");
+
+        setLoyaltyPoints(0);
+
+        setCashierName(
+            user?.username || ""
+        );
+
+        setRedeemPoints(false);
+
+        setAvailablePoints(0);
+
+        setRedeemedAmount(0);
+
+        setReviewTotal(0);
+
+        setDiscount("2");
+
+        setTax("5");
+
+        setPaymentMethod("Cash");
+
+        setBarcode("");
+
+        // ==========================================
+        // GET NEW INVOICE NUMBER
+        // ==========================================
+
+        fetchInvoiceNumber();
+
+        // ==========================================
+        // SUCCESS TOAST
+        // ==========================================
+
+        showToast(
+            `Bill ${invoiceNumber} has been held successfully.`,
+            "success"
+        );
+
+        // ==========================================
+        // FOCUS BARCODE
+        // ==========================================
+
+        setTimeout(() => {
+
+            barcodeInputRef.current?.focus();
+
+        }, 100);
+
+    };
+
+    // ==========================================
+    // RESUME HELD BILL
+    // ==========================================
+
+    const resumeBillHandler = (bill) => {
+
+        // ==========================================
+        // RESTORE INVOICE DATA
+        // ==========================================
+
+        setInvoiceNumber(
+            bill.invoiceNumber
+        );
+
+        setCashierName(
+            bill.cashierName ||
+                user?.username ||
+                ""
+        );
+
+        setCustomerName(
+            bill.customerName || ""
+        );
+
+        setPhoneNumber(
+            bill.phoneNumber || ""
+        );
+
+        setLoyaltyPoints(
+            Number(
+                bill.loyaltyPoints || 0
+            )
+        );
+
+        setRedeemPoints(
+            Boolean(
+                bill.redeemPoints
+            )
+        );
+
+        setAvailablePoints(
+            Number(
+                bill.availablePoints || 0
+            )
+        );
+
+        setRedeemedAmount(
+            Number(
+                bill.redeemedAmount || 0
+            )
+        );
+
+        setDiscount(
+            bill.discount ?? "2"
+        );
+
+        setTax(
+            bill.tax ?? "5"
+        );
+
+        setPaymentMethod(
+            bill.paymentMethod ||
+                "Cash"
+        );
+
+        // ==========================================
+        // RESTORE ITEMS
+        // ==========================================
+
+        setItems(
+            bill.items.map((item) => ({
+                ...item,
+                id: uid(6),
+            }))
+        );
+
+        // ==========================================
+        // REMOVE FROM HELD BILLS
+        // ==========================================
+
+        setHeldBills((prevBills) =>
+            prevBills.filter(
+                (heldBill) =>
+                    heldBill.id !== bill.id
+            )
+        );
+
+        // ==========================================
+        // CLOSE HELD BILLS MODAL
+        // ==========================================
+
+        setShowHeldBills(false);
+
+        // ==========================================
+        // CLEAR BARCODE
+        // ==========================================
+
+        setBarcode("");
+
+        // ==========================================
+        // FOCUS BARCODE
+        // ==========================================
+
+        setTimeout(() => {
+
+            barcodeInputRef.current?.focus();
+
+        }, 100);
+
+        // ==========================================
+        // SUCCESS TOAST
+        // ==========================================
+
+        showToast(
+            `Bill ${bill.invoiceNumber} resumed successfully.`,
+            "success"
+        );
+
+    };
+
+    // ==========================================
+    // DELETE HELD BILL
+    // ==========================================
+
+    const deleteHeldBillHandler = (billId) => {
+
+        setHeldBills((prevBills) =>
+            prevBills.filter(
+                (bill) =>
+                    bill.id !== billId
+            )
+        );
+
+        showToast(
+            "Held bill deleted successfully.",
+            "success"
+        );
+
+    };
+
+    // ==========================================
     // REVIEW INVOICE
     // ==========================================
 
@@ -1206,8 +1473,10 @@ const InvoiceForm = () => {
         }
 
         // ==========================================
-        // CHECK STOCK
+        // CHECK TOTAL STOCK
         // ==========================================
+
+        const requestedStock = {};
 
         for (const item of validItems) {
 
@@ -1216,6 +1485,10 @@ const InvoiceForm = () => {
                     (opt) =>
                         opt.name === item.name
                 );
+
+            // ==========================================
+            // PRODUCT NOT FOUND
+            // ==========================================
 
             if (!product) {
 
@@ -1227,6 +1500,10 @@ const InvoiceForm = () => {
                 return;
 
             }
+
+            // ==========================================
+            // QUANTITY
+            // ==========================================
 
             const requestedQty =
                 Math.floor(
@@ -1244,13 +1521,56 @@ const InvoiceForm = () => {
 
             }
 
+            // ==========================================
+            // ADD TO TOTAL REQUESTED STOCK
+            // ==========================================
+
             if (
-                requestedQty >
-                Number(product.stock || 0)
+                requestedStock[item.name]
+            ) {
+
+                requestedStock[item.name] +=
+                    requestedQty;
+
+            } else {
+
+                requestedStock[item.name] =
+                    requestedQty;
+
+            }
+
+        }
+
+        // ==========================================
+        // COMPARE STOCK
+        // ==========================================
+
+        for (
+            const productName
+            in requestedStock
+        ) {
+
+            const product =
+                itemOptions.find(
+                    (opt) =>
+                        opt.name === productName
+                );
+
+            const totalRequested =
+                requestedStock[productName];
+
+            const availableStock =
+                Number(
+                    product.stock || 0
+                );
+
+            if (
+                totalRequested >
+                availableStock
             ) {
 
                 showToast(
-                    `Only ${product.stock} stock available for ${item.name}.`,
+                    `Only ${availableStock} stock available for ${productName}. You requested ${totalRequested}.`,
                     "warning"
                 );
 
@@ -1266,7 +1586,9 @@ const InvoiceForm = () => {
 
         const invoiceLoyaltyDiscount =
             redeemPoints
-                ? Number(availablePoints || 0)
+                ? Number(
+                    availablePoints || 0
+                )
                 : 0;
 
         // ==========================================
@@ -1288,14 +1610,19 @@ const InvoiceForm = () => {
 
                 const itemQty =
                     Math.floor(
-                        Number(item.qty || 0)
+                        Number(
+                            item.qty || 0
+                        )
                     );
 
                 const itemPrice =
-                    Number(item.price || 0);
+                    Number(
+                        item.price || 0
+                    );
 
                 const itemAmount =
-                    itemPrice * itemQty;
+                    itemPrice *
+                    itemQty;
 
                 return {
                     ...item,
@@ -1387,9 +1714,7 @@ const InvoiceForm = () => {
             setIsOpen(true);
 
             // ==========================================
-            // NORMAL SUCCESS TOAST
-            //
-            // This DOES play success-tone.mp3
+            // SUCCESS TOAST
             // ==========================================
 
             showToast(
@@ -1421,6 +1746,8 @@ const InvoiceForm = () => {
     const addNextInvoiceHandler = async () => {
 
         stopBarcodeScanner();
+
+        setShowHeldBills(false);
 
         await fetchInvoiceNumber();
 
@@ -1465,9 +1792,6 @@ const InvoiceForm = () => {
             barcodeInputRef.current?.focus();
 
         }, 100);
-
-        // INFO TOAST
-        // No sound
 
         showToast(
             "Ready for a new invoice.",
@@ -1557,10 +1881,6 @@ const InvoiceForm = () => {
         const scannedBarcode =
             String(value || "").trim();
 
-        // ==========================================
-        // EMPTY BARCODE
-        // ==========================================
-
         if (!scannedBarcode) {
 
             return;
@@ -1590,11 +1910,7 @@ const InvoiceForm = () => {
 
         if (!product) {
 
-            // BARCODE ERROR SOUND ONLY
-
             playBarcodeErrorSound();
-
-            // SHOW WARNING WITHOUT TOAST SOUND
 
             showToast(
                 `No product found for barcode: ${scannedBarcode}`,
@@ -1622,11 +1938,7 @@ const InvoiceForm = () => {
             Number(product.stock) <= 0
         ) {
 
-            // BARCODE ERROR SOUND ONLY
-
             playBarcodeErrorSound();
-
-            // SHOW WARNING WITHOUT TOAST SOUND
 
             showToast(
                 `${product.name} is out of stock.`,
@@ -1669,20 +1981,12 @@ const InvoiceForm = () => {
                     )
                 );
 
-            // ==========================================
-            // STOCK LIMIT
-            // ==========================================
-
             if (
                 currentQty + 1 >
                 Number(product.stock)
             ) {
 
-                // BARCODE ERROR SOUND ONLY
-
                 playBarcodeErrorSound();
-
-                // WARNING TOAST WITHOUT SOUND
 
                 showToast(
                     `Only ${product.stock} stock available for ${product.name}.`,
@@ -1701,10 +2005,6 @@ const InvoiceForm = () => {
                 return;
 
             }
-
-            // ==========================================
-            // INCREASE QTY
-            // ==========================================
 
             const newQty =
                 currentQty + 1;
@@ -1749,20 +2049,12 @@ const InvoiceForm = () => {
 
             setItems((prevItems) => {
 
-                // ==========================================
-                // FIND EMPTY ROW
-                // ==========================================
-
                 const firstEmptyItem =
                     prevItems.find(
                         (item) =>
                             !item.name ||
                             item.name.trim() === ""
                     );
-
-                // ==========================================
-                // USE EMPTY ROW
-                // ==========================================
 
                 if (firstEmptyItem) {
 
@@ -1800,10 +2092,6 @@ const InvoiceForm = () => {
 
                 }
 
-                // ==========================================
-                // ADD NEW ROW
-                // ==========================================
-
                 return [
 
                     ...prevItems,
@@ -1832,16 +2120,9 @@ const InvoiceForm = () => {
 
         // ==========================================
         // BARCODE SUCCESS SOUND
-        //
-        // IMPORTANT:
-        // Do NOT play normal success tone.
         // ==========================================
 
         playBarcodeSuccessSound();
-
-        // ==========================================
-        // SUCCESS TOAST WITHOUT NORMAL SOUND
-        // ==========================================
 
         showToast(
             `${product.name} added successfully.`,
@@ -1849,15 +2130,7 @@ const InvoiceForm = () => {
             false
         );
 
-        // ==========================================
-        // CLEAR BARCODE
-        // ==========================================
-
         setBarcode("");
-
-        // ==========================================
-        // FOCUS BARCODE INPUT
-        // ==========================================
 
         setTimeout(() => {
 
@@ -1894,6 +2167,268 @@ const InvoiceForm = () => {
             value,
         } = event.target;
 
+        // ==========================================
+        // PRODUCT NAME CHANGED
+        // ==========================================
+
+        if (
+            name === "name"
+        ) {
+
+            const selectedItem =
+                itemOptions.find(
+                    (opt) =>
+                        opt.name === value
+                );
+
+            // ==========================================
+            // EMPTY PRODUCT
+            // ==========================================
+
+            if (!selectedItem) {
+
+                setItems((prevItems) =>
+                    prevItems.map((item) => {
+
+                        if (
+                            item.id === id
+                        ) {
+
+                            return {
+                                ...item,
+                                name: value,
+                                qty: 1,
+                                price: "0.00",
+                                amount: 0,
+                            };
+
+                        }
+
+                        return item;
+
+                    })
+                );
+
+                return;
+
+            }
+
+            // ==========================================
+            // STOCK VALIDATION
+            // ==========================================
+
+            const existingQuantity =
+                items.reduce(
+                    (totalQuantity, item) => {
+
+                        if (
+                            item.id === id
+                        ) {
+
+                            return totalQuantity;
+
+                        }
+
+                        if (
+                            item.name ===
+                            selectedItem.name
+                        ) {
+
+                            return (
+                                totalQuantity +
+                                Math.floor(
+                                    Number(
+                                        item.qty || 0
+                                    )
+                                )
+                            );
+
+                        }
+
+                        return totalQuantity;
+
+                    },
+                    0
+                );
+
+            const newTotalQuantity =
+                existingQuantity + 1;
+
+            const availableStock =
+                Number(
+                    selectedItem.stock || 0
+                );
+
+            // ==========================================
+            // STOCK EXCEEDED
+            // ==========================================
+
+            if (
+                newTotalQuantity >
+                availableStock
+            ) {
+
+                showToast(
+                    `Only ${availableStock} stock available for ${selectedItem.name}. You already added ${existingQuantity}.`,
+                    "warning"
+                );
+
+                return;
+
+            }
+
+            // ==========================================
+            // PRODUCT CAN BE ADDED
+            // ==========================================
+
+            setItems((prevItems) =>
+                prevItems.map((item) => {
+
+                    if (
+                        item.id === id
+                    ) {
+
+                        return {
+
+                            ...item,
+
+                            name:
+                                selectedItem.name,
+
+                            qty: 1,
+
+                            price:
+                                selectedItem.price,
+
+                            amount:
+                                selectedItem.price,
+
+                        };
+
+                    }
+
+                    return item;
+
+                })
+            );
+
+            return;
+
+        }
+
+        // ==========================================
+        // QUANTITY CHANGED
+        // ==========================================
+
+        if (
+            name === "qty"
+        ) {
+
+            const enteredQty =
+                Math.floor(
+                    Number(value || 0)
+                );
+
+            const currentItem =
+                items.find(
+                    (item) =>
+                        item.id === id
+                );
+
+            if (!currentItem) {
+
+                return;
+
+            }
+
+            const selectedProduct =
+                itemOptions.find(
+                    (opt) =>
+                        opt.name ===
+                        currentItem.name
+                );
+
+            if (!selectedProduct) {
+
+                return;
+
+            }
+
+            // ==========================================
+            // COUNT QUANTITY OF SAME PRODUCT
+            // ==========================================
+
+            const otherRowsQuantity =
+                items.reduce(
+                    (totalQuantity, item) => {
+
+                        if (
+                            item.id === id
+                        ) {
+
+                            return totalQuantity;
+
+                        }
+
+                        if (
+                            item.name ===
+                            currentItem.name
+                        ) {
+
+                            return (
+                                totalQuantity +
+                                Math.floor(
+                                    Number(
+                                        item.qty || 0
+                                    )
+                                )
+                            );
+
+                        }
+
+                        return totalQuantity;
+
+                    },
+                    0
+                );
+
+            // ==========================================
+            // TOTAL REQUESTED
+            // ==========================================
+
+            const totalRequestedQuantity =
+                otherRowsQuantity +
+                enteredQty;
+
+            const availableStock =
+                Number(
+                    selectedProduct.stock || 0
+                );
+
+            // ==========================================
+            // STOCK EXCEEDED
+            // ==========================================
+
+            if (
+                totalRequestedQuantity >
+                availableStock
+            ) {
+
+                showToast(
+                    `Only ${availableStock} stock available for ${currentItem.name}. You already added ${otherRowsQuantity}.`,
+                    "warning"
+                );
+
+                return;
+
+            }
+
+        }
+
+        // ==========================================
+        // NORMAL ITEM UPDATE
+        // ==========================================
+
         const updatedItems =
             items.map((item) => {
 
@@ -1903,36 +2438,6 @@ const InvoiceForm = () => {
                         ...item,
                         [name]: value,
                     };
-
-                    // ==========================================
-                    // PRODUCT SELECTED
-                    // ==========================================
-
-                    if (
-                        name === "name"
-                    ) {
-
-                        const selectedItem =
-                            itemOptions.find(
-                                (opt) =>
-                                    opt.name ===
-                                    value
-                            );
-
-                        if (selectedItem) {
-
-                            newItem.price =
-                                selectedItem.price;
-
-                            newItem.qty = 1;
-
-                        }
-
-                    }
-
-                    // ==========================================
-                    // CALCULATE AMOUNT
-                    // ==========================================
 
                     const itemPrice =
                         Number(
@@ -2028,7 +2533,60 @@ const InvoiceForm = () => {
                     </div>
 
                 </div>
+{/* ==========================================
+    HOLD / RESUME BILL
+========================================== */}
 
+<div className="mt-3 flex flex-wrap gap-2">
+
+    {/* HOLD BILL */}
+
+    <button
+        type="button"
+        onClick={holdBillHandler}
+        className="inline-flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-3 py-1.5 rounded-md shadow-sm transition-all duration-200"
+    >
+
+        <span className="text-sm">
+            ⏸
+        </span>
+
+        <span>
+            Hold Bill
+        </span>
+
+    </button>
+
+
+    {/* RESUME BILL */}
+
+    <button
+        type="button"
+        onClick={() =>
+            setShowHeldBills(true)
+        }
+        className="inline-flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold px-3 py-1.5 rounded-md shadow-sm transition-all duration-200"
+    >
+
+        <span className="text-sm">
+            ▶
+        </span>
+
+        <span>
+            Resume Bill
+        </span>
+
+        {heldBills.length > 0 && (
+
+            <span className="bg-white text-purple-700 text-[11px] font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
+                {heldBills.length}
+            </span>
+
+        )}
+
+    </button>
+
+</div>
                 {/* ==========================================
                     INVOICE NUMBER
                 ========================================== */}
@@ -2379,7 +2937,7 @@ const InvoiceForm = () => {
                                         autoFocus={
                                             index ===
                                             items.length -
-                                            1
+                                                1
                                         }
                                     />
 
@@ -2605,6 +3163,255 @@ const InvoiceForm = () => {
             </form>
 
             {/* ==========================================
+                HELD BILLS MODAL
+            ========================================== */}
+
+            {showHeldBills && (
+
+                <div className="fixed inset-0 z-[9998] bg-black/60 flex items-center justify-center p-4">
+
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden">
+
+                        {/* ==========================================
+                            MODAL HEADER
+                        ========================================== */}
+
+                        <div className="flex items-center justify-between p-5 border-b">
+
+                            <div>
+
+                                <h2 className="text-xl font-bold text-gray-800">
+                                    Held Bills
+                                </h2>
+
+                                <p className="text-sm text-gray-500 mt-1">
+                                    Select a bill to continue billing.
+                                </p>
+
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    setShowHeldBills(false)
+                                }
+                                className="text-gray-500 hover:text-red-600 text-3xl leading-none"
+                            >
+                                ×
+                            </button>
+
+                        </div>
+
+                        {/* ==========================================
+                            MODAL BODY
+                        ========================================== */}
+
+                        <div className="p-5 overflow-y-auto max-h-[60vh]">
+
+                            {heldBills.length === 0 ? (
+
+                                <div className="text-center py-12">
+
+                                    <div className="text-5xl mb-4">
+                                        🛒
+                                    </div>
+
+                                    <h3 className="text-lg font-semibold text-gray-700">
+                                        No Held Bills
+                                    </h3>
+
+                                    <p className="text-sm text-gray-500 mt-1">
+                                        Bills that you hold will appear here.
+                                    </p>
+
+                                </div>
+
+                            ) : (
+
+                                <div className="space-y-3">
+
+                                    {heldBills
+                                        .slice()
+                                        .reverse()
+                                        .map((bill) => {
+
+                                            const itemCount =
+                                                bill.items.reduce(
+                                                    (
+                                                        itemTotal,
+                                                        item
+                                                    ) =>
+                                                        itemTotal +
+                                                        Number(
+                                                            item.qty ||
+                                                                0
+                                                        ),
+                                                    0
+                                                );
+
+                                            const heldTime =
+                                                new Date(
+                                                    bill.createdAt
+                                                ).toLocaleTimeString(
+                                                    "en-GB",
+                                                    {
+                                                        hour: "2-digit",
+                                                        minute: "2-digit",
+                                                    }
+                                                );
+
+                                            const heldDate =
+                                                new Date(
+                                                    bill.createdAt
+                                                ).toLocaleDateString(
+                                                    "en-GB"
+                                                );
+
+                                            return (
+
+                                                <div
+                                                    key={bill.id}
+                                                    className="border rounded-xl p-4 hover:bg-gray-50 transition"
+                                                >
+
+                                                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+
+                                                        {/* ==========================================
+                                                            BILL INFORMATION
+                                                        ========================================== */}
+
+                                                        <div className="flex-1">
+
+                                                            <div className="flex items-center gap-2">
+
+                                                                <h3 className="font-bold text-gray-800">
+                                                                    {bill.invoiceNumber}
+                                                                </h3>
+
+                                                                <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full font-semibold">
+                                                                    HELD
+                                                                </span>
+
+                                                            </div>
+
+                                                            <p className="text-sm text-gray-600 mt-1">
+
+                                                                Customer:{" "}
+
+                                                                <span className="font-semibold">
+                                                                    {bill.customerName ||
+                                                                        "Walk-in Customer"}
+                                                                </span>
+
+                                                            </p>
+
+                                                            <p className="text-sm text-gray-500">
+
+                                                                {itemCount} item
+                                                                {itemCount !==
+                                                                1
+                                                                    ? "s"
+                                                                    : ""}{" "}
+                                                                •{" "}
+                                                                {heldDate}{" "}
+                                                                •{" "}
+                                                                {heldTime}
+
+                                                            </p>
+
+                                                        </div>
+
+                                                        {/* ==========================================
+                                                            TOTAL
+                                                        ========================================== */}
+
+                                                        <div className="text-left md:text-right">
+
+                                                            <p className="text-lg font-bold text-blue-600">
+
+                                                                ₹{" "}
+                                                                {Number(
+                                                                    bill.total ||
+                                                                        0
+                                                                ).toFixed(
+                                                                    2
+                                                                )}
+
+                                                            </p>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                    {/* ==========================================
+                                                        ACTIONS
+                                                    ========================================== */}
+
+                                                    <div className="flex gap-2 mt-4">
+
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                resumeBillHandler(
+                                                                    bill
+                                                                )
+                                                            }
+                                                            className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-lg transition"
+                                                        >
+                                                            ▶ Resume
+                                                        </button>
+
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                deleteHeldBillHandler(
+                                                                    bill.id
+                                                                )
+                                                            }
+                                                            className="flex-1 px-5 bg-red-100 hover:bg-red-200 text-red-700 px-4 font-semibold py-2 rounded-lg transition"
+                                                        >
+                                                            Delete
+                                                        </button>
+
+                                                    </div>
+
+                                                </div>
+
+                                            );
+
+                                        })}
+
+                                </div>
+
+                            )}
+
+                        </div>
+
+                        {/* ==========================================
+                            MODAL FOOTER
+                        ========================================== */}
+
+                        <div className="border-t p-4">
+
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    setShowHeldBills(false)
+                                }
+                                className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 rounded-lg transition"
+                            >
+                                Close
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            )}
+
+            {/* ==========================================
                 CAMERA BARCODE SCANNER
             ========================================== */}
 
@@ -2613,8 +3420,6 @@ const InvoiceForm = () => {
                 <div className="fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center p-4">
 
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-
-                        {/* HEADER */}
 
                         <div className="flex items-center justify-between p-4 border-b">
 
@@ -2642,8 +3447,6 @@ const InvoiceForm = () => {
 
                         </div>
 
-                        {/* CAMERA */}
-
                         <div className="relative bg-black">
 
                             <video
@@ -2653,8 +3456,6 @@ const InvoiceForm = () => {
                                 muted
                                 playsInline
                             />
-
-                            {/* SCANNER FRAME */}
 
                             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
 
@@ -2667,8 +3468,6 @@ const InvoiceForm = () => {
                             </div>
 
                         </div>
-
-                        {/* FOOTER */}
 
                         <div className="p-4">
 
@@ -2732,7 +3531,9 @@ const InvoiceForm = () => {
             />
 
         </div>
+
     );
+
 };
 
 export default InvoiceForm;
