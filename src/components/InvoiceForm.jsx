@@ -82,6 +82,9 @@ const InvoiceForm = () => {
     const [paymentMethod, setPaymentMethod] =
         useState("Cash");
 
+    const [cashReceived, setCashReceived] =
+    useState("");
+
     // ==========================================
     // PRODUCTS
     // ==========================================
@@ -1059,7 +1062,22 @@ const InvoiceForm = () => {
         discountRate -
         loyaltyDiscount +
         taxRate;
+// ==========================================
+// CASH CHANGE
+// ==========================================
 
+const changeAmount =
+    paymentMethod === "Cash"
+        ? Math.max(
+            0,
+            Number(cashReceived || 0) - total
+        )
+        : 0;
+
+const insufficientCash =
+    paymentMethod === "Cash" &&
+    cashReceived !== "" &&
+    Number(cashReceived) < total;
     // ==========================================
     // HOLD CURRENT BILL
     // ==========================================
@@ -1215,6 +1233,8 @@ const InvoiceForm = () => {
         setTax("5");
 
         setPaymentMethod("Cash");
+
+        setCashReceived("");
 
         setBarcode("");
 
@@ -1392,6 +1412,41 @@ const InvoiceForm = () => {
     const reviewInvoiceHandler = async (event) => {
 
         event.preventDefault();
+
+        // ==========================================
+// CASH PAYMENT VALIDATION
+// ==========================================
+
+if (paymentMethod === "Cash") {
+
+    if (
+        cashReceived === "" ||
+        Number(cashReceived) <= 0
+    ) {
+
+        showToast(
+            "Please enter the cash received from customer.",
+            "warning"
+        );
+
+        return;
+
+    }
+
+    if (
+        Number(cashReceived) < total
+    ) {
+
+        showToast(
+            `Insufficient cash. Customer needs to pay ₹${total.toFixed(2)}.`,
+            "warning"
+        );
+
+        return;
+
+    }
+
+}
 
         // ==========================================
         // CUSTOMER NAME VALIDATION
@@ -1784,6 +1839,8 @@ const InvoiceForm = () => {
         setTax("5");
 
         setPaymentMethod("Cash");
+
+        setCashReceived("");
 
         setBarcode("");
 
@@ -3079,42 +3136,107 @@ const InvoiceForm = () => {
 
                     </div>
 
-                    {/* ==========================================
-                        PAYMENT METHOD
-                    ========================================== */}
 
-                    <div className="w-full mt-2">
+{/* ==========================================
+    PAYMENT METHOD
+========================================== */}
 
-                        <label
-                            htmlFor="paymentMethod"
-                            className="font-bold"
-                        >
-                            Payment Method:
-                        </label>
+<div className="w-full mt-2">
 
-                        <select
-                            id="paymentMethod"
-                            value={paymentMethod}
-                            onChange={(e) =>
-                                setPaymentMethod(
-                                    e.target.value
-                                )
-                            }
-                            className="w-full border rounded px-3 py-2 mt-1"
-                        >
+    <label
+        htmlFor="paymentMethod"
+        className="font-bold"
+    >
+        Payment Method:
+    </label>
 
-                            <option value="Cash">
-                                Cash
-                            </option>
+    <select
+        id="paymentMethod"
+        value={paymentMethod}
+        onChange={(e) => {
 
-                            <option value="Online">
-                                Online
-                            </option>
+            const method = e.target.value;
 
-                        </select>
+            setPaymentMethod(method);
 
-                    </div>
+            if (method !== "Cash") {
+                setCashReceived("");
+            }
 
+        }}
+        className="w-full border rounded px-3 py-2 mt-1"
+    >
+
+        <option value="Cash">
+            Cash
+        </option>
+
+        <option value="Online">
+            Online
+        </option>
+
+    </select>
+
+</div>
+
+
+{/* ==========================================
+    CASH PAYMENT
+========================================== */}
+
+{paymentMethod === "Cash" && (
+
+    <div className="w-full mt-3">
+
+        <label
+            htmlFor="cashReceived"
+            className="font-bold"
+        >
+            Cash Received:
+        </label>
+
+        <input
+            type="number"
+            id="cashReceived"
+            min="0"
+            step="0.01"
+            value={cashReceived}
+            onChange={(e) =>
+                setCashReceived(
+                    e.target.value
+                )
+            }
+            placeholder="Enter amount received"
+            className="w-full border rounded px-3 py-2 mt-1"
+        />
+
+        {/* INSUFFICIENT CASH */}
+
+        {insufficientCash && (
+
+            <p className="text-red-600 text-sm font-semibold mt-1">
+                ⚠ Insufficient cash amount.
+            </p>
+
+        )}
+
+        {/* CHANGE */}
+
+        <div className="flex justify-between w-full mt-3 bg-green-50 border border-green-200 rounded-lg px-3 py-3">
+
+            <span className="font-bold text-green-700">
+                Change to Return:
+            </span>
+
+            <span className="font-bold text-green-700">
+                ₹ {changeAmount.toFixed(2)}
+            </span>
+
+        </div>
+
+    </div>
+
+)}
                     {/* ==========================================
                         GRAND TOTAL
                     ========================================== */}
