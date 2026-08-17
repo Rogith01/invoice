@@ -114,19 +114,76 @@ const CashRegister = () => {
 
             }
         };
+// ==================================================
+// FETCH CURRENT OPEN REGISTER
+// ==================================================
 
+const fetchCurrentRegister = async () => {
+
+    try {
+
+        const token =
+            sessionStorage.getItem("token");
+
+        const response =
+            await axios.get(
+                `${API_URL}/api/cash-register/current`,
+                {
+                    headers: {
+                        Authorization:
+                            `Bearer ${token}`
+                    }
+                }
+            );
+
+        if (
+            response.data.success
+        ) {
+
+            if (
+                response.data.registerOpen
+            ) {
+
+                const register =
+                    response.data.register;
+
+                setRegisterOpen(true);
+
+                setOpeningCash(
+                    Number(
+                        register.opening_cash || 0
+                    ).toString()
+                );
+
+            } else {
+
+                setRegisterOpen(false);
+
+                setOpeningCash("");
+
+            }
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Current Register Error:",
+            error
+        );
+
+    }
+
+};
 
     // ==================================================
     // INITIAL LOAD
     // ==================================================
 
-    useEffect(() => {
-
-        fetchCashRegisterSummary();
-
-    }, []);
-
-
+useEffect(() => {
+    fetchCashRegisterSummary();
+    fetchCurrentRegister();
+}, []);
     // ==================================================
     // EXPECTED CASH
     // ==================================================

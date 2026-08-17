@@ -3519,7 +3519,7 @@ app.post("/api/login", (req, res) => {
         }
     );
 });
-// ======================================================
+/// ======================================================
 // TEST ROUTE
 // ======================================================
 
@@ -3570,6 +3570,7 @@ app.get(
                         success: false,
                         message: err.message
                     });
+
                 }
 
                 summary.cashSales =
@@ -3605,6 +3606,7 @@ app.get(
                                 success: false,
                                 message: err.message
                             });
+
                         }
 
                         summary.onlineSales =
@@ -3642,6 +3644,7 @@ app.get(
                                         success: false,
                                         message: err.message
                                     });
+
                                 }
 
                                 summary.refunds =
@@ -3664,6 +3667,88 @@ app.get(
 
                     }
                 );
+
+            }
+        );
+
+    }
+);
+
+
+// ======================================================
+// CASH REGISTER - CURRENT OPEN REGISTER
+// ======================================================
+
+app.get(
+    "/api/cash-register/current",
+    authenticateToken,
+    (req, res) => {
+
+        const cashierName =
+            req.user.username;
+
+        const sql = `
+            SELECT
+                id,
+                cashier_name,
+                opening_cash,
+                opening_time,
+                actual_cash,
+                expected_cash,
+                difference,
+                closing_time,
+                status
+            FROM cash_registers
+            WHERE cashier_name = ?
+            AND status = 'OPEN'
+            ORDER BY id DESC
+            LIMIT 1
+        `;
+
+        db.query(
+            sql,
+            [cashierName],
+            (err, rows) => {
+
+                if (err) {
+
+                    console.error(
+                        "Current Cash Register Error:",
+                        err
+                    );
+
+                    return res.status(500).json({
+                        success: false,
+                        message: err.message
+                    });
+
+                }
+
+
+                // ==================================================
+                // NO OPEN REGISTER
+                // ==================================================
+
+                if (rows.length === 0) {
+
+                    return res.json({
+                        success: true,
+                        registerOpen: false,
+                        register: null
+                    });
+
+                }
+
+
+                // ==================================================
+                // OPEN REGISTER FOUND
+                // ==================================================
+
+                res.json({
+                    success: true,
+                    registerOpen: true,
+                    register: rows[0]
+                });
 
             }
         );
@@ -3736,6 +3821,7 @@ app.post(
 
                 }
 
+
                 if (rows.length > 0) {
 
                     return res.status(400).json({
@@ -3784,6 +3870,7 @@ app.post(
                             });
 
                         }
+
 
                         res.json({
                             success: true,
@@ -3870,6 +3957,7 @@ app.post(
 
                 }
 
+
                 if (rows.length === 0) {
 
                     return res.status(400).json({
@@ -3879,6 +3967,7 @@ app.post(
                     });
 
                 }
+
 
                 const register =
                     rows[0];
@@ -3917,6 +4006,7 @@ app.post(
 
                         }
 
+
                         const cashSales =
                             Number(
                                 cashRows[0].cashSales || 0
@@ -3949,6 +4039,7 @@ app.post(
                                     });
 
                                 }
+
 
                                 const refunds =
                                     Number(
@@ -4008,6 +4099,7 @@ app.post(
                                             });
 
                                         }
+
 
                                         res.json({
                                             success: true,
