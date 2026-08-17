@@ -3758,6 +3758,58 @@ app.get(
 
 
 // ======================================================
+// CASH REGISTER - HISTORY
+// ======================================================
+
+app.get(
+    "/api/cash-register/history",
+    authenticateToken,
+    (req, res) => {
+
+        const sql = `
+            SELECT
+                id,
+                cashier_name,
+                opening_cash,
+                opening_time,
+                actual_cash,
+                expected_cash,
+                difference,
+                closing_time,
+                status
+            FROM cash_registers
+            ORDER BY id DESC
+        `;
+
+        db.query(
+            sql,
+            (err, rows) => {
+
+                if (err) {
+
+                    console.error(
+                        "Cash Register History Error:",
+                        err
+                    );
+
+                    return res.status(500).json({
+                        success: false,
+                        message: err.message
+                    });
+
+                }
+
+                res.json({
+                    success: true,
+                    history: rows
+                });
+
+            }
+        );
+
+    }
+);
+// ======================================================
 // OPEN CASH REGISTER
 // ======================================================
 
