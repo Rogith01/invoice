@@ -4,11 +4,15 @@ import React, {
 } from "react";
 
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const API_URL =
     "https://invoice-backend-78hd.onrender.com";
 
 const CashRegister = () => {
+
+    const navigate = useNavigate();
+
 
     // ==================================================
     // STATES
@@ -43,11 +47,27 @@ const CashRegister = () => {
 
 
     // ==================================================
+    // OWNER TAKES AMOUNT STATES
+    // ==================================================
+
+    const [ownerTakenAmount, setOwnerTakenAmount] =
+        useState("");
+
+    const [ownerTakeSaved, setOwnerTakeSaved] =
+        useState(false);
+
+    const [remainingCash, setRemainingCash] =
+        useState(null);
+
+
+    // ==================================================
     // TOKEN
     // ==================================================
 
     const getToken = () => {
+
         return sessionStorage.getItem("token");
+
     };
 
 
@@ -113,77 +133,87 @@ const CashRegister = () => {
                 );
 
             }
+
         };
-// ==================================================
-// FETCH CURRENT OPEN REGISTER
-// ==================================================
 
-const fetchCurrentRegister = async () => {
 
-    try {
+    // ==================================================
+    // FETCH CURRENT OPEN REGISTER
+    // ==================================================
 
-        const token =
-            sessionStorage.getItem("token");
+    const fetchCurrentRegister =
+        async () => {
 
-        const response =
-            await axios.get(
-                `${API_URL}/api/cash-register/current`,
-                {
-                    headers: {
-                        Authorization:
-                            `Bearer ${token}`
+            try {
+
+                const token =
+                    sessionStorage.getItem("token");
+
+                const response =
+                    await axios.get(
+                        `${API_URL}/api/cash-register/current`,
+                        {
+                            headers: {
+                                Authorization:
+                                    `Bearer ${token}`
+                            }
+                        }
+                    );
+
+                if (
+                    response.data.success
+                ) {
+
+                    if (
+                        response.data.registerOpen
+                    ) {
+
+                        const register =
+                            response.data.register;
+
+                        setRegisterOpen(true);
+
+                        setOpeningCash(
+                            Number(
+                                register.opening_cash || 0
+                            ).toString()
+                        );
+
+                    } else {
+
+                        setRegisterOpen(false);
+
+                        setOpeningCash("");
+
                     }
+
                 }
-            );
 
-        if (
-            response.data.success
-        ) {
+            } catch (error) {
 
-            if (
-                response.data.registerOpen
-            ) {
-
-                const register =
-                    response.data.register;
-
-                setRegisterOpen(true);
-
-                setOpeningCash(
-                    Number(
-                        register.opening_cash || 0
-                    ).toString()
+                console.error(
+                    "Current Register Error:",
+                    error
                 );
-
-            } else {
-
-                setRegisterOpen(false);
-
-                setOpeningCash("");
 
             }
 
-        }
+        };
 
-    } catch (error) {
-
-        console.error(
-            "Current Register Error:",
-            error
-        );
-
-    }
-
-};
 
     // ==================================================
     // INITIAL LOAD
     // ==================================================
 
-useEffect(() => {
-    fetchCashRegisterSummary();
-    fetchCurrentRegister();
-}, []);
+    useEffect(() => {
+
+        fetchCashRegisterSummary();
+
+        fetchCurrentRegister();
+
+    }, []);
+
+
     // ==================================================
     // EXPECTED CASH
     // ==================================================
@@ -211,6 +241,7 @@ useEffect(() => {
         async () => {
 
             setError("");
+
             setMessage("");
 
             const amount =
@@ -226,7 +257,9 @@ useEffect(() => {
                 );
 
                 return;
+
             }
+
 
             try {
 
@@ -279,6 +312,7 @@ useEffect(() => {
                 setLoading(false);
 
             }
+
         };
 
 
@@ -290,6 +324,7 @@ useEffect(() => {
         async () => {
 
             setError("");
+
             setMessage("");
 
             if (!registerOpen) {
@@ -299,7 +334,9 @@ useEffect(() => {
                 );
 
                 return;
+
             }
+
 
             const amount =
                 Number(actualCash);
@@ -314,7 +351,9 @@ useEffect(() => {
                 );
 
                 return;
+
             }
+
 
             try {
 
@@ -348,6 +387,13 @@ useEffect(() => {
 
                     setRegisterOpen(false);
 
+                    // Reset owner section
+                    setOwnerTakenAmount("");
+
+                    setOwnerTakeSaved(false);
+
+                    setRemainingCash(null);
+
                 }
 
             } catch (err) {
@@ -367,6 +413,124 @@ useEffect(() => {
                 setLoading(false);
 
             }
+
+        };
+
+
+    // ==================================================
+    // OWNER TAKES CASH
+    // ==================================================
+
+    const handleOwnerTake =
+        async () => {
+
+            setError("");
+
+            setMessage("");
+
+
+            const amount =
+                Number(ownerTakenAmount);
+
+            const actual =
+                Number(actualCash || 0);
+
+
+            // ==================================================
+            // VALIDATE AMOUNT
+            // ==================================================
+
+            if (
+                !Number.isFinite(amount) ||
+                amount < 0
+            ) {
+
+                setError(
+                    "Please enter a valid owner taken amount."
+                );
+
+                return;
+
+            }
+
+
+            // ==================================================
+            // OWNER CANNOT TAKE MORE THAN ACTUAL CASH
+            // ==================================================
+
+            if (
+                amount > actual
+            ) {
+
+                setError(
+                    `Owner cannot take more than actual cash of ₹${actual.toFixed(2)}`
+                );
+
+                return;
+
+            }
+
+
+            try {
+
+                setLoading(true);
+
+                const token =
+                    getToken();
+
+
+                const response =
+                    await axios.post(
+                        `${API_URL}/api/cash-register/owner-take`,
+                        {
+                            ownerTakenAmount:
+                                amount
+                        },
+                        {
+                            headers: {
+                                Authorization:
+                                    `Bearer ${token}`
+                            }
+                        }
+                    );
+
+
+                if (
+                    response.data.success
+                ) {
+
+                    setOwnerTakeSaved(true);
+
+                    setRemainingCash(
+                        Number(
+                            response.data.remainingCash || 0
+                        )
+                    );
+
+                    setMessage(
+                        "Owner taken amount saved successfully."
+                    );
+
+                }
+
+            } catch (err) {
+
+                console.error(
+                    "Owner Take Error:",
+                    err
+                );
+
+                setError(
+                    err.response?.data?.message ||
+                    "Unable to save owner taken amount."
+                );
+
+            } finally {
+
+                setLoading(false);
+
+            }
+
         };
 
 
@@ -375,41 +539,79 @@ useEffect(() => {
     // ==================================================
 
     return (
+
         <div className="min-h-screen bg-gray-100 p-6">
 
             <div className="max-w-5xl mx-auto">
 
-                {/* HEADER */}
-                <div className="mb-6">
 
-                    <h1 className="text-3xl font-bold text-gray-800">
-                        💰 Cash Register
-                    </h1>
+                {/* ==================================================
+                    HEADER
+                ================================================== */}
 
-                    <p className="text-gray-500 mt-1">
-                        Manage daily cash drawer
-                    </p>
+                <div className="flex items-center justify-between mb-6">
+
+                    <div>
+
+                        <h1 className="text-3xl font-bold text-gray-800">
+                            💰 Cash Register
+                        </h1>
+
+                        <p className="text-gray-500 mt-1">
+                            Daily cash drawer management
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        onClick={() =>
+                            navigate(
+                                "/cash-register-history"
+                            )
+                        }
+                        className="bg-slate-800 hover:bg-slate-900 text-white px-5 py-2 rounded-lg font-semibold shadow"
+                    >
+                        📋 History
+                    </button>
 
                 </div>
 
 
-                {/* MESSAGE */}
+                {/* ==================================================
+                    SUCCESS MESSAGE
+                ================================================== */}
+
                 {message && (
+
                     <div className="mb-4 bg-green-100 text-green-700 px-4 py-3 rounded-lg">
+
                         {message}
+
                     </div>
+
                 )}
 
 
-                {/* ERROR */}
+                {/* ==================================================
+                    ERROR MESSAGE
+                ================================================== */}
+
                 {error && (
+
                     <div className="mb-4 bg-red-100 text-red-700 px-4 py-3 rounded-lg">
+
                         {error}
+
                     </div>
+
                 )}
 
 
-                {/* REGISTER STATUS */}
+                {/* ==================================================
+                    REGISTER STATUS
+                ================================================== */}
+
                 <div className="bg-white rounded-xl shadow p-6 mb-6">
 
                     <div className="flex items-center justify-between">
@@ -431,6 +633,7 @@ useEffect(() => {
 
                         </div>
 
+
                         <div
                             className={`px-4 py-2 rounded-full font-semibold ${
                                 registerOpen
@@ -438,10 +641,12 @@ useEffect(() => {
                                     : "bg-gray-100 text-gray-600"
                             }`}
                         >
+
                             {registerOpen
                                 ? "OPEN"
                                 : "CLOSED"
                             }
+
                         </div>
 
                     </div>
@@ -449,16 +654,21 @@ useEffect(() => {
                 </div>
 
 
-                {/* OPENING CASH */}
+                {/* ==================================================
+                    OPENING CASH
+                ================================================== */}
+
                 <div className="bg-white rounded-xl shadow p-6 mb-6">
 
                     <h2 className="text-xl font-bold mb-4">
                         Opening Cash
                     </h2>
 
+
                     <label className="block font-semibold mb-2">
                         Opening Cash Amount
                     </label>
+
 
                     <input
                         type="number"
@@ -475,6 +685,7 @@ useEffect(() => {
                         className="w-full md:w-80 border rounded-lg px-4 py-3"
                     />
 
+
                     <button
                         onClick={
                             handleOpenRegister
@@ -485,17 +696,25 @@ useEffect(() => {
                         }
                         className="mt-4 px-6 py-3 rounded-lg bg-blue-600 text-white font-semibold disabled:opacity-50"
                     >
+
                         {loading
                             ? "Processing..."
                             : "Open Register"
                         }
+
                     </button>
 
                 </div>
 
 
-                {/* SALES SUMMARY */}
+                {/* ==================================================
+                    SALES SUMMARY
+                ================================================== */}
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+
+
+                    {/* CASH SALES */}
 
                     <div className="bg-white rounded-xl shadow p-5">
 
@@ -510,6 +729,8 @@ useEffect(() => {
                     </div>
 
 
+                    {/* ONLINE SALES */}
+
                     <div className="bg-white rounded-xl shadow p-5">
 
                         <p className="text-gray-500">
@@ -522,6 +743,8 @@ useEffect(() => {
 
                     </div>
 
+
+                    {/* REFUNDS */}
 
                     <div className="bg-white rounded-xl shadow p-5">
 
@@ -538,16 +761,24 @@ useEffect(() => {
                 </div>
 
 
-                {/* EXPECTED CASH */}
+                {/* ==================================================
+                    REGISTER SUMMARY
+                ================================================== */}
+
                 <div className="bg-white rounded-xl shadow p-6 mb-6">
 
                     <h2 className="text-xl font-bold mb-5">
                         Register Summary
                     </h2>
 
+
                     <div className="space-y-4">
 
+
+                        {/* OPENING CASH */}
+
                         <div className="flex justify-between">
+
                             <span>
                                 Opening Cash
                             </span>
@@ -557,10 +788,14 @@ useEffect(() => {
                                     openingCash || 0
                                 ).toFixed(2)}
                             </span>
+
                         </div>
 
 
+                        {/* CASH SALES */}
+
                         <div className="flex justify-between">
+
                             <span>
                                 Cash Sales
                             </span>
@@ -568,10 +803,14 @@ useEffect(() => {
                             <span>
                                 ₹ {cashSales.toFixed(2)}
                             </span>
+
                         </div>
 
 
+                        {/* REFUNDS */}
+
                         <div className="flex justify-between">
+
                             <span>
                                 Refunds
                             </span>
@@ -579,8 +818,11 @@ useEffect(() => {
                             <span>
                                 - ₹ {refunds.toFixed(2)}
                             </span>
+
                         </div>
 
+
+                        {/* EXPECTED CASH */}
 
                         <div className="border-t pt-4 flex justify-between text-xl font-bold">
 
@@ -599,16 +841,24 @@ useEffect(() => {
                 </div>
 
 
-                {/* CLOSING CASH */}
+                {/* ==================================================
+                    CLOSING CASH
+                ================================================== */}
+
                 <div className="bg-white rounded-xl shadow p-6">
+
 
                     <h2 className="text-xl font-bold mb-4">
                         Closing Cash
                     </h2>
 
+
+                    {/* ACTUAL CASH */}
+
                     <label className="block font-semibold mb-2">
                         Actual Cash Counted
                     </label>
+
 
                     <input
                         type="number"
@@ -626,6 +876,8 @@ useEffect(() => {
                     />
 
 
+                    {/* CLOSE BUTTON */}
+
                     <button
                         onClick={
                             handleCloseRegister
@@ -636,14 +888,19 @@ useEffect(() => {
                         }
                         className="mt-4 px-6 py-3 rounded-lg bg-red-600 text-white font-semibold disabled:opacity-50"
                     >
+
                         {loading
                             ? "Processing..."
                             : "Close Register"
                         }
+
                     </button>
 
 
-                    {registerOpen && actualCash !== "" && (
+                    {/* DIFFERENCE */}
+
+                    {registerOpen &&
+                        actualCash !== "" && (
 
                         <div className="mt-6 border-t pt-5">
 
@@ -658,6 +915,7 @@ useEffect(() => {
                                 </span>
 
                             </div>
+
 
                             <p className="mt-2 text-gray-500">
 
@@ -678,12 +936,129 @@ useEffect(() => {
 
                     )}
 
+
+                    {/* ==================================================
+                        OWNER TAKES AMOUNT
+                    ================================================== */}
+
+                    {!registerOpen &&
+                        actualCash !== "" && (
+
+                        <div className="mt-8 border-t pt-6">
+
+
+                            <h2 className="text-xl font-bold mb-2">
+                                💰 Owner Takes Cash
+                            </h2>
+
+
+                            <p className="text-gray-500 mb-5">
+                                Enter the amount the owner takes
+                                from the cash drawer. Enter ₹0
+                                if nothing is taken.
+                            </p>
+
+
+                            {!ownerTakeSaved ? (
+
+                                <>
+
+                                    <label className="block font-semibold mb-2">
+                                        Owner Takes Amount
+                                    </label>
+
+
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max={Number(
+                                            actualCash || 0
+                                        )}
+                                        step="0.01"
+                                        value={ownerTakenAmount}
+                                        onChange={(e) =>
+                                            setOwnerTakenAmount(
+                                                e.target.value
+                                            )
+                                        }
+                                        placeholder="Enter amount owner takes"
+                                        className="w-full md:w-80 border rounded-lg px-4 py-3"
+                                    />
+
+
+                                    <button
+                                        onClick={
+                                            handleOwnerTake
+                                        }
+                                        disabled={loading}
+                                        className="mt-4 px-6 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold disabled:opacity-50"
+                                    >
+
+                                        {loading
+                                            ? "Saving..."
+                                            : "Confirm Owner Amount"
+                                        }
+
+                                    </button>
+
+                                </>
+
+                            ) : (
+
+                                <div className="bg-green-50 border border-green-200 rounded-lg p-5">
+
+
+                                    <div className="flex justify-between mb-3">
+
+                                        <span className="font-semibold">
+                                            Owner Took
+                                        </span>
+
+                                        <span className="font-bold">
+                                            ₹ {Number(
+                                                ownerTakenAmount || 0
+                                            ).toFixed(2)}
+                                        </span>
+
+                                    </div>
+
+
+                                    <div className="border-t pt-3 flex justify-between text-lg font-bold">
+
+                                        <span>
+                                            Remaining Cash
+                                        </span>
+
+                                        <span className="text-green-700">
+                                            ₹ {Number(
+                                                remainingCash || 0
+                                            ).toFixed(2)}
+                                        </span>
+
+                                    </div>
+
+
+                                    <p className="text-sm text-gray-500 mt-3">
+                                        This amount has been recorded
+                                        for this register.
+                                    </p>
+
+                                </div>
+
+                            )}
+
+                        </div>
+
+                    )}
+
                 </div>
 
             </div>
 
         </div>
+
     );
+
 };
 
 export default CashRegister;

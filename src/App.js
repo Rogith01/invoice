@@ -15,6 +15,7 @@ import Inventory from "./components/Inventory";
 import Customers from "./components/Customers";
 import Reports from "./components/Reports";
 import CashRegister from "./components/CashRegister";
+import CashRegisterHistory from "./components/CashRegisterHistory";
 
 // ======================================================
 // REFUND HISTORY
@@ -252,6 +253,25 @@ function App() {
         </ProtectedRoute>
     }
 />
+
+{/* ================================================== */}
+{/* CASH REGISTER HISTORY */}
+{/* ================================================== */}
+
+<Route
+    path="/cash-register-history"
+    element={
+        <ProtectedRoute
+            allowedRoles={[
+                "Admin",
+                "Cashier"
+            ]}
+        >
+            <CashRegisterHistory />
+        </ProtectedRoute>
+    }
+/>
+
   {/* ========================= */}
 {/* REPORTS */}
 {/* ========================= */}

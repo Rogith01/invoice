@@ -3940,8 +3940,6 @@ app.post(
 
     }
 );
-
-
 // ======================================================
 // CLOSE CASH REGISTER
 // ======================================================
@@ -4170,6 +4168,192 @@ app.post(
 
                             }
                         );
+
+                    }
+                );
+
+            }
+        );
+
+    }
+);
+
+
+// ======================================================
+// CASH REGISTER - OWNER TAKES AMOUNT
+// ======================================================
+
+app.post(
+    "/api/cash-register/owner-take",
+    authenticateToken,
+    (req, res) => {
+
+        const {
+            ownerTakenAmount
+        } = req.body;
+
+        const amount =
+            Number(ownerTakenAmount);
+
+
+        // ==================================================
+        // VALIDATE AMOUNT
+        // ==================================================
+
+        if (
+            !Number.isFinite(amount) ||
+            amount < 0
+        ) {
+
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Invalid owner taken amount"
+            });
+
+        }
+
+        const cashierName =
+            req.user.username;
+
+
+        // ==================================================
+        // FIND LATEST CLOSED REGISTER
+        // ==================================================
+
+        const findSql = `
+            SELECT
+                id,
+                actual_cash,
+                owner_taken_amount
+            FROM cash_registers
+            WHERE cashier_name = ?
+            AND status = 'CLOSED'
+            ORDER BY id DESC
+            LIMIT 1
+        `;
+
+        db.query(
+            findSql,
+            [cashierName],
+            (err, rows) => {
+
+                if (err) {
+
+                    console.error(
+                        "Owner Take Find Error:",
+                        err
+                    );
+
+                    return res.status(500).json({
+                        success: false,
+                        message: err.message
+                    });
+
+                }
+
+
+                if (rows.length === 0) {
+
+                    return res.status(400).json({
+                        success: false,
+                        message:
+                            "No closed cash register found"
+                    });
+
+                }
+
+
+                const register =
+                    rows[0];
+
+                const actualCash =
+                    Number(
+                        register.actual_cash || 0
+                    );
+
+
+                // ==================================================
+                // CHECK AMOUNT
+                // ==================================================
+
+                if (amount > actualCash) {
+
+                    return res.status(400).json({
+                        success: false,
+                        message:
+                            `Owner cannot take more than actual cash of ₹${actualCash.toFixed(2)}`
+                    });
+
+                }
+
+
+                // ==================================================
+                // PREVENT DUPLICATE OWNER TAKE
+                // ==================================================
+
+                if (
+                    Number(
+                        register.owner_taken_amount || 0
+                    ) > 0
+                ) {
+
+                    return res.status(400).json({
+                        success: false,
+                        message:
+                            "Owner taken amount has already been recorded for this register"
+                    });
+
+                }
+
+
+                // ==================================================
+                // SAVE OWNER TAKEN AMOUNT
+                // ==================================================
+
+                const updateSql = `
+                    UPDATE cash_registers
+                    SET
+                        owner_taken_amount = ?
+                    WHERE id = ?
+                `;
+
+                db.query(
+                    updateSql,
+                    [
+                        amount,
+                        register.id
+                    ],
+                    (err) => {
+
+                        if (err) {
+
+                            console.error(
+                                "Owner Take Update Error:",
+                                err
+                            );
+
+                            return res.status(500).json({
+                                success: false,
+                                message: err.message
+                            });
+
+                        }
+
+
+                        // ==================================================
+                        // SUCCESS
+                        // ==================================================
+
+                        res.json({
+                            success: true,
+                            message:
+                                "Owner taken amount saved successfully",
+                            ownerTakenAmount:
+                                amount,
+                            remainingCash:
+                                actualCash - amount
+                        });
 
                     }
                 );
