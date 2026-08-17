@@ -3523,13 +3523,151 @@ app.post("/api/login", (req, res) => {
 // ======================================================
 // TEST ROUTE
 // ======================================================
-
 app.get("/", (req, res) => {
 
     res.send(
         "Invoice Backend is Running..."
     );
 });
+
+
+// ======================================================
+// CASH REGISTER - TODAY'S SUMMARY
+// ======================================================
+
+app.get(
+    "/api/cash-register/summary",
+    authenticateToken,
+    (req, res) => {
+
+        const summary = {};
+
+        // ==================================================
+        // CASH SALES
+        // ==================================================
+
+        const cashSalesSql = `
+            SELECT
+                COALESCE(SUM(total), 0) AS cashSales
+            FROM invoices
+            WHERE payment_Method = 'Cash'
+            AND DATE(invoice_date) = CURDATE()
+        `;
+
+        db.query(
+            cashSalesSql,
+            (err, rows) => {
+
+                if (err) {
+
+                    console.error(
+                        "Cash Register Cash Sales Error:",
+                        err
+                    );
+
+                    return res.status(500).json({
+                        success: false,
+                        message: err.message
+                    });
+                }
+
+                summary.cashSales =
+                    Number(rows[0].cashSales || 0);
+
+
+                // ==================================================
+                // ONLINE SALES
+                // ==================================================
+
+                const onlineSalesSql = `
+                    SELECT
+                        COALESCE(SUM(total), 0) AS onlineSales
+                    FROM invoices
+                    WHERE payment_Method = 'Online'
+                    AND DATE(invoice_date) = CURDATE()
+                `;
+
+                db.query(
+                    onlineSalesSql,
+                    (err, rows) => {
+
+                        if (err) {
+
+                            console.error(
+                                "Cash Register Online Sales Error:",
+                                err
+                            );
+
+                            return res.status(500).json({
+                                success: false,
+                                message: err.message
+                            });
+                        }
+
+                        summary.onlineSales =
+                            Number(
+                                rows[0].onlineSales || 0
+                            );
+
+
+                        // ==================================================
+                        // REFUNDS
+                        // ==================================================
+
+                        const refundsSql = `
+                            SELECT
+                                COALESCE(
+                                    SUM(refund_amount),
+                                    0
+                                ) AS refunds
+                            FROM invoice_returns
+                            WHERE DATE(created_at) = CURDATE()
+                        `;
+
+                        db.query(
+                            refundsSql,
+                            (err, rows) => {
+
+                                if (err) {
+
+                                    console.error(
+                                        "Cash Register Refund Error:",
+                                        err
+                                    );
+
+                                    return res.status(500).json({
+                                        success: false,
+                                        message: err.message
+                                    });
+                                }
+
+                                summary.refunds =
+                                    Number(
+                                        rows[0].refunds || 0
+                                    );
+
+
+                                // ==================================================
+                                // SEND RESULT
+                                // ==================================================
+
+                                res.json({
+                                    success: true,
+                                    summary
+                                });
+
+                            }
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+    }
+);
+
 
 // ======================================================
 // START SERVER

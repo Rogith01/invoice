@@ -14,6 +14,7 @@ import Navbar from "./components/Navbar";
 import Inventory from "./components/Inventory";
 import Customers from "./components/Customers";
 import Reports from "./components/Reports";
+import CashRegister from "./components/CashRegister";
 
 // ======================================================
 // REFUND HISTORY
@@ -234,6 +235,23 @@ function App() {
                         </ProtectedRoute>
                     }
                 />
+                {/* ================================================== */}
+{/* CASH REGISTER */}
+{/* ================================================== */}
+
+<Route
+    path="/cash-register"
+    element={
+        <ProtectedRoute
+            allowedRoles={[
+                "Admin",
+                "Cashier"
+            ]}
+        >
+            <CashRegister />
+        </ProtectedRoute>
+    }
+/>
   {/* ========================= */}
 {/* REPORTS */}
 {/* ========================= */}
