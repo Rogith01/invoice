@@ -13,7 +13,6 @@ const CashRegister = () => {
 
     const navigate = useNavigate();
 
-
     // ==================================================
     // STATES
     // ==================================================
@@ -22,6 +21,9 @@ const CashRegister = () => {
         useState("");
 
     const [actualCash, setActualCash] =
+        useState("");
+
+    const [ownerTaken, setOwnerTaken] =
         useState("");
 
     const [cashSales, setCashSales] =
@@ -45,18 +47,18 @@ const CashRegister = () => {
     const [error, setError] =
         useState("");
 
-
     // ==================================================
-    // OWNER TAKES AMOUNT STATES
+    // CLOSE DIALOG
     // ==================================================
 
-    const [ownerTakenAmount, setOwnerTakenAmount] =
-        useState("");
-
-    const [ownerTakeSaved, setOwnerTakeSaved] =
+    const [showCloseDialog, setShowCloseDialog] =
         useState(false);
 
-    const [remainingCash, setRemainingCash] =
+    // ==================================================
+    // FINAL CLOSE SUMMARY
+    // ==================================================
+
+    const [closeSummary, setCloseSummary] =
         useState(null);
 
 
@@ -147,7 +149,7 @@ const CashRegister = () => {
             try {
 
                 const token =
-                    sessionStorage.getItem("token");
+                    getToken();
 
                 const response =
                     await axios.get(
@@ -216,6 +218,9 @@ const CashRegister = () => {
 
     // ==================================================
     // EXPECTED CASH
+    //
+    // IMPORTANT:
+    // Owner Taken is NOT included.
     // ==================================================
 
     const expectedCash =
@@ -226,11 +231,25 @@ const CashRegister = () => {
 
     // ==================================================
     // DIFFERENCE
+    //
+    // ONLY:
+    // Actual Cash - Expected Cash
     // ==================================================
 
     const difference =
         Number(actualCash || 0) -
         expectedCash;
+
+
+    // ==================================================
+    // REMAINING CASH
+    //
+    // Actual Cash - Owner Taken
+    // ==================================================
+
+    const remainingCash =
+        Number(actualCash || 0) -
+        Number(ownerTaken || 0);
 
 
     // ==================================================
@@ -241,7 +260,6 @@ const CashRegister = () => {
         async () => {
 
             setError("");
-
             setMessage("");
 
             const amount =
@@ -257,9 +275,7 @@ const CashRegister = () => {
                 );
 
                 return;
-
             }
-
 
             try {
 
@@ -317,6 +333,25 @@ const CashRegister = () => {
 
 
     // ==================================================
+    // OPEN CLOSE DIALOG
+    // ==================================================
+
+    const handleOpenCloseDialog =
+        () => {
+
+            setError("");
+            setMessage("");
+
+            setActualCash("");
+
+            setOwnerTaken("");
+
+            setShowCloseDialog(true);
+
+        };
+
+
+    // ==================================================
     // CLOSE REGISTER
     // ==================================================
 
@@ -325,12 +360,24 @@ const CashRegister = () => {
 
             setError("");
 
-            setMessage("");
+            const actual =
+                Number(actualCash);
 
-            if (!registerOpen) {
+            const owner =
+                Number(ownerTaken || 0);
+
+
+            // ==================================================
+            // VALIDATE ACTUAL CASH
+            // ==================================================
+
+            if (
+                !Number.isFinite(actual) ||
+                actual < 0
+            ) {
 
                 setError(
-                    "Please open the register first."
+                    "Please enter a valid actual cash amount."
                 );
 
                 return;
@@ -338,16 +385,34 @@ const CashRegister = () => {
             }
 
 
-            const amount =
-                Number(actualCash);
+            // ==================================================
+            // VALIDATE OWNER TAKEN
+            // ==================================================
 
             if (
-                !Number.isFinite(amount) ||
-                amount < 0
+                !Number.isFinite(owner) ||
+                owner < 0
             ) {
 
                 setError(
-                    "Please enter a valid actual cash amount."
+                    "Please enter a valid owner taken amount."
+                );
+
+                return;
+
+            }
+
+
+            // ==================================================
+            // OWNER CANNOT TAKE MORE THAN ACTUAL CASH
+            // ==================================================
+
+            if (
+                owner > actual
+            ) {
+
+                setError(
+                    "Owner taken amount cannot be greater than actual cash."
                 );
 
                 return;
@@ -367,7 +432,10 @@ const CashRegister = () => {
                         `${API_URL}/api/cash-register/close`,
                         {
                             actualCash:
-                                amount
+                                actual,
+
+                            ownerTaken:
+                                owner
                         },
                         {
                             headers: {
@@ -377,22 +445,56 @@ const CashRegister = () => {
                         }
                     );
 
+
                 if (
                     response.data.success
                 ) {
 
-                    setMessage(
-                        "Cash register closed successfully."
+                    const summary = {
+
+                        expectedCash:
+                            Number(
+                                response.data.expectedCash || 0
+                            ),
+
+                        actualCash:
+                            Number(
+                                response.data.actualCash || 0
+                            ),
+
+                        difference:
+                            Number(
+                                response.data.difference || 0
+                            ),
+
+                        ownerTaken:
+                            Number(
+                                response.data.ownerTaken || 0
+                            ),
+
+                        remainingCash:
+                            Number(
+                                response.data.remainingCash || 0
+                            )
+
+                    };
+
+
+                    setCloseSummary(
+                        summary
                     );
 
-                    setRegisterOpen(false);
+                    setShowCloseDialog(
+                        false
+                    );
 
-                    // Reset owner section
-                    setOwnerTakenAmount("");
+                    setRegisterOpen(
+                        false
+                    );
 
-                    setOwnerTakeSaved(false);
+                    setActualCash("");
 
-                    setRemainingCash(null);
+                    setOwnerTaken("");
 
                 }
 
@@ -418,120 +520,36 @@ const CashRegister = () => {
 
 
     // ==================================================
-    // OWNER TAKES CASH
+    // FORMAT MONEY
     // ==================================================
 
-    const handleOwnerTake =
-        async () => {
+    const formatMoney =
+        (value) => {
 
-            setError("");
-
-            setMessage("");
-
-
-            const amount =
-                Number(ownerTakenAmount);
-
-            const actual =
-                Number(actualCash || 0);
-
-
-            // ==================================================
-            // VALIDATE AMOUNT
-            // ==================================================
-
-            if (
-                !Number.isFinite(amount) ||
-                amount < 0
-            ) {
-
-                setError(
-                    "Please enter a valid owner taken amount."
-                );
-
-                return;
-
-            }
-
-
-            // ==================================================
-            // OWNER CANNOT TAKE MORE THAN ACTUAL CASH
-            // ==================================================
-
-            if (
-                amount > actual
-            ) {
-
-                setError(
-                    `Owner cannot take more than actual cash of ₹${actual.toFixed(2)}`
-                );
-
-                return;
-
-            }
-
-
-            try {
-
-                setLoading(true);
-
-                const token =
-                    getToken();
-
-
-                const response =
-                    await axios.post(
-                        `${API_URL}/api/cash-register/owner-take`,
-                        {
-                            ownerTakenAmount:
-                                amount
-                        },
-                        {
-                            headers: {
-                                Authorization:
-                                    `Bearer ${token}`
-                            }
-                        }
-                    );
-
-
-                if (
-                    response.data.success
-                ) {
-
-                    setOwnerTakeSaved(true);
-
-                    setRemainingCash(
-                        Number(
-                            response.data.remainingCash || 0
-                        )
-                    );
-
-                    setMessage(
-                        "Owner taken amount saved successfully."
-                    );
-
-                }
-
-            } catch (err) {
-
-                console.error(
-                    "Owner Take Error:",
-                    err
-                );
-
-                setError(
-                    err.response?.data?.message ||
-                    "Unable to save owner taken amount."
-                );
-
-            } finally {
-
-                setLoading(false);
-
-            }
+            return `₹ ${Number(
+                value || 0
+            ).toFixed(2)}`;
 
         };
+
+
+    // ==================================================
+    // CLOSE FINAL SUMMARY
+    // ==================================================
+
+    const closeFinalSummary = () => {
+
+        setCloseSummary(null);
+
+        setMessage(
+            "Cash register closed successfully."
+        );
+
+        fetchCashRegisterSummary();
+
+        fetchCurrentRegister();
+
+    };
 
 
     // ==================================================
@@ -554,11 +572,15 @@ const CashRegister = () => {
                     <div>
 
                         <h1 className="text-3xl font-bold text-gray-800">
+
                             💰 Cash Register
+
                         </h1>
 
                         <p className="text-gray-500 mt-1">
+
                             Daily cash drawer management
+
                         </p>
 
                     </div>
@@ -572,14 +594,16 @@ const CashRegister = () => {
                         }
                         className="bg-slate-800 hover:bg-slate-900 text-white px-5 py-2 rounded-lg font-semibold shadow"
                     >
+
                         📋 History
+
                     </button>
 
                 </div>
 
 
                 {/* ==================================================
-                    SUCCESS MESSAGE
+                    MESSAGE
                 ================================================== */}
 
                 {message && (
@@ -594,7 +618,7 @@ const CashRegister = () => {
 
 
                 {/* ==================================================
-                    ERROR MESSAGE
+                    ERROR
                 ================================================== */}
 
                 {error && (
@@ -619,7 +643,9 @@ const CashRegister = () => {
                         <div>
 
                             <h2 className="text-xl font-bold">
+
                                 Register Status
+
                             </h2>
 
                             <p className="mt-1 text-gray-500">
@@ -661,12 +687,16 @@ const CashRegister = () => {
                 <div className="bg-white rounded-xl shadow p-6 mb-6">
 
                     <h2 className="text-xl font-bold mb-4">
+
                         Opening Cash
+
                     </h2>
 
 
                     <label className="block font-semibold mb-2">
+
                         Opening Cash Amount
+
                     </label>
 
 
@@ -694,7 +724,7 @@ const CashRegister = () => {
                             registerOpen ||
                             loading
                         }
-                        className="mt-4 px-6 py-3 rounded-lg bg-blue-600 text-white font-semibold disabled:opacity-50"
+                        className="mt-4 px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold disabled:opacity-50"
                     >
 
                         {loading
@@ -719,11 +749,17 @@ const CashRegister = () => {
                     <div className="bg-white rounded-xl shadow p-5">
 
                         <p className="text-gray-500">
+
                             Cash Sales
+
                         </p>
 
                         <h2 className="text-2xl font-bold mt-2">
-                            ₹ {cashSales.toFixed(2)}
+
+                            {formatMoney(
+                                cashSales
+                            )}
+
                         </h2>
 
                     </div>
@@ -734,11 +770,17 @@ const CashRegister = () => {
                     <div className="bg-white rounded-xl shadow p-5">
 
                         <p className="text-gray-500">
+
                             Online Sales
+
                         </p>
 
                         <h2 className="text-2xl font-bold mt-2">
-                            ₹ {onlineSales.toFixed(2)}
+
+                            {formatMoney(
+                                onlineSales
+                            )}
+
                         </h2>
 
                     </div>
@@ -749,11 +791,17 @@ const CashRegister = () => {
                     <div className="bg-white rounded-xl shadow p-5">
 
                         <p className="text-gray-500">
+
                             Refunds
+
                         </p>
 
                         <h2 className="text-2xl font-bold mt-2">
-                            ₹ {refunds.toFixed(2)}
+
+                            {formatMoney(
+                                refunds
+                            )}
+
                         </h2>
 
                     </div>
@@ -768,14 +816,14 @@ const CashRegister = () => {
                 <div className="bg-white rounded-xl shadow p-6 mb-6">
 
                     <h2 className="text-xl font-bold mb-5">
+
                         Register Summary
+
                     </h2>
 
 
                     <div className="space-y-4">
 
-
-                        {/* OPENING CASH */}
 
                         <div className="flex justify-between">
 
@@ -784,15 +832,13 @@ const CashRegister = () => {
                             </span>
 
                             <span>
-                                ₹ {Number(
-                                    openingCash || 0
-                                ).toFixed(2)}
+                                {formatMoney(
+                                    openingCash
+                                )}
                             </span>
 
                         </div>
 
-
-                        {/* CASH SALES */}
 
                         <div className="flex justify-between">
 
@@ -801,13 +847,13 @@ const CashRegister = () => {
                             </span>
 
                             <span>
-                                ₹ {cashSales.toFixed(2)}
+                                {formatMoney(
+                                    cashSales
+                                )}
                             </span>
 
                         </div>
 
-
-                        {/* REFUNDS */}
 
                         <div className="flex justify-between">
 
@@ -816,13 +862,13 @@ const CashRegister = () => {
                             </span>
 
                             <span>
-                                - ₹ {refunds.toFixed(2)}
+                                - {formatMoney(
+                                    refunds
+                                )}
                             </span>
 
                         </div>
 
-
-                        {/* EXPECTED CASH */}
 
                         <div className="border-t pt-4 flex justify-between text-xl font-bold">
 
@@ -831,7 +877,9 @@ const CashRegister = () => {
                             </span>
 
                             <span>
-                                ₹ {expectedCash.toFixed(2)}
+                                {formatMoney(
+                                    expectedCash
+                                )}
                             </span>
 
                         </div>
@@ -847,211 +895,466 @@ const CashRegister = () => {
 
                 <div className="bg-white rounded-xl shadow p-6">
 
-
                     <h2 className="text-xl font-bold mb-4">
+
                         Closing Cash
+
                     </h2>
 
 
-                    {/* ACTUAL CASH */}
+                    <p className="text-gray-500 mb-4">
 
-                    <label className="block font-semibold mb-2">
-                        Actual Cash Counted
-                    </label>
+                        Count the physical cash in the drawer before closing.
 
+                    </p>
 
-                    <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={actualCash}
-                        onChange={(e) =>
-                            setActualCash(
-                                e.target.value
-                            )
-                        }
-                        placeholder="Enter actual cash"
-                        disabled={!registerOpen}
-                        className="w-full md:w-80 border rounded-lg px-4 py-3"
-                    />
-
-
-                    {/* CLOSE BUTTON */}
 
                     <button
                         onClick={
-                            handleCloseRegister
+                            handleOpenCloseDialog
                         }
                         disabled={
                             !registerOpen ||
                             loading
                         }
-                        className="mt-4 px-6 py-3 rounded-lg bg-red-600 text-white font-semibold disabled:opacity-50"
+                        className="px-6 py-3 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold disabled:opacity-50"
                     >
 
-                        {loading
-                            ? "Processing..."
-                            : "Close Register"
-                        }
+                        🔒 Close Register
 
                     </button>
 
+                </div>
 
-                    {/* DIFFERENCE */}
 
-                    {registerOpen &&
-                        actualCash !== "" && (
+                {/* ==================================================
+                    CLOSE REGISTER DIALOG
+                ================================================== */}
 
-                        <div className="mt-6 border-t pt-5">
+                {showCloseDialog && (
 
-                            <div className="flex justify-between text-xl font-bold">
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
 
-                                <span>
-                                    Difference
-                                </span>
+                        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
 
-                                <span>
-                                    ₹ {difference.toFixed(2)}
-                                </span>
+                            {/* HEADER */}
+
+                            <div className="px-6 py-5 border-b">
+
+                                <h2 className="text-2xl font-bold text-gray-800">
+
+                                    🔒 Close Cash Register
+
+                                </h2>
+
+                                <p className="text-gray-500 mt-1">
+
+                                    Complete the cash closing details.
+
+                                </p>
 
                             </div>
 
 
-                            <p className="mt-2 text-gray-500">
+                            {/* BODY */}
 
-                                {difference === 0
-                                    ? "Register is perfectly balanced."
-                                    : difference < 0
-                                    ? `Short by ₹ ${Math.abs(
-                                        difference
-                                    ).toFixed(2)}`
-                                    : `Over by ₹ ${difference.toFixed(
-                                        2
-                                    )}`
-                                }
+                            <div className="p-6">
 
-                            </p>
+
+                                {/* EXPECTED */}
+
+                                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-5">
+
+                                    <div className="flex justify-between">
+
+                                        <span className="text-gray-600">
+
+                                            Expected Cash
+
+                                        </span>
+
+                                        <span className="font-bold text-blue-700">
+
+                                            {formatMoney(
+                                                expectedCash
+                                            )}
+
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+
+                                {/* ACTUAL CASH */}
+
+                                <label className="block font-semibold mb-2">
+
+                                    Actual Cash Counted
+
+                                </label>
+
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={actualCash}
+                                    onChange={(e) =>
+                                        setActualCash(
+                                            e.target.value
+                                        )
+                                    }
+                                    placeholder="Enter actual cash"
+                                    autoFocus
+                                    className="w-full border border-gray-300 rounded-lg px-4 py-3 mb-5 focus:ring-2 focus:ring-blue-500 outline-none"
+                                />
+
+
+                                {/* DIFFERENCE */}
+
+                                {actualCash !== "" && (
+
+                                    <div
+                                        className={`rounded-xl p-4 mb-5 ${
+                                            difference === 0
+                                                ? "bg-green-50 border border-green-200"
+                                                : difference < 0
+                                                ? "bg-red-50 border border-red-200"
+                                                : "bg-yellow-50 border border-yellow-200"
+                                        }`}
+                                    >
+
+                                        <div className="flex justify-between">
+
+                                            <span className="font-semibold">
+
+                                                Difference
+
+                                            </span>
+
+                                            <span className="font-bold">
+
+                                                {formatMoney(
+                                                    difference
+                                                )}
+
+                                            </span>
+
+                                        </div>
+
+
+                                        <p className="text-sm mt-1">
+
+                                            {difference === 0
+                                                ? "✓ Register is perfectly balanced."
+                                                : difference < 0
+                                                ? `Short by ${formatMoney(
+                                                    Math.abs(
+                                                        difference
+                                                    )
+                                                )}`
+                                                : `Over by ${formatMoney(
+                                                    difference
+                                                )}`
+                                            }
+
+                                        </p>
+
+                                    </div>
+
+                                )}
+
+
+                                {/* OWNER TAKEN */}
+
+                                <label className="block font-semibold mb-2">
+
+                                    Owner Taken Amount
+
+                                </label>
+
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={ownerTaken}
+                                    onChange={(e) =>
+                                        setOwnerTaken(
+                                            e.target.value
+                                        )
+                                    }
+                                    placeholder="Enter amount taken by owner"
+                                    className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none"
+                                />
+
+
+                                <p className="text-xs text-gray-500 mt-2">
+
+                                    This amount is recorded separately and does not affect the cash difference.
+
+                                </p>
+
+
+                                {/* REMAINING CASH */}
+
+                                {ownerTaken !== "" &&
+                                    actualCash !== "" && (
+
+                                    <div className="mt-5 bg-purple-50 border border-purple-200 rounded-xl p-4">
+
+                                        <div className="flex justify-between">
+
+                                            <span className="font-semibold">
+
+                                                Cash Remaining for Next Day
+
+                                            </span>
+
+                                            <span className="font-bold text-purple-700">
+
+                                                {formatMoney(
+                                                    remainingCash
+                                                )}
+
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                )}
+
+
+                                {/* ERROR */}
+
+                                {error && (
+
+                                    <div className="mt-4 bg-red-100 text-red-700 px-4 py-3 rounded-lg">
+
+                                        {error}
+
+                                    </div>
+
+                                )}
+
+                            </div>
+
+
+                            {/* FOOTER */}
+
+                            <div className="px-6 py-5 border-t flex justify-end gap-3">
+
+                                <button
+                                    onClick={() => {
+
+                                        setShowCloseDialog(
+                                            false
+                                        );
+
+                                        setError("");
+
+                                    }}
+                                    disabled={loading}
+                                    className="px-5 py-2.5 rounded-lg border border-gray-300 font-semibold text-gray-700 hover:bg-gray-100"
+                                >
+
+                                    Cancel
+
+                                </button>
+
+
+                                <button
+                                    onClick={
+                                        handleCloseRegister
+                                    }
+                                    disabled={
+                                        loading ||
+                                        actualCash === ""
+                                    }
+                                    className="px-5 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold disabled:opacity-50"
+                                >
+
+                                    {loading
+                                        ? "Closing..."
+                                        : "Confirm & Close"
+                                    }
+
+                                </button>
+
+                            </div>
 
                         </div>
 
-                    )}
+                    </div>
+
+                )}
 
 
-                    {/* ==================================================
-                        OWNER TAKES AMOUNT
-                    ================================================== */}
+                {/* ==================================================
+                    FINAL SUCCESS DIALOG
+                ================================================== */}
 
-                    {!registerOpen &&
-                        actualCash !== "" && (
+                {closeSummary && (
 
-                        <div className="mt-8 border-t pt-6">
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+
+                        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
+
+                            <div className="p-6 text-center border-b">
+
+                                <div className="text-5xl mb-3">
+
+                                    ✅
+
+                                </div>
+
+                                <h2 className="text-2xl font-bold text-gray-800">
+
+                                    Register Closed Successfully
+
+                                </h2>
+
+                                <p className="text-gray-500 mt-1">
+
+                                    Today's cash register has been closed.
+
+                                </p>
+
+                            </div>
 
 
-                            <h2 className="text-xl font-bold mb-2">
-                                💰 Owner Takes Cash
-                            </h2>
+                            <div className="p-6 space-y-4">
 
 
-                            <p className="text-gray-500 mb-5">
-                                Enter the amount the owner takes
-                                from the cash drawer. Enter ₹0
-                                if nothing is taken.
-                            </p>
+                                <div className="flex justify-between">
 
+                                    <span>
+                                        Expected Cash
+                                    </span>
 
-                            {!ownerTakeSaved ? (
+                                    <span className="font-bold">
 
-                                <>
-
-                                    <label className="block font-semibold mb-2">
-                                        Owner Takes Amount
-                                    </label>
-
-
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        max={Number(
-                                            actualCash || 0
+                                        {formatMoney(
+                                            closeSummary.expectedCash
                                         )}
-                                        step="0.01"
-                                        value={ownerTakenAmount}
-                                        onChange={(e) =>
-                                            setOwnerTakenAmount(
-                                                e.target.value
-                                            )
-                                        }
-                                        placeholder="Enter amount owner takes"
-                                        className="w-full md:w-80 border rounded-lg px-4 py-3"
-                                    />
+
+                                    </span>
+
+                                </div>
 
 
-                                    <button
-                                        onClick={
-                                            handleOwnerTake
-                                        }
-                                        disabled={loading}
-                                        className="mt-4 px-6 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold disabled:opacity-50"
+                                <div className="flex justify-between">
+
+                                    <span>
+                                        Actual Cash
+                                    </span>
+
+                                    <span className="font-bold">
+
+                                        {formatMoney(
+                                            closeSummary.actualCash
+                                        )}
+
+                                    </span>
+
+                                </div>
+
+
+                                <div className="flex justify-between">
+
+                                    <span>
+                                        Difference
+                                    </span>
+
+                                    <span
+                                        className={`font-bold ${
+                                            closeSummary.difference < 0
+                                                ? "text-red-600"
+                                                : closeSummary.difference > 0
+                                                ? "text-green-600"
+                                                : "text-gray-700"
+                                        }`}
                                     >
 
-                                        {loading
-                                            ? "Saving..."
-                                            : "Confirm Owner Amount"
-                                        }
+                                        {formatMoney(
+                                            closeSummary.difference
+                                        )}
 
-                                    </button>
+                                    </span>
 
-                                </>
-
-                            ) : (
-
-                                <div className="bg-green-50 border border-green-200 rounded-lg p-5">
+                                </div>
 
 
-                                    <div className="flex justify-between mb-3">
+                                <div className="border-t pt-4 flex justify-between">
+
+                                    <span className="font-semibold">
+
+                                        Owner Taken
+
+                                    </span>
+
+                                    <span className="font-bold text-purple-700">
+
+                                        {formatMoney(
+                                            closeSummary.ownerTaken
+                                        )}
+
+                                    </span>
+
+                                </div>
+
+
+                                <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
+
+                                    <div className="flex justify-between">
 
                                         <span className="font-semibold">
-                                            Owner Took
-                                        </span>
 
-                                        <span className="font-bold">
-                                            ₹ {Number(
-                                                ownerTakenAmount || 0
-                                            ).toFixed(2)}
-                                        </span>
-
-                                    </div>
-
-
-                                    <div className="border-t pt-3 flex justify-between text-lg font-bold">
-
-                                        <span>
                                             Remaining Cash
+
                                         </span>
 
-                                        <span className="text-green-700">
-                                            ₹ {Number(
-                                                remainingCash || 0
-                                            ).toFixed(2)}
+                                        <span className="font-bold text-purple-700">
+
+                                            {formatMoney(
+                                                closeSummary.remainingCash
+                                            )}
+
                                         </span>
 
                                     </div>
 
+                                    <p className="text-sm text-gray-500 mt-2">
 
-                                    <p className="text-sm text-gray-500 mt-3">
-                                        This amount has been recorded
-                                        for this register.
+                                        Enter this amount as the opening cash when starting the next register.
+
                                     </p>
 
                                 </div>
 
-                            )}
+                            </div>
+
+
+                            <div className="p-6 border-t">
+
+                                <button
+                                    onClick={
+                                        closeFinalSummary
+                                    }
+                                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold"
+                                >
+
+                                    Done
+
+                                </button>
+
+                            </div>
 
                         </div>
 
-                    )}
+                    </div>
 
-                </div>
+                )}
 
             </div>
 

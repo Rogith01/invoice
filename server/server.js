@@ -3674,7 +3674,6 @@ app.get(
     }
 );
 
-
 // ======================================================
 // CASH REGISTER - CURRENT OPEN REGISTER
 // ======================================================
@@ -3696,6 +3695,7 @@ app.get(
                 actual_cash,
                 expected_cash,
                 difference,
+                owner_taken,
                 closing_time,
                 status
             FROM cash_registers
@@ -3724,7 +3724,6 @@ app.get(
 
                 }
 
-
                 // ==================================================
                 // NO OPEN REGISTER
                 // ==================================================
@@ -3738,7 +3737,6 @@ app.get(
                     });
 
                 }
-
 
                 // ==================================================
                 // OPEN REGISTER FOUND
@@ -3775,6 +3773,7 @@ app.get(
                 actual_cash,
                 expected_cash,
                 difference,
+                owner_taken,
                 closing_time,
                 status
             FROM cash_registers
@@ -3809,6 +3808,8 @@ app.get(
 
     }
 );
+
+
 // ======================================================
 // OPEN CASH REGISTER
 // ======================================================
@@ -3824,6 +3825,10 @@ app.post(
 
         const amount =
             Number(openingCash);
+
+        // ==================================================
+        // VALIDATE OPENING CASH
+        // ==================================================
 
         if (
             !Number.isFinite(amount) ||
@@ -3886,7 +3891,7 @@ app.post(
 
 
                 // ==================================================
-                // CREATE REGISTER
+                // CREATE NEW REGISTER
                 // ==================================================
 
                 const insertSql = `
@@ -3898,7 +3903,12 @@ app.post(
                         status
                     )
                     VALUES
-                    (?, ?, NOW(), 'OPEN')
+                    (
+                        ?,
+                        ?,
+                        NOW(),
+                        'OPEN'
+                    )
                 `;
 
                 db.query(
@@ -3926,8 +3936,10 @@ app.post(
 
                         res.json({
                             success: true,
+
                             message:
                                 "Cash register opened successfully",
+
                             registerId:
                                 result.insertId
                         });
@@ -3940,6 +3952,8 @@ app.post(
 
     }
 );
+
+
 // ======================================================
 // CLOSE CASH REGISTER
 // ======================================================
@@ -3950,11 +3964,25 @@ app.post(
     (req, res) => {
 
         const {
-            actualCash
+            actualCash,
+            ownerTaken
         } = req.body;
+
+
+        // ==================================================
+        // CONVERT VALUES TO NUMBERS
+        // ==================================================
 
         const amount =
             Number(actualCash);
+
+        const ownerTakenAmount =
+            Number(ownerTaken || 0);
+
+
+        // ==================================================
+        // VALIDATE ACTUAL CASH
+        // ==================================================
 
         if (
             !Number.isFinite(amount) ||
@@ -3968,6 +3996,43 @@ app.post(
             });
 
         }
+
+
+        // ==================================================
+        // VALIDATE OWNER TAKEN
+        // ==================================================
+
+        if (
+            !Number.isFinite(ownerTakenAmount) ||
+            ownerTakenAmount < 0
+        ) {
+
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Invalid owner taken amount"
+            });
+
+        }
+
+
+        // ==================================================
+        // OWNER CANNOT TAKE MORE THAN ACTUAL CASH
+        // ==================================================
+
+        if (
+            ownerTakenAmount >
+            amount
+        ) {
+
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Owner taken amount cannot be greater than actual cash"
+            });
+
+        }
+
 
         const cashierName =
             req.user.username;
@@ -4008,6 +4073,10 @@ app.post(
                 }
 
 
+                // ==================================================
+                // NO OPEN REGISTER
+                // ==================================================
+
                 if (rows.length === 0) {
 
                     return res.status(400).json({
@@ -4021,6 +4090,7 @@ app.post(
 
                 const register =
                     rows[0];
+
 
                 const openingCash =
                     Number(
@@ -4048,6 +4118,11 @@ app.post(
                     (err, cashRows) => {
 
                         if (err) {
+
+                            console.error(
+                                "Cash Sales Error:",
+                                err
+                            );
 
                             return res.status(500).json({
                                 success: false,
@@ -4083,6 +4158,11 @@ app.post(
 
                                 if (err) {
 
+                                    console.error(
+                                        "Refund Error:",
+                                        err
+                                    );
+
                                     return res.status(500).json({
                                         success: false,
                                         message: err.message
@@ -4099,6 +4179,9 @@ app.post(
 
                                 // ==================================================
                                 // EXPECTED CASH
+                                //
+                                // IMPORTANT:
+                                // ownerTaken is NOT included here.
                                 // ==================================================
 
                                 const expectedCash =
@@ -4109,11 +4192,30 @@ app.post(
 
                                 // ==================================================
                                 // DIFFERENCE
+                                //
+                                // IMPORTANT:
+                                // Difference compares ONLY:
+                                //
+                                // Actual Cash vs Expected Cash
+                                //
+                                // ownerTaken is NOT included.
                                 // ==================================================
 
                                 const difference =
                                     amount -
                                     expectedCash;
+
+
+                                // ==================================================
+                                // REMAINING CASH AFTER OWNER TAKES
+                                //
+                                // This is informational only.
+                                // It does NOT affect difference.
+                                // ==================================================
+
+                                const remainingCash =
+                                    amount -
+                                    ownerTakenAmount;
 
 
                                 // ==================================================
@@ -4126,6 +4228,7 @@ app.post(
                                         actual_cash = ?,
                                         expected_cash = ?,
                                         difference = ?,
+                                        owner_taken = ?,
                                         closing_time = NOW(),
                                         status = 'CLOSED'
                                     WHERE id = ?
@@ -4137,11 +4240,17 @@ app.post(
                                         amount,
                                         expectedCash,
                                         difference,
+                                        ownerTakenAmount,
                                         register.id
                                     ],
                                     (err) => {
 
                                         if (err) {
+
+                                            console.error(
+                                                "Cash Register Close Error:",
+                                                err
+                                            );
 
                                             return res.status(500).json({
                                                 success: false,
@@ -4151,16 +4260,30 @@ app.post(
                                         }
 
 
+                                        // ==================================================
+                                        // FINAL RESPONSE
+                                        // ==================================================
+
                                         res.json({
                                             success: true,
+
                                             message:
                                                 "Cash register closed successfully",
+
                                             expectedCash:
                                                 expectedCash,
+
                                             actualCash:
                                                 amount,
+
                                             difference:
-                                                difference
+                                                difference,
+
+                                            ownerTaken:
+                                                ownerTakenAmount,
+
+                                            remainingCash:
+                                                remainingCash
                                         });
 
                                     }
@@ -4177,193 +4300,6 @@ app.post(
 
     }
 );
-
-
-// ======================================================
-// CASH REGISTER - OWNER TAKES AMOUNT
-// ======================================================
-
-app.post(
-    "/api/cash-register/owner-take",
-    authenticateToken,
-    (req, res) => {
-
-        const {
-            ownerTakenAmount
-        } = req.body;
-
-        const amount =
-            Number(ownerTakenAmount);
-
-
-        // ==================================================
-        // VALIDATE AMOUNT
-        // ==================================================
-
-        if (
-            !Number.isFinite(amount) ||
-            amount < 0
-        ) {
-
-            return res.status(400).json({
-                success: false,
-                message:
-                    "Invalid owner taken amount"
-            });
-
-        }
-
-        const cashierName =
-            req.user.username;
-
-
-        // ==================================================
-        // FIND LATEST CLOSED REGISTER
-        // ==================================================
-
-        const findSql = `
-            SELECT
-                id,
-                actual_cash,
-                owner_taken_amount
-            FROM cash_registers
-            WHERE cashier_name = ?
-            AND status = 'CLOSED'
-            ORDER BY id DESC
-            LIMIT 1
-        `;
-
-        db.query(
-            findSql,
-            [cashierName],
-            (err, rows) => {
-
-                if (err) {
-
-                    console.error(
-                        "Owner Take Find Error:",
-                        err
-                    );
-
-                    return res.status(500).json({
-                        success: false,
-                        message: err.message
-                    });
-
-                }
-
-
-                if (rows.length === 0) {
-
-                    return res.status(400).json({
-                        success: false,
-                        message:
-                            "No closed cash register found"
-                    });
-
-                }
-
-
-                const register =
-                    rows[0];
-
-                const actualCash =
-                    Number(
-                        register.actual_cash || 0
-                    );
-
-
-                // ==================================================
-                // CHECK AMOUNT
-                // ==================================================
-
-                if (amount > actualCash) {
-
-                    return res.status(400).json({
-                        success: false,
-                        message:
-                            `Owner cannot take more than actual cash of ₹${actualCash.toFixed(2)}`
-                    });
-
-                }
-
-
-                // ==================================================
-                // PREVENT DUPLICATE OWNER TAKE
-                // ==================================================
-
-                if (
-                    Number(
-                        register.owner_taken_amount || 0
-                    ) > 0
-                ) {
-
-                    return res.status(400).json({
-                        success: false,
-                        message:
-                            "Owner taken amount has already been recorded for this register"
-                    });
-
-                }
-
-
-                // ==================================================
-                // SAVE OWNER TAKEN AMOUNT
-                // ==================================================
-
-                const updateSql = `
-                    UPDATE cash_registers
-                    SET
-                        owner_taken_amount = ?
-                    WHERE id = ?
-                `;
-
-                db.query(
-                    updateSql,
-                    [
-                        amount,
-                        register.id
-                    ],
-                    (err) => {
-
-                        if (err) {
-
-                            console.error(
-                                "Owner Take Update Error:",
-                                err
-                            );
-
-                            return res.status(500).json({
-                                success: false,
-                                message: err.message
-                            });
-
-                        }
-
-
-                        // ==================================================
-                        // SUCCESS
-                        // ==================================================
-
-                        res.json({
-                            success: true,
-                            message:
-                                "Owner taken amount saved successfully",
-                            ownerTakenAmount:
-                                amount,
-                            remainingCash:
-                                actualCash - amount
-                        });
-
-                    }
-                );
-
-            }
-        );
-
-    }
-);
-
 
 // ======================================================
 // START SERVER

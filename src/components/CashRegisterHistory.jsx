@@ -218,7 +218,7 @@ const CashRegisterHistory = () => {
 
                         <div className="overflow-x-auto">
 
-                            <table className="w-full text-left">
+                            <table className="w-full text-center">
 
                                 <thead className="bg-slate-800 text-white">
 
@@ -232,23 +232,23 @@ const CashRegisterHistory = () => {
                                             Cashier
                                         </th>
 
-                                        <th className="px-5 py-4 text-right">
+                                        <th className="px-5 py-4 ">
                                             Opening
                                         </th>
 
-                                        <th className="px-5 py-4 text-right">
+                                        <th className="px-5 py-4 ">
                                             Expected
                                         </th>
 
-                                        <th className="px-5 py-4 text-right">
+                                        <th className="px-5 py-4 ">
                                             Actual
                                         </th>
 
-                                        <th className="px-5 py-4 text-right">
+                                        <th className="px-5 py-4 ">
                                             Difference
                                         </th>
 
-                                        <th className="px-5 py-4 text-center">
+                                        <th className="px-5 py-4">
                                             Status
                                         </th>
 
@@ -324,7 +324,7 @@ const CashRegisterHistory = () => {
 
                                                     {/* OPENING */}
 
-                                                    <td className="px-5 py-4 text-right">
+                                                    <td className="px-5 py-4 text-center">
 
                                                         {formatMoney(
                                                             register.opening_cash
@@ -335,7 +335,7 @@ const CashRegisterHistory = () => {
 
                                                     {/* EXPECTED */}
 
-                                                    <td className="px-5 py-4 text-right">
+                                                    <td className="px-5 py-4 text-center">
 
                                                         {register.expected_cash !== null
                                                             ? formatMoney(
@@ -349,7 +349,7 @@ const CashRegisterHistory = () => {
 
                                                     {/* ACTUAL */}
 
-                                                    <td className="px-5 py-4 text-right">
+                                                    <td className="px-5 py-4 text-center">
 
                                                         {register.actual_cash !== null
                                                             ? formatMoney(
@@ -364,7 +364,7 @@ const CashRegisterHistory = () => {
                                                     {/* DIFFERENCE */}
 
                                                     <td
-                                                        className={`px-5 py-4 text-right font-bold ${
+                                                        className={`px-5 py-4 text-ceter font-bold ${
                                                             difference < 0
                                                                 ? "text-red-600"
                                                                 : difference > 0
