@@ -232,20 +232,26 @@ const CashRegisterHistory = () => {
                                             Cashier
                                         </th>
 
-                                        <th className="px-5 py-4 ">
+                                        <th className="px-5 py-4">
                                             Opening
                                         </th>
 
-                                        <th className="px-5 py-4 ">
+                                        <th className="px-5 py-4">
                                             Expected
                                         </th>
 
-                                        <th className="px-5 py-4 ">
+                                        <th className="px-5 py-4">
                                             Actual
                                         </th>
 
-                                        <th className="px-5 py-4 ">
+                                        <th className="px-5 py-4">
                                             Difference
+                                        </th>
+
+                                        {/* OWNER TAKEN */}
+
+                                        <th className="px-5 py-4">
+                                            Owner Taken
                                         </th>
 
                                         <th className="px-5 py-4">
@@ -265,6 +271,11 @@ const CashRegisterHistory = () => {
                                             const difference =
                                                 Number(
                                                     register.difference || 0
+                                                );
+
+                                            const ownerTaken =
+                                                Number(
+                                                    register.owner_taken || 0
                                                 );
 
                                             return (
@@ -338,10 +349,13 @@ const CashRegisterHistory = () => {
                                                     <td className="px-5 py-4 text-center">
 
                                                         {register.expected_cash !== null
+
                                                             ? formatMoney(
                                                                 register.expected_cash
                                                             )
+
                                                             : "-"
+
                                                         }
 
                                                     </td>
@@ -352,10 +366,13 @@ const CashRegisterHistory = () => {
                                                     <td className="px-5 py-4 text-center">
 
                                                         {register.actual_cash !== null
+
                                                             ? formatMoney(
                                                                 register.actual_cash
                                                             )
+
                                                             : "-"
+
                                                         }
 
                                                     </td>
@@ -364,7 +381,7 @@ const CashRegisterHistory = () => {
                                                     {/* DIFFERENCE */}
 
                                                     <td
-                                                        className={`px-5 py-4 text-ceter font-bold ${
+                                                        className={`px-5 py-4 text-center font-bold ${
                                                             difference < 0
                                                                 ? "text-red-600"
                                                                 : difference > 0
@@ -374,10 +391,38 @@ const CashRegisterHistory = () => {
                                                     >
 
                                                         {register.difference !== null
+
                                                             ? formatMoney(
                                                                 difference
                                                             )
+
                                                             : "-"
+
+                                                        }
+
+                                                    </td>
+
+
+                                                    {/* OWNER TAKEN */}
+
+                                                    <td className="px-5 py-4 text-center">
+
+                                                        {register.owner_taken !== null
+
+                                                            ? (
+
+                                                                <span className="font-bold text-orange-600">
+
+                                                                    {formatMoney(
+                                                                        ownerTaken
+                                                                    )}
+
+                                                                </span>
+
+                                                            )
+
+                                                            : "-"
+
                                                         }
 
                                                     </td>
