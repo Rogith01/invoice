@@ -83,7 +83,7 @@ const InvoiceForm = () => {
         useState("Cash");
 
     const [cashReceived, setCashReceived] =
-    useState("");
+        useState("");
 
     // ==========================================
     // PRODUCTS
@@ -123,28 +123,20 @@ const InvoiceForm = () => {
 
     useEffect(() => {
 
-        // BARCODE SUCCESS
-
         scanSoundRef.current =
             new Audio("/barcode-beep.mp3");
 
         scanSoundRef.current.volume = 1.0;
-
-        // BARCODE ERROR
 
         barcodeErrorSoundRef.current =
             new Audio("/barcode-error.mp3");
 
         barcodeErrorSoundRef.current.volume = 1.0;
 
-        // NORMAL SUCCESS
-
         successSoundRef.current =
             new Audio("/success-tone.mp3");
 
         successSoundRef.current.volume = 1.0;
-
-        // NORMAL ERROR / WARNING
 
         toastErrorSoundRef.current =
             new Audio("/error-tone.mp3");
@@ -537,57 +529,126 @@ const InvoiceForm = () => {
         }
 
     }, [showToast]);
+// ==========================================
+// INITIAL LOAD + POS KEYBOARD SHORTCUTS
+// ==========================================
 
-    // ==========================================
-    // INITIAL LOAD
-    // ==========================================
+useEffect(() => {
 
-    useEffect(() => {
+    fetchInvoiceNumber();
 
-        fetchInvoiceNumber();
+    fetchProducts();
 
-        fetchProducts();
+    const handleShortcut = (event) => {
 
-        const handleShortcut = (event) => {
+        // ==========================================
+        // F2 → BARCODE / SCANNING
+        // ==========================================
 
-            if (event.key === "F4") {
+        if (event.key === "F2") {
 
-                event.preventDefault();
+            event.preventDefault();
 
-                reviewBtnRef.current?.click();
+            barcodeInputRef.current?.focus();
+
+            barcodeInputRef.current?.select();
+
+            return;
+        }
+
+
+        // ==========================================
+        // F3 → QUANTITY
+        // ==========================================
+
+        if (event.key === "F3") {
+
+            event.preventDefault();
+
+            const quantityInputs =
+                document.querySelectorAll(
+                    'input[name="qty"]'
+                );
+
+            if (quantityInputs.length > 0) {
+
+                const lastQuantityInput =
+                    quantityInputs[
+                        quantityInputs.length - 1
+                    ];
+
+                lastQuantityInput.focus();
+
+                lastQuantityInput.select();
 
             }
 
-        };
+            return;
+        }
 
-        window.addEventListener(
+
+        // ==========================================
+        // F4 → REVIEW INVOICE
+        // ==========================================
+
+        if (event.key === "F5") {
+
+            event.preventDefault();
+
+            reviewBtnRef.current?.click();
+
+            return;
+        }
+
+
+        // ==========================================
+        // F5 → PAYMENT METHOD
+        // ==========================================
+
+        if (event.key === "F4") {
+
+            event.preventDefault();
+
+            const paymentSelect =
+                document.getElementById(
+                    "paymentMethod"
+                );
+
+            if (paymentSelect) {
+
+                paymentSelect.focus();
+
+            }
+
+            return;
+        }
+
+    };
+
+    window.addEventListener(
+        "keydown",
+        handleShortcut
+    );
+
+    return () => {
+
+        window.removeEventListener(
             "keydown",
             handleShortcut
         );
 
-        return () => {
+    };
 
-            window.removeEventListener(
-                "keydown",
-                handleShortcut
-            );
-
-        };
-
-    }, [
-        fetchInvoiceNumber,
-        fetchProducts,
-    ]);
+}, [
+    fetchInvoiceNumber,
+    fetchProducts,
+]);
 
     // ==========================================
     // STOP / CLEAN CAMERA SCANNER
     // ==========================================
 
     const stopBarcodeScanner = useCallback(() => {
-
-        console.log(
-            "Stopping barcode scanner..."
-        );
 
         scannerSessionRef.current += 1;
 
@@ -683,13 +744,7 @@ const InvoiceForm = () => {
     const startBarcodeScanner = async () => {
 
         if (scannerStartingRef.current) {
-
-            console.log(
-                "Scanner is already starting."
-            );
-
             return;
-
         }
 
         if (
@@ -718,11 +773,6 @@ const InvoiceForm = () => {
 
         setShowScanner(true);
 
-        console.log(
-            "Starting scanner session:",
-            sessionId
-        );
-
         scannerTimeoutRef.current =
             setTimeout(async () => {
 
@@ -742,10 +792,6 @@ const InvoiceForm = () => {
                 }
 
                 if (!videoRef.current) {
-
-                    console.error(
-                        "Video element not found."
-                    );
 
                     scannerStartingRef.current =
                         false;
@@ -776,29 +822,23 @@ const InvoiceForm = () => {
                         await codeReader.decodeFromVideoDevice(
                             undefined,
                             videoRef.current,
-                            (result, error) => {
+                            (result) => {
 
                                 if (
                                     sessionId !==
                                     scannerSessionRef.current
                                 ) {
-
                                     return;
-
                                 }
 
                                 if (
                                     barcodeScanLockRef.current
                                 ) {
-
                                     return;
-
                                 }
 
                                 if (!result) {
-
                                     return;
-
                                 }
 
                                 barcodeScanLockRef.current =
@@ -808,11 +848,6 @@ const InvoiceForm = () => {
                                     result
                                         .getText()
                                         .trim();
-
-                                console.log(
-                                    "Barcode scanned:",
-                                    scannedBarcode
-                                );
 
                                 handleBarcodeScan(
                                     scannedBarcode
@@ -829,13 +864,9 @@ const InvoiceForm = () => {
                     ) {
 
                         try {
-
                             controls.stop();
-
                         } catch (error) {
-
                             console.log(error);
-
                         }
 
                         scannerStartingRef.current =
@@ -850,11 +881,6 @@ const InvoiceForm = () => {
 
                     scannerStartingRef.current =
                         false;
-
-                    console.log(
-                        "Scanner started successfully:",
-                        sessionId
-                    );
 
                 } catch (error) {
 
@@ -890,7 +916,7 @@ const InvoiceForm = () => {
     };
 
     // ==========================================
-    // CLEAN CAMERA WHEN COMPONENT UNMOUNTS
+    // CLEAN CAMERA
     // ==========================================
 
     useEffect(() => {
@@ -919,13 +945,9 @@ const InvoiceForm = () => {
             if (scannerControlsRef.current) {
 
                 try {
-
                     scannerControlsRef.current.stop();
-
                 } catch (error) {
-
                     console.log(error);
-
                 }
 
                 scannerControlsRef.current = null;
@@ -935,13 +957,9 @@ const InvoiceForm = () => {
             if (codeReaderRef.current) {
 
                 try {
-
                     codeReaderRef.current.reset();
-
                 } catch (error) {
-
                     console.log(error);
-
                 }
 
                 codeReaderRef.current = null;
@@ -960,13 +978,9 @@ const InvoiceForm = () => {
                         .forEach((track) => {
 
                             try {
-
                                 track.stop();
-
                             } catch (error) {
-
                                 console.log(error);
-
                             }
 
                         });
@@ -1062,31 +1076,29 @@ const InvoiceForm = () => {
         discountRate -
         loyaltyDiscount +
         taxRate;
-// ==========================================
-// CASH CHANGE
-// ==========================================
 
-const changeAmount =
-    paymentMethod === "Cash"
-        ? Math.max(
-            0,
-            Number(cashReceived || 0) - total
-        )
-        : 0;
+    // ==========================================
+    // CASH CHANGE
+    // ==========================================
 
-const insufficientCash =
-    paymentMethod === "Cash" &&
-    cashReceived !== "" &&
-    Number(cashReceived) < total;
+    const changeAmount =
+        paymentMethod === "Cash"
+            ? Math.max(
+                0,
+                Number(cashReceived || 0) - total
+            )
+            : 0;
+
+    const insufficientCash =
+        paymentMethod === "Cash" &&
+        cashReceived !== "" &&
+        Number(cashReceived) < total;
+
     // ==========================================
     // HOLD CURRENT BILL
     // ==========================================
 
     const holdBillHandler = () => {
-
-        // ==========================================
-        // VALID ITEMS
-        // ==========================================
 
         const validItems = items.filter(
             (item) =>
@@ -1104,10 +1116,6 @@ const insufficientCash =
             return;
 
         }
-
-        // ==========================================
-        // CHECK VALID QUANTITIES
-        // ==========================================
 
         for (const item of validItems) {
 
@@ -1128,10 +1136,6 @@ const insufficientCash =
             }
 
         }
-
-        // ==========================================
-        // CREATE HELD BILL
-        // ==========================================
 
         const heldBill = {
 
@@ -1178,27 +1182,12 @@ const insufficientCash =
 
         };
 
-        // ==========================================
-        // SAVE HELD BILL
-        // ==========================================
-
         setHeldBills((prevBills) => [
-
             ...prevBills,
-
             heldBill,
-
         ]);
 
-        // ==========================================
-        // STOP SCANNER
-        // ==========================================
-
         stopBarcodeScanner();
-
-        // ==========================================
-        // RESET CURRENT BILL
-        // ==========================================
 
         setItems([
             {
@@ -1238,24 +1227,12 @@ const insufficientCash =
 
         setBarcode("");
 
-        // ==========================================
-        // GET NEW INVOICE NUMBER
-        // ==========================================
-
         fetchInvoiceNumber();
-
-        // ==========================================
-        // SUCCESS TOAST
-        // ==========================================
 
         showToast(
             `Bill ${invoiceNumber} has been held successfully.`,
             "success"
         );
-
-        // ==========================================
-        // FOCUS BARCODE
-        // ==========================================
 
         setTimeout(() => {
 
@@ -1270,10 +1247,6 @@ const insufficientCash =
     // ==========================================
 
     const resumeBillHandler = (bill) => {
-
-        // ==========================================
-        // RESTORE INVOICE DATA
-        // ==========================================
 
         setInvoiceNumber(
             bill.invoiceNumber
@@ -1330,20 +1303,12 @@ const insufficientCash =
                 "Cash"
         );
 
-        // ==========================================
-        // RESTORE ITEMS
-        // ==========================================
-
         setItems(
             bill.items.map((item) => ({
                 ...item,
                 id: uid(6),
             }))
         );
-
-        // ==========================================
-        // REMOVE FROM HELD BILLS
-        // ==========================================
 
         setHeldBills((prevBills) =>
             prevBills.filter(
@@ -1352,31 +1317,15 @@ const insufficientCash =
             )
         );
 
-        // ==========================================
-        // CLOSE HELD BILLS MODAL
-        // ==========================================
-
         setShowHeldBills(false);
 
-        // ==========================================
-        // CLEAR BARCODE
-        // ==========================================
-
         setBarcode("");
-
-        // ==========================================
-        // FOCUS BARCODE
-        // ==========================================
 
         setTimeout(() => {
 
             barcodeInputRef.current?.focus();
 
         }, 100);
-
-        // ==========================================
-        // SUCCESS TOAST
-        // ==========================================
 
         showToast(
             `Bill ${bill.invoiceNumber} resumed successfully.`,
@@ -1413,44 +1362,36 @@ const insufficientCash =
 
         event.preventDefault();
 
-        // ==========================================
-// CASH PAYMENT VALIDATION
-// ==========================================
+        if (paymentMethod === "Cash") {
 
-if (paymentMethod === "Cash") {
+            if (
+                cashReceived === "" ||
+                Number(cashReceived) <= 0
+            ) {
 
-    if (
-        cashReceived === "" ||
-        Number(cashReceived) <= 0
-    ) {
+                showToast(
+                    "Please enter the cash received from customer.",
+                    "warning"
+                );
 
-        showToast(
-            "Please enter the cash received from customer.",
-            "warning"
-        );
+                return;
 
-        return;
+            }
 
-    }
+            if (
+                Number(cashReceived) < total
+            ) {
 
-    if (
-        Number(cashReceived) < total
-    ) {
+                showToast(
+                    `Insufficient cash. Customer needs to pay ₹${total.toFixed(2)}.`,
+                    "warning"
+                );
 
-        showToast(
-            `Insufficient cash. Customer needs to pay ₹${total.toFixed(2)}.`,
-            "warning"
-        );
+                return;
 
-        return;
+            }
 
-    }
-
-}
-
-        // ==========================================
-        // CUSTOMER NAME VALIDATION
-        // ==========================================
+        }
 
         if (
             !customerName ||
@@ -1465,10 +1406,6 @@ if (paymentMethod === "Cash") {
             return;
 
         }
-
-        // ==========================================
-        // PHONE VALIDATION
-        // ==========================================
 
         if (
             !phoneNumber ||
@@ -1494,10 +1431,6 @@ if (paymentMethod === "Cash") {
             return;
 
         }
-
-        // ==========================================
-        // PRODUCT VALIDATION
-        // ==========================================
 
         const validItems = items.filter(
             (item) =>
@@ -1527,10 +1460,6 @@ if (paymentMethod === "Cash") {
 
         }
 
-        // ==========================================
-        // CHECK TOTAL STOCK
-        // ==========================================
-
         const requestedStock = {};
 
         for (const item of validItems) {
@@ -1540,10 +1469,6 @@ if (paymentMethod === "Cash") {
                     (opt) =>
                         opt.name === item.name
                 );
-
-            // ==========================================
-            // PRODUCT NOT FOUND
-            // ==========================================
 
             if (!product) {
 
@@ -1555,10 +1480,6 @@ if (paymentMethod === "Cash") {
                 return;
 
             }
-
-            // ==========================================
-            // QUANTITY
-            // ==========================================
 
             const requestedQty =
                 Math.floor(
@@ -1576,10 +1497,6 @@ if (paymentMethod === "Cash") {
 
             }
 
-            // ==========================================
-            // ADD TO TOTAL REQUESTED STOCK
-            // ==========================================
-
             if (
                 requestedStock[item.name]
             ) {
@@ -1595,10 +1512,6 @@ if (paymentMethod === "Cash") {
             }
 
         }
-
-        // ==========================================
-        // COMPARE STOCK
-        // ==========================================
 
         for (
             const productName
@@ -1635,10 +1548,6 @@ if (paymentMethod === "Cash") {
 
         }
 
-        // ==========================================
-        // FREEZE LOYALTY DISCOUNT
-        // ==========================================
-
         const invoiceLoyaltyDiscount =
             redeemPoints
                 ? Number(
@@ -1646,19 +1555,11 @@ if (paymentMethod === "Cash") {
                 )
                 : 0;
 
-        // ==========================================
-        // FINAL TOTAL
-        // ==========================================
-
         const invoiceTotal =
             subtotal -
             discountRate -
             invoiceLoyaltyDiscount +
             taxRate;
-
-        // ==========================================
-        // FINAL ITEMS
-        // ==========================================
 
         const invoiceItems =
             validItems.map((item) => {
@@ -1687,10 +1588,6 @@ if (paymentMethod === "Cash") {
                 };
 
             });
-
-        // ==========================================
-        // INVOICE DATA
-        // ==========================================
 
         const invoiceData = {
 
@@ -1724,14 +1621,6 @@ if (paymentMethod === "Cash") {
                     invoiceData
                 );
 
-            console.log(
-                response.data
-            );
-
-            // ==========================================
-            // FREEZE RECEIPT VALUES
-            // ==========================================
-
             setRedeemedAmount(
                 invoiceLoyaltyDiscount
             );
@@ -1740,37 +1629,17 @@ if (paymentMethod === "Cash") {
                 invoiceTotal
             );
 
-            // ==========================================
-            // UPDATE INVOICE NUMBER
-            // ==========================================
-
             setInvoiceNumber(
                 response.data.invoiceNumber
             );
 
-            // ==========================================
-            // REFRESH PRODUCT STOCK
-            // ==========================================
-
             await fetchProducts();
-
-            // ==========================================
-            // REFRESH CUSTOMER LOYALTY
-            // ==========================================
 
             await fetchCustomer(
                 phoneNumber
             );
 
-            // ==========================================
-            // OPEN MODAL
-            // ==========================================
-
             setIsOpen(true);
-
-            // ==========================================
-            // SUCCESS TOAST
-            // ==========================================
 
             showToast(
                 `Invoice ${response.data.invoiceNumber} saved successfully!`,
@@ -1880,7 +1749,7 @@ if (paymentMethod === "Cash") {
     };
 
     // ==========================================
-    // PLAY BARCODE SUCCESS SOUND
+    // BARCODE SUCCESS SOUND
     // ==========================================
 
     const playBarcodeSuccessSound = () => {
@@ -1905,7 +1774,7 @@ if (paymentMethod === "Cash") {
     };
 
     // ==========================================
-    // PLAY BARCODE ERROR SOUND
+    // BARCODE ERROR SOUND
     // ==========================================
 
     const playBarcodeErrorSound = () => {
@@ -1939,19 +1808,8 @@ if (paymentMethod === "Cash") {
             String(value || "").trim();
 
         if (!scannedBarcode) {
-
             return;
-
         }
-
-        console.log(
-            "Processing barcode:",
-            scannedBarcode
-        );
-
-        // ==========================================
-        // FIND PRODUCT
-        // ==========================================
 
         const product =
             itemOptions.find(
@@ -1960,10 +1818,6 @@ if (paymentMethod === "Cash") {
                     String(item.barcode).trim() ===
                         scannedBarcode
             );
-
-        // ==========================================
-        // WRONG BARCODE
-        // ==========================================
 
         if (!product) {
 
@@ -1986,10 +1840,6 @@ if (paymentMethod === "Cash") {
             return;
 
         }
-
-        // ==========================================
-        // CHECK STOCK
-        // ==========================================
 
         if (
             Number(product.stock) <= 0
@@ -2015,19 +1865,11 @@ if (paymentMethod === "Cash") {
 
         }
 
-        // ==========================================
-        // CHECK EXISTING ITEM
-        // ==========================================
-
         const existingItem =
             items.find(
                 (item) =>
                     item.name === product.name
             );
-
-        // ==========================================
-        // PRODUCT ALREADY IN INVOICE
-        // ==========================================
 
         if (existingItem) {
 
@@ -2100,10 +1942,6 @@ if (paymentMethod === "Cash") {
 
         } else {
 
-            // ==========================================
-            // ADD NEW PRODUCT
-            // ==========================================
-
             setItems((prevItems) => {
 
                 const firstEmptyItem =
@@ -2175,10 +2013,6 @@ if (paymentMethod === "Cash") {
 
         }
 
-        // ==========================================
-        // BARCODE SUCCESS SOUND
-        // ==========================================
-
         playBarcodeSuccessSound();
 
         showToast(
@@ -2224,10 +2058,6 @@ if (paymentMethod === "Cash") {
             value,
         } = event.target;
 
-        // ==========================================
-        // PRODUCT NAME CHANGED
-        // ==========================================
-
         if (
             name === "name"
         ) {
@@ -2237,10 +2067,6 @@ if (paymentMethod === "Cash") {
                     (opt) =>
                         opt.name === value
                 );
-
-            // ==========================================
-            // EMPTY PRODUCT
-            // ==========================================
 
             if (!selectedItem) {
 
@@ -2269,10 +2095,6 @@ if (paymentMethod === "Cash") {
                 return;
 
             }
-
-            // ==========================================
-            // STOCK VALIDATION
-            // ==========================================
 
             const existingQuantity =
                 items.reduce(
@@ -2316,10 +2138,6 @@ if (paymentMethod === "Cash") {
                     selectedItem.stock || 0
                 );
 
-            // ==========================================
-            // STOCK EXCEEDED
-            // ==========================================
-
             if (
                 newTotalQuantity >
                 availableStock
@@ -2333,10 +2151,6 @@ if (paymentMethod === "Cash") {
                 return;
 
             }
-
-            // ==========================================
-            // PRODUCT CAN BE ADDED
-            // ==========================================
 
             setItems((prevItems) =>
                 prevItems.map((item) => {
@@ -2373,10 +2187,6 @@ if (paymentMethod === "Cash") {
 
         }
 
-        // ==========================================
-        // QUANTITY CHANGED
-        // ==========================================
-
         if (
             name === "qty"
         ) {
@@ -2393,9 +2203,7 @@ if (paymentMethod === "Cash") {
                 );
 
             if (!currentItem) {
-
                 return;
-
             }
 
             const selectedProduct =
@@ -2406,14 +2214,8 @@ if (paymentMethod === "Cash") {
                 );
 
             if (!selectedProduct) {
-
                 return;
-
             }
-
-            // ==========================================
-            // COUNT QUANTITY OF SAME PRODUCT
-            // ==========================================
 
             const otherRowsQuantity =
                 items.reduce(
@@ -2449,10 +2251,6 @@ if (paymentMethod === "Cash") {
                     0
                 );
 
-            // ==========================================
-            // TOTAL REQUESTED
-            // ==========================================
-
             const totalRequestedQuantity =
                 otherRowsQuantity +
                 enteredQty;
@@ -2461,10 +2259,6 @@ if (paymentMethod === "Cash") {
                 Number(
                     selectedProduct.stock || 0
                 );
-
-            // ==========================================
-            // STOCK EXCEEDED
-            // ==========================================
 
             if (
                 totalRequestedQuantity >
@@ -2481,10 +2275,6 @@ if (paymentMethod === "Cash") {
             }
 
         }
-
-        // ==========================================
-        // NORMAL ITEM UPDATE
-        // ==========================================
 
         const updatedItems =
             items.map((item) => {
@@ -2530,11 +2320,7 @@ if (paymentMethod === "Cash") {
 
     return (
 
-        <div className="max-w-6xl mx-auto p-4 md:p-6">
-
-            {/* ==========================================
-                TOAST
-            ========================================== */}
+        <div className="min-h-screen bg-slate-50 p-3 md:p-5">
 
             <Toast
                 message={toast.message}
@@ -2542,761 +2328,1021 @@ if (paymentMethod === "Cash") {
                 onClose={closeToast}
             />
 
-            {/* ==========================================
-                MAIN FORM
-            ========================================== */}
-
             <form
                 onSubmit={reviewInvoiceHandler}
-                className="bg-white rounded-xl shadow-lg p-5 md:p-8"
+                className="max-w-[1500px] mx-auto"
             >
 
-                {/* ==========================================
-                    HEADER
-                ========================================== */}
+                {/* ==================================================
+                    BILLING HEADER
+                ================================================== */}
 
-                <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+                <div className="bg-white border border-slate-200 rounded-2xl shadow-sm px-5 py-4 mb-4">
 
-                    <div>
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
 
-                        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
-                            AK Super Market
-                        </h1>
+                        <div className="flex items-center gap-4">
 
-                        <p className="text-gray-500 mt-1">
-                            Create New Invoice
-                        </p>
-
-                    </div>
-
-                    <div className="text-left md:text-right">
-
-                        <p className="text-sm text-gray-500">
-                            Current Date
-                        </p>
-
-                        <p className="font-semibold text-gray-800">
-                            {today}
-                        </p>
-
-                        <p className="text-sm text-gray-500 mt-2">
-                            Current Time
-                        </p>
-
-                        <p className="font-semibold text-gray-800">
-                            {currentTime}
-                        </p>
-
-                    </div>
-
-                </div>
-{/* ==========================================
-    HOLD / RESUME BILL
-========================================== */}
-
-<div className="mt-3 flex flex-wrap gap-2">
-
-    {/* HOLD BILL */}
-
-    <button
-        type="button"
-        onClick={holdBillHandler}
-        className="inline-flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-3 py-1.5 rounded-md shadow-sm transition-all duration-200"
+<div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center">
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="22"
+        height="22"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="white"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
     >
-
-        <span className="text-sm">
-            ⏸
-        </span>
-
-        <span>
-            Hold Bill
-        </span>
-
-    </button>
-
-
-    {/* RESUME BILL */}
-
-    <button
-        type="button"
-        onClick={() =>
-            setShowHeldBills(true)
-        }
-        className="inline-flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold px-3 py-1.5 rounded-md shadow-sm transition-all duration-200"
-    >
-
-        <span className="text-sm">
-            ▶
-        </span>
-
-        <span>
-            Resume Bill
-        </span>
-
-        {heldBills.length > 0 && (
-
-            <span className="bg-white text-purple-700 text-[11px] font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
-                {heldBills.length}
-            </span>
-
-        )}
-
-    </button>
-
+        <circle cx="9" cy="20" r="1" />
+        <circle cx="20" cy="20" r="1" />
+        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+    </svg>
 </div>
-                {/* ==========================================
-                    INVOICE NUMBER
-                ========================================== */}
 
-                <div className="mt-6">
+                            <div>
 
-                    <label
-                        htmlFor="invoiceNumber"
-                        className="text-sm font-bold"
-                    >
-                        Invoice Number:
-                    </label>
+                                <div className="flex items-center gap-3 flex-wrap">
 
-                    <input
-                        type="text"
-                        id="invoiceNumber"
-                        value={invoiceNumber}
-                        readOnly
-                        className="w-full mt-1 border rounded px-3 py-2 bg-gray-100 font-semibold"
-                    />
+                                    <h1 className="text-2xl font-bold text-slate-800">
+                                        New Sale
+                                    </h1>
 
-                </div>
+                                    <span className="text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100 px-2.5 py-1 rounded-full">
+                                        BILLING
+                                    </span>
 
-                {/* ==========================================
-                    CASHIER & CUSTOMER
-                ========================================== */}
+                                </div>
 
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 pt-6">
+                                <p className="text-sm text-slate-500 mt-0.5">
+                                    Create a new supermarket sale
+                                </p>
 
-                    <div className="flex flex-col">
+                            </div>
 
-                        <label
-                            htmlFor="cashierName"
-                            className="text-sm font-bold"
-                        >
-                            Cashier:
-                        </label>
+                        </div>
 
-                        <input
-                            type="text"
-                            id="cashierName"
-                            value={cashierName}
-                            readOnly
-                            className="border rounded px-3 py-2 bg-gray-100"
-                        />
+                        <div className="flex flex-wrap items-center gap-3">
 
-                    </div>
+                            <div className="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl">
 
-                    <div className="flex flex-col">
 
-                        <label
-                            htmlFor="customerName"
-                            className="text-sm font-bold"
-                        >
-                            Customer Name:
-                        </label>
 
-                        <input
-                            type="text"
-                            id="customerName"
-                            value={customerName}
-                            onChange={(e) =>
-                                setCustomerName(
-                                    e.target.value
-                                )
-                            }
-                            placeholder="Customer name"
-                            className="border rounded px-3 py-2"
-                        />
+                                <p className="font-bold text-slate-800">
+                                    {invoiceNumber}
+                                </p>
+
+                            </div>
+
+                            <div className="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl">
+
+                                <p className="font-semibold text-slate-800 text-sm">
+                                    {today} • {currentTime}
+                                </p>
+
+                            </div>
+
+                        </div>
 
                     </div>
 
                 </div>
 
-                {/* ==========================================
-                    PHONE & LOYALTY
-                ========================================== */}
+                {/* ==================================================
+                    QUICK ACTIONS
+                ================================================== */}
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-
-                    <div className="flex flex-col">
-
-                        <label
-                            htmlFor="phoneNumber"
-                            className="text-sm font-bold"
-                        >
-                            Phone Number:
-                        </label>
-
-                        <input
-                            type="text"
-                            id="phoneNumber"
-                            maxLength={10}
-                            className="border rounded px-3 py-2"
-                            value={phoneNumber}
-                            placeholder="10 digit phone number"
-                            onChange={(e) => {
-
-                                const value =
-                                    e.target.value.replace(
-                                        /\D/g,
-                                        ""
-                                    );
-
-                                setPhoneNumber(value);
-
-                                if (
-                                    value.length ===
-                                    10
-                                ) {
-
-                                    fetchCustomer(
-                                        value
-                                    );
-
-                                }
-
-                            }}
-                        />
-
-                    </div>
-
-                    <div className="flex flex-col">
-
-                        <label className="text-sm font-bold">
-                            Loyalty Points:
-                        </label>
-
-                        <input
-                            type="text"
-                            value={loyaltyPoints}
-                            readOnly
-                            className="border rounded px-3 py-2 bg-gray-100"
-                        />
-
-                    </div>
-
-                    <div className="flex items-center gap-2 mt-6 md:mt-0">
-
-                        <input
-                            type="checkbox"
-                            id="redeemPoints"
-                            checked={redeemPoints}
-                            disabled={
-                                availablePoints <= 0
-                            }
-                            onChange={(e) =>
-                                setRedeemPoints(
-                                    e.target.checked
-                                )
-                            }
-                            className="w-5 h-5"
-                        />
-
-                        <label
-                            htmlFor="redeemPoints"
-                            className="font-semibold"
-                        >
-                            Redeem Loyalty Points
-                        </label>
-
-                    </div>
-
-                </div>
-
-                {/* ==========================================
-                    BARCODE SCANNER
-                ========================================== */}
-
-                <div className="mt-6">
+                <div className="flex flex-wrap gap-2 mb-4">
 
                     <button
                         type="button"
-                        onClick={startBarcodeScanner}
-                        className="mt-2 mb-3 inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white text-sm font-semibold px-4 py-2 rounded-md shadow-sm transition-all duration-200"
+                        onClick={holdBillHandler}
+                        className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl shadow-sm transition"
                     >
-
-                        <span className="text-base">
-
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="21"
-                                height="21"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            >
-
-                                <path d="M7 3H5a2 2 0 0 0-2 2v2" />
-
-                                <path d="M17 3h2a2 2 0 0 1 2 2v2" />
-
-                                <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
-
-                                <path d="M17 21h2a2 2 0 0 0 2-2v-2" />
-
-                                <line
-                                    x1="5"
-                                    y1="12"
-                                    x2="19"
-                                    y2="12"
-                                />
-
-                            </svg>
-
-                        </span>
-
-                        <span>
-                            Scan Barcode
-                        </span>
-
+                        <span>⏸</span>
+                        Hold Bill
                     </button>
 
-                    <input
-                        type="text"
-                        id="barcode"
-                        value={barcode}
-                        ref={barcodeInputRef}
-                        onChange={(e) => {
+                    <button
+                        type="button"
+                        onClick={() =>
+                            setShowHeldBills(true)
+                        }
+                        className="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl shadow-sm transition"
+                    >
+                        <span>▶</span>
+                        Resume Bill
 
-                            const value =
-                                e.target.value;
+                        {heldBills.length > 0 && (
+                            <span className="bg-white text-purple-700 text-[11px] font-bold rounded-full min-w-[21px] h-5 flex items-center justify-center px-1">
+                                {heldBills.length}
+                            </span>
+                        )}
+                    </button>
 
-                            const cleanValue =
-                                value.replace(
-                                    /[\r\n]/g,
-                                    ""
-                                );
-
-                            setBarcode(
-                                cleanValue
-                            );
-
-                        }}
-                        onKeyDown={(e) => {
-
-                            if (
-                                e.key === "Enter"
-                            ) {
-
-                                e.preventDefault();
-
-                                handleBarcodeScan(
-                                    barcode
-                                );
-
-                            }
-
-                        }}
-                        placeholder="Scan or enter barcode"
-                        className="w-full border rounded px-3 py-2 mt-1"
-                    />
-
-                    <p className="text-xs text-gray-500 mt-1">
-                        Scan or enter a barcode manually.
-                    </p>
 
                 </div>
 
-                {/* ==========================================
-                    ITEM TABLE
-                ========================================== */}
+                {/* ==================================================
+                    MAIN POS GRID
+                ================================================== */}
 
-                <div className="overflow-x-auto mt-6">
+                <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_430px] gap-4">
 
-                    <table className="w-full text-left">
+                    {/* ==================================================
+                        LEFT SIDE
+                    ================================================== */}
 
-                        <thead>
+                    <div className="space-y-4">
 
-                            <tr className="border-b text-sm font-medium text-gray-700">
+                        {/* CUSTOMER CARD */}
 
-                                <th className="p-2 min-w-[180px]">
-                                    ITEM
-                                </th>
+                        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
 
-                                <th className="p-2">
-                                    QTY
-                                </th>
+                            <div className="flex items-center justify-between mb-4">
 
-                                <th className="p-2 text-center">
-                                    PRICE
-                                </th>
+                                <div>
 
-                                <th className="p-2 text-center">
-                                    AMOUNT
-                                </th>
+                                    <h2 className="text-base font-bold text-slate-800">
+                                        Customer Details
+                                    </h2>
 
-                                <th className="p-2 text-center">
-                                    ACTION
-                                </th>
 
-                            </tr>
 
-                        </thead>
+                                </div>
 
-                        <tbody>
+                                <div className="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                                    👤
+                                </div>
 
-                            {items.map(
-                                (
-                                    item,
-                                    index
-                                ) => (
+                            </div>
 
-                                    <InvoiceItem
-                                        key={
-                                            item.id
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                                <div>
+
+                                    <label
+                                        htmlFor="customerName"
+                                        className="block text-xs font-semibold text-slate-600 mb-1.5"
+                                    >
+                                        Customer Name
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        id="customerName"
+                                        value={customerName}
+                                        onChange={(e) =>
+                                            setCustomerName(
+                                                e.target.value
+                                            )
                                         }
-
-                                        id={
-                                            item.id
-                                        }
-
-                                        name={
-                                            item.name
-                                        }
-
-                                        qty={
-                                            item.qty
-                                        }
-
-                                        price={
-                                            item.price
-                                        }
-
-                                        amount={
-                                            item.amount
-                                        }
-
-                                        onDeleteItem={
-                                            deleteItemHandler
-                                        }
-
-                                        onEdtiItem={
-                                            edtiItemHandler
-                                        }
-
-                                        itemOptions={
-                                            itemOptions
-                                        }
-
-                                        onAddItem={
-                                            addItemHandler
-                                        }
-
-                                        autoFocus={
-                                            index ===
-                                            items.length -
-                                                1
-                                        }
+                                        placeholder="Customer name"
+                                        className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
                                     />
 
-                                )
-                            )}
-
-                        </tbody>
-
-                    </table>
-
-                </div>
+                                </div>
+
+                                <div>
+
+                                    <label
+                                        htmlFor="phoneNumber"
+                                        className="block text-xs font-semibold text-slate-600 mb-1.5"
+                                    >
+                                        Phone Number
+                                    </label>
 
-                {/* ==========================================
-                    ADD ITEM
-                ========================================== */}
+                                    <input
+                                        type="text"
+                                        id="phoneNumber"
+                                        maxLength={10}
+                                        value={phoneNumber}
+                                        placeholder="10 digit phone number"
+                                        onChange={(e) => {
 
-                <button
-                    type="button"
-                    className="mt-3 rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700 transition"
-                    onClick={addItemHandler}
-                >
-                    ➕ Add Item
-                </button>
+                                            const value =
+                                                e.target.value.replace(
+                                                    /\D/g,
+                                                    ""
+                                                );
 
-                {/* ==========================================
-                    TAX & DISCOUNT
-                ========================================== */}
+                                            setPhoneNumber(value);
 
-                <div className="grid grid-cols-2 gap-4 pt-6 md:w-1/2">
+                                            if (
+                                                value.length === 10
+                                            ) {
 
-                    <div className="flex flex-col">
+                                                fetchCustomer(
+                                                    value
+                                                );
 
-                        <label
-                            htmlFor="discount"
-                            className="font-bold"
-                        >
-                            Discount (%)
-                        </label>
+                                            }
 
-                        <input
-                            type="number"
-                            id="discount"
-                            min="0"
-                            value={discount}
-                            onChange={(e) =>
-                                setDiscount(
-                                    e.target.value
-                                )
-                            }
-                            className="border rounded px-3 py-2"
-                        />
+                                        }}
+                                        className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+                                    />
 
-                    </div>
+                                </div>
 
-                    <div className="flex flex-col">
+                                <div>
 
-                        <label
-                            htmlFor="tax"
-                            className="font-bold"
-                        >
-                            Tax (%)
-                        </label>
+                                    <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+                                        Cashier
+                                    </label>
 
-                        <input
-                            type="number"
-                            id="tax"
-                            min="0"
-                            value={tax}
-                            onChange={(e) =>
-                                setTax(
-                                    e.target.value
-                                )
-                            }
-                            className="border rounded px-3 py-2"
-                        />
+                                    <input
+                                        type="text"
+                                        value={cashierName}
+                                        readOnly
+                                        className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm bg-slate-50 text-slate-600"
+                                    />
+
+                                </div>
+
+                            </div>
+
+                            <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-purple-50 border border-purple-100 rounded-xl px-4 py-3">
+
+                                <div className="flex items-center gap-3">
+
+                                    <div className="w-9 h-9 rounded-full bg-purple-100 flex items-center justify-center">
+                                        ⭐
+                                    </div>
+
+                                    <div>
+
+                                        <p className="text-xs text-purple-600 font-semibold">
+                                            Loyalty Points
+                                        </p>
+
+                                        <p className="font-bold text-purple-800">
+                                            {loyaltyPoints} Points
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                                <label
+                                    htmlFor="redeemPoints"
+                                    className={`flex items-center gap-2 text-sm font-semibold ${
+                                        availablePoints <= 0
+                                            ? "text-slate-400"
+                                            : "text-purple-700"
+                                    }`}
+                                >
+
+                                    <input
+                                        type="checkbox"
+                                        id="redeemPoints"
+                                        checked={redeemPoints}
+                                        disabled={
+                                            availablePoints <= 0
+                                        }
+                                        onChange={(e) =>
+                                            setRedeemPoints(
+                                                e.target.checked
+                                            )
+                                        }
+                                        className="w-4 h-4 accent-purple-600"
+                                    />
+
+                                    Redeem Loyalty Points
+
+                                </label>
+
+                            </div>
 
-                    </div>
+                        </div>
+
+                        {/* ==================================================
+                            BARCODE / PRODUCT SEARCH
+                        ================================================== */}
+
+                        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
 
-                </div>
+                            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+
+                                <div>
 
-                {/* ==========================================
-                    TOTALS
-                ========================================== */}
+                                    <h2 className="text-base font-bold text-slate-800">
+                                        Add Products
+                                    </h2>
 
-                <div className="flex flex-col items-end space-y-3 pt-6 md:w-1/2">
+                                    <p className="text-xs text-slate-500 mt-0.5">
+                                        Scan a barcode or select products below
+                                    </p>
 
-                    <div className="flex justify-between w-full">
+                                </div>
 
-                        <span className="font-bold">
-                            Subtotal:
-                        </span>
+                                <button
+                                    type="button"
+                                    onClick={startBarcodeScanner}
+                                    className="inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl shadow-sm transition"
+                                >
 
-                        <span>
-                            {subtotal.toFixed(2)}
-                        </span>
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="19"
+                                        height="19"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    >
+                                        <path d="M7 3H5a2 2 0 0 0-2 2v2" />
+                                        <path d="M17 3h2a2 2 0 0 1 2 2v2" />
+                                        <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
+                                        <path d="M17 21h2a2 2 0 0 0 2-2v-2" />
+                                        <line
+                                            x1="5"
+                                            y1="12"
+                                            x2="19"
+                                            y2="12"
+                                        />
+                                    </svg>
 
-                    </div>
+                                    Scan Barcode
 
-                    <div className="flex justify-between w-full">
+                                </button>
 
-                        <span className="font-bold">
-                            Discount:
-                        </span>
+                            </div>
 
-                        <span>
-                            ({discount || 0}%)
-                            {discountRate.toFixed(2)}
-                        </span>
+                            <div className="relative">
 
-                    </div>
+                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                                    🔍
+                                </div>
 
-                    <div className="flex justify-between w-full">
+                                <input
+                                    type="text"
+                                    id="barcode"
+                                    value={barcode}
+                                    ref={barcodeInputRef}
+                                    onChange={(e) => {
 
-                        <span className="font-bold">
-                            Loyalty Discount:
-                        </span>
+                                        const value =
+                                            e.target.value;
 
-                        <span className="text-purple-600 font-semibold">
+                                        const cleanValue =
+                                            value.replace(
+                                                /[\r\n]/g,
+                                                ""
+                                            );
 
-                            {redeemPoints
-                                ? Number(
-                                    availablePoints
-                                ).toFixed(2)
-                                : "0.00"}
+                                        setBarcode(
+                                            cleanValue
+                                        );
 
-                        </span>
+                                    }}
+                                    onKeyDown={(e) => {
 
-                    </div>
+                                        if (
+                                            e.key === "Enter"
+                                        ) {
 
-                    <div className="flex justify-between w-full">
+                                            e.preventDefault();
 
-                        <span className="font-bold">
-                            Tax:
-                        </span>
+                                            handleBarcodeScan(
+                                                barcode
+                                            );
 
-                        <span>
-                            {taxRate.toFixed(2)}
-                        </span>
+                                        }
 
-                    </div>
+                                    }}
+                                    placeholder="Scan or enter barcode..."
+                                    className="w-full border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+                                />
 
+                            </div>
+<div className="flex items-center justify-between mt-2">
 
-{/* ==========================================
-    PAYMENT METHOD
-========================================== */}
+    <p className="text-xs text-slate-400">
+        Barcode scanner is ready
+    </p>
 
-<div className="w-full mt-2">
+    <div className="flex items-center gap-2">
 
-    <label
-        htmlFor="paymentMethod"
-        className="font-bold"
-    >
-        Payment Method:
-    </label>
+        <span className="text-[11px] bg-slate-100 text-slate-500 px-2 py-1 rounded-md font-medium">
+            F2 Scan
+        </span>
 
-    <select
-        id="paymentMethod"
-        value={paymentMethod}
-        onChange={(e) => {
-
-            const method = e.target.value;
-
-            setPaymentMethod(method);
-
-            if (method !== "Cash") {
-                setCashReceived("");
-            }
-
-        }}
-        className="w-full border rounded px-3 py-2 mt-1"
-    >
-
-        <option value="Cash">
-            Cash
-        </option>
-
-        <option value="Online">
-            Online
-        </option>
-
-    </select>
-
-</div>
-
-
-{/* ==========================================
-    CASH PAYMENT
-========================================== */}
-
-{paymentMethod === "Cash" && (
-
-    <div className="w-full mt-3">
-
-        <label
-            htmlFor="cashReceived"
-            className="font-bold"
-        >
-            Cash Received:
-        </label>
-
-        <input
-            type="number"
-            id="cashReceived"
-            min="0"
-            step="0.01"
-            value={cashReceived}
-            onChange={(e) =>
-                setCashReceived(
-                    e.target.value
-                )
-            }
-            placeholder="Enter amount received"
-            className="w-full border rounded px-3 py-2 mt-1"
-        />
-
-        {/* INSUFFICIENT CASH */}
-
-        {insufficientCash && (
-
-            <p className="text-red-600 text-sm font-semibold mt-1">
-                ⚠ Insufficient cash amount.
-            </p>
-
-        )}
-
-        {/* CHANGE */}
-
-        <div className="flex justify-between w-full mt-3 bg-green-50 border border-green-200 rounded-lg px-3 py-3">
-
-            <span className="font-bold text-green-700">
-                Change to Return:
-            </span>
-
-            <span className="font-bold text-green-700">
-                ₹ {changeAmount.toFixed(2)}
-            </span>
-
-        </div>
+        <span className="text-[11px] bg-slate-100 text-slate-500 px-2 py-1 rounded-md font-medium">
+            Enter to add
+        </span>
 
     </div>
 
-)}
-                    {/* ==========================================
-                        GRAND TOTAL
-                    ========================================== */}
+</div>
 
-                    <div className="flex justify-between w-full border-t pt-4 mt-2">
+                        </div>
 
-                        <span className="font-bold text-xl">
-                            Total:
-                        </span>
+                        {/* ==================================================
+                            ITEM TABLE
+                        ================================================== */}
 
-                        <span className="font-bold text-xl text-blue-600">
-                            RS: {total.toFixed(2)}
-                        </span>
+                        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+
+                            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+
+                                <div>
+
+                                    <h2 className="text-base font-bold text-slate-800">
+                                        Sale Items
+                                    </h2>
+
+                                    <p className="text-xs text-slate-500 mt-0.5">
+                                        Add products to this invoice
+                                    </p>
+
+                                </div>
+
+                                <span className="text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">
+                                    {items.filter(
+                                        (item) =>
+                                            item.name &&
+                                            item.name.trim()
+                                                .length > 0
+                                    ).length}{" "}
+                                    Items
+                                </span>
+
+                            </div>
+
+                            <div className="overflow-x-auto">
+
+                                <table className="w-full text-center">
+
+                                    <thead className="bg-slate-50">
+
+                                        <tr className="border-b border-slate-100 text-[11px] uppercase tracking-wide font-bold text-slate-500">
+
+                                            <th className="px-5 py-3 min-w-[220px] text-center">
+                                                Item
+                                            </th>
+
+                                            <th className="px-3 py-3 ">
+                                                Qty
+                                            </th>
+
+                                            <th className="px-3 py-3 text-center">
+                                                Price
+                                            </th>
+
+                                            <th className="px-3 py-3 text-center">
+                                                Amount
+                                            </th>
+
+                                            <th className="px-3 py-3 text-center">
+                                                Action
+                                            </th>
+
+                                        </tr>
+
+                                    </thead>
+
+                                    <tbody>
+
+                                        {items.map(
+                                            (
+                                                item,
+                                                index
+                                            ) => (
+
+                                                <InvoiceItem
+                                                    key={
+                                                        item.id
+                                                    }
+
+                                                    id={
+                                                        item.id
+                                                    }
+
+                                                    name={
+                                                        item.name
+                                                    }
+
+                                                    qty={
+                                                        item.qty
+                                                    }
+
+                                                    price={
+                                                        item.price
+                                                    }
+
+                                                    amount={
+                                                        item.amount
+                                                    }
+
+                                                    onDeleteItem={
+                                                        deleteItemHandler
+                                                    }
+
+                                                    onEdtiItem={
+                                                        edtiItemHandler
+                                                    }
+
+                                                    itemOptions={
+                                                        itemOptions
+                                                    }
+
+                                                    onAddItem={
+                                                        addItemHandler
+                                                    }
+
+                                                    autoFocus={
+                                                        index ===
+                                                        items.length -
+                                                            1
+                                                    }
+                                                />
+
+                                            )
+                                        )}
+
+                                    </tbody>
+
+                                </table>
+
+                            </div>
+
+                            <div className="px-5 py-4 border-t border-slate-100">
+
+                                <button
+                                    type="button"
+                                    onClick={addItemHandler}
+                                    className="inline-flex items-center gap-2 border border-dashed border-slate-300 hover:border-blue-400 hover:bg-blue-50 text-slate-600 hover:text-blue-600 font-semibold text-sm px-4 py-2.5 rounded-xl transition"
+                                >
+                                    <span>＋</span>
+                                    Add Item
+                                </button>
+
+                            </div>
+
+                        </div>
 
                     </div>
 
-                    {/* ==========================================
-                        REVIEW BUTTON
-                    ========================================== */}
+                    {/* ==================================================
+                        RIGHT SIDE - CART / PAYMENT
+                    ================================================== */}
 
-                    <button
-                        className="hidden md:block mt-4 w-full rounded-lg bg-blue-600 py-3 text-white font-semibold hover:bg-blue-700 transition"
-                        type="submit"
-                        ref={reviewBtnRef}
-                    >
-                        Review Invoice
-                    </button>
+                    <div className="xl:sticky xl:top-4 h-fit">
+
+                        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+
+                            {/* CART HEADER */}
+
+                            <div className="bg-blue-600 px-5 py-5 text-white">
+
+                                <div className="flex items-center justify-between">
+
+                                    <div className="flex items-center gap-3">
+
+<div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center">
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="22"
+        height="22"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="white"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+    >
+        <circle cx="9" cy="20" r="1" />
+        <circle cx="20" cy="20" r="1" />
+        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+    </svg>
+</div>
+
+                                        <div>
+
+                                            <h2 className="font-bold text-lg">
+                                                Current Sale
+                                            </h2>
+
+                                            <p className="text-xs text-slate-300">
+                                                {invoiceNumber}
+                                            </p>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div className="bg-white/10 px-3 py-1.5 rounded-lg text-xs font-semibold">
+                                        {items.filter(
+                                            (item) =>
+                                                item.name &&
+                                                item.name.trim()
+                                                    .length > 0
+                                        ).length}{" "}
+                                        items
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            {/* QUICK SUMMARY */}
+
+                            <div className="p-5">
+
+                                <div className="space-y-2.5 max-h-[230px] overflow-y-auto pr-1">
+
+                                    {items.filter(
+                                        (item) =>
+                                            item.name &&
+                                            item.name.trim()
+                                                .length > 0
+                                    ).length === 0 ? (
+
+                                        <div className="text-center py-8">
+
+                                            <div className="text-4xl mb-2">
+                                                🛒
+                                            </div>
+
+                                            <p className="font-semibold text-slate-600">
+                                                No items added
+                                            </p>
+
+                                            <p className="text-xs text-slate-400 mt-1">
+                                                Scan a barcode or add an item
+                                            </p>
+
+                                        </div>
+
+                                    ) : (
+
+                                        items
+                                            .filter(
+                                                (item) =>
+                                                    item.name &&
+                                                    item.name.trim()
+                                                        .length > 0
+                                            )
+                                            .map((item) => (
+
+                                                <div
+                                                    key={
+                                                        item.id
+                                                    }
+                                                    className="flex items-center justify-between gap-3 py-2.5 border-b border-slate-100 last:border-0"
+                                                >
+
+                                                    <div className="min-w-0">
+
+                                                        <p className="text-sm font-semibold text-slate-700 truncate">
+                                                            {item.name}
+                                                        </p>
+
+                                                        <p className="text-xs text-slate-400">
+                                                            {Math.floor(
+                                                                Number(
+                                                                    item.qty ||
+                                                                        0
+                                                                )
+                                                            )}{" "}
+                                                            × ₹
+                                                            {Number(
+                                                                item.price ||
+                                                                    0
+                                                            ).toFixed(
+                                                                2
+                                                            )}
+                                                        </p>
+
+                                                    </div>
+
+                                                    <p className="text-sm font-bold text-slate-800 whitespace-nowrap">
+                                                        ₹
+                                                        {Number(
+                                                            item.amount ||
+                                                                0
+                                                        ).toFixed(
+                                                            2
+                                                        )}
+                                                    </p>
+
+                                                </div>
+
+                                            ))
+
+                                    )}
+
+                                </div>
+
+                                {/* ==================================================
+                                    DISCOUNT / TAX
+                                ================================================== */}
+
+                                <div className="border-t border-slate-200 mt-4 pt-4">
+
+                                    <div className="grid grid-cols-2 gap-3">
+
+                                        <div>
+
+                                            <label
+                                                htmlFor="discount"
+                                                className="block text-xs font-semibold text-slate-600 mb-1.5"
+                                            >
+                                                Discount %
+                                            </label>
+
+                                            <input
+                                                type="number"
+                                                id="discount"
+                                                min="0"
+                                                value={
+                                                    discount
+                                                }
+                                                onChange={(e) =>
+                                                    setDiscount(
+                                                        e.target.value
+                                                    )
+                                                }
+                                                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                            />
+
+                                        </div>
+
+                                        <div>
+
+                                            <label
+                                                htmlFor="tax"
+                                                className="block text-xs font-semibold text-slate-600 mb-1.5"
+                                            >
+                                                Tax %
+                                            </label>
+
+                                            <input
+                                                type="number"
+                                                id="tax"
+                                                min="0"
+                                                value={
+                                                    tax
+                                                }
+                                                onChange={(e) =>
+                                                    setTax(
+                                                        e.target.value
+                                                    )
+                                                }
+                                                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                            />
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                {/* ==================================================
+                                    TOTAL BREAKDOWN
+                                ================================================== */}
+
+                                <div className="mt-5 space-y-3">
+
+                                    <div className="flex justify-between text-sm">
+
+                                        <span className="text-slate-500">
+                                            Subtotal
+                                        </span>
+
+                                        <span className="font-semibold text-slate-700">
+                                            ₹{subtotal.toFixed(2)}
+                                        </span>
+
+                                    </div>
+
+                                    <div className="flex justify-between text-sm">
+
+                                        <span className="text-slate-500">
+                                            Discount
+                                            <span className="text-xs ml-1">
+                                                ({discount || 0}%)
+                                            </span>
+                                        </span>
+
+                                        <span className="font-semibold text-red-500">
+                                            - ₹{discountRate.toFixed(2)}
+                                        </span>
+
+                                    </div>
+
+                                    <div className="flex justify-between text-sm">
+
+                                        <span className="text-slate-500">
+                                            Loyalty Discount
+                                        </span>
+
+                                        <span className="font-semibold text-purple-600">
+                                            - ₹
+                                            {redeemPoints
+                                                ? Number(
+                                                    availablePoints
+                                                ).toFixed(2)
+                                                : "0.00"}
+                                        </span>
+
+                                    </div>
+
+                                    <div className="flex justify-between text-sm">
+
+                                        <span className="text-slate-500">
+                                            Tax
+                                        </span>
+
+                                        <span className="font-semibold text-slate-700">
+                                            + ₹{taxRate.toFixed(2)}
+                                        </span>
+
+                                    </div>
+
+                                    <div className="font-bold flex justify-between text-lg">
+
+                                        <span className="text-blue-600">
+                                            Grand Total
+                                        </span>
+
+                                        <span className="font-semibold text-blue-600">
+                                            ₹{total.toFixed(2)}
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                                {/* ==================================================
+                                    PAYMENT METHOD
+                                ================================================== */}
+
+                                <div className="mt-5">
+
+                                    <label
+                                        htmlFor="paymentMethod"
+                                        className="block text-xs font-semibold text-slate-600 mb-1.5"
+                                    >
+                                        Payment Method
+                                    </label>
+
+                                    <select
+                                        id="paymentMethod"
+                                        value={
+                                            paymentMethod
+                                        }
+                                        onChange={(e) => {
+
+                                            const method =
+                                                e.target.value;
+
+                                            setPaymentMethod(
+                                                method
+                                            );
+
+                                            if (
+                                                method !==
+                                                "Cash"
+                                            ) {
+
+                                                setCashReceived(
+                                                    ""
+                                                );
+
+                                            }
+
+                                        }}
+                                        className="w-full border border-slate-200 rounded-xl px-3.5 py-3 text-sm font-semibold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white"
+                                    >
+
+                                        <option value="Cash">
+                                            Cash
+                                        </option>
+
+                                        <option value="Online">
+                                            Online
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+                                {/* ==================================================
+                                    CASH PAYMENT
+                                ================================================== */}
+
+                                {paymentMethod === "Cash" && (
+
+                                    <div className="mt-4">
+
+                                        <label
+                                            htmlFor="cashReceived"
+                                            className="block text-xs font-semibold text-slate-600 mb-1.5"
+                                        >
+                                            Cash Received
+                                        </label>
+
+                                        <input
+                                            type="number"
+                                            id="cashReceived"
+                                            min="0"
+                                            step="0.01"
+                                            value={
+                                                cashReceived
+                                            }
+                                            onChange={(e) =>
+                                                setCashReceived(
+                                                    e.target.value
+                                                )
+                                            }
+                                            placeholder="Enter amount received"
+                                            className={`w-full border rounded-xl px-3.5 py-3 text-sm outline-none focus:ring-2 transition ${
+                                                insufficientCash
+                                                    ? "border-red-400 focus:ring-red-100"
+                                                    : "border-slate-200 focus:border-blue-500 focus:ring-blue-100"
+                                            }`}
+                                        />
+
+                                        {insufficientCash && (
+
+                                            <p className="text-red-600 text-xs font-semibold mt-1.5">
+                                                ⚠ Insufficient cash amount.
+                                            </p>
+
+                                        )}
+
+                                        <div className="flex justify-between items-center mt-3 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
+
+                                            <span className="text-sm font-semibold text-green-700">
+                                                Change to Return
+                                            </span>
+
+                                            <span className="text-base font-bold text-green-700">
+                                                ₹ {changeAmount.toFixed(2)}
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                )}
+
+                                {/* ==================================================
+                                    REVIEW / PAYMENT BUTTON
+                                ================================================== */}
+
+                                <button
+                                    type="submit"
+                                    ref={reviewBtnRef}
+                                    className="hidden md:flex w-full mt-5 items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-3.5 rounded-xl shadow-sm transition"
+                                >
+
+                                    <span>Review Invoice</span>
+
+                                    <span className="text-xs bg-white/15 px-2 py-1 rounded-md">
+                                        F5
+                                    </span>
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
 
                 </div>
 
-                {/* ==========================================
+                {/* ==================================================
                     MOBILE REVIEW BUTTON
-                ========================================== */}
+                ================================================== */}
 
-                <div className="md:hidden w-full pt-4">
+                <div className="md:hidden mt-4">
 
                     <button
-                        className="w-full rounded-lg bg-blue-600 py-3 text-white font-semibold hover:bg-blue-700 transition"
                         type="submit"
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-sm transition"
                     >
-                        Review Invoice
+                        Review Invoice • ₹{total.toFixed(2)}
                     </button>
 
                 </div>
 
             </form>
 
-            {/* ==========================================
+            {/* ==================================================
                 HELD BILLS MODAL
-            ========================================== */}
+            ================================================== */}
 
             {showHeldBills && (
 
                 <div className="fixed inset-0 z-[9998] bg-black/60 flex items-center justify-center p-4">
 
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden">
-
-                        {/* ==========================================
-                            MODAL HEADER
-                        ========================================== */}
 
                         <div className="flex items-center justify-between p-5 border-b">
 
@@ -3323,10 +3369,6 @@ if (paymentMethod === "Cash") {
                             </button>
 
                         </div>
-
-                        {/* ==========================================
-                            MODAL BODY
-                        ========================================== */}
 
                         <div className="p-5 overflow-y-auto max-h-[60vh]">
 
@@ -3392,22 +3434,22 @@ if (paymentMethod === "Cash") {
                                             return (
 
                                                 <div
-                                                    key={bill.id}
+                                                    key={
+                                                        bill.id
+                                                    }
                                                     className="border rounded-xl p-4 hover:bg-gray-50 transition"
                                                 >
 
                                                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-
-                                                        {/* ==========================================
-                                                            BILL INFORMATION
-                                                        ========================================== */}
 
                                                         <div className="flex-1">
 
                                                             <div className="flex items-center gap-2">
 
                                                                 <h3 className="font-bold text-gray-800">
-                                                                    {bill.invoiceNumber}
+                                                                    {
+                                                                        bill.invoiceNumber
+                                                                    }
                                                                 </h3>
 
                                                                 <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full font-semibold">
@@ -3421,37 +3463,41 @@ if (paymentMethod === "Cash") {
                                                                 Customer:{" "}
 
                                                                 <span className="font-semibold">
-                                                                    {bill.customerName ||
-                                                                        "Walk-in Customer"}
+                                                                    {
+                                                                        bill.customerName ||
+                                                                        "Walk-in Customer"
+                                                                    }
                                                                 </span>
 
                                                             </p>
 
                                                             <p className="text-sm text-gray-500">
 
-                                                                {itemCount} item
+                                                                {itemCount}{" "}
+                                                                item
                                                                 {itemCount !==
                                                                 1
                                                                     ? "s"
                                                                     : ""}{" "}
                                                                 •{" "}
-                                                                {heldDate}{" "}
+                                                                {
+                                                                    heldDate
+                                                                }{" "}
                                                                 •{" "}
-                                                                {heldTime}
+                                                                {
+                                                                    heldTime
+                                                                }
 
                                                             </p>
 
                                                         </div>
-
-                                                        {/* ==========================================
-                                                            TOTAL
-                                                        ========================================== */}
 
                                                         <div className="text-left md:text-right">
 
                                                             <p className="text-lg font-bold text-blue-600">
 
                                                                 ₹{" "}
+
                                                                 {Number(
                                                                     bill.total ||
                                                                         0
@@ -3464,10 +3510,6 @@ if (paymentMethod === "Cash") {
                                                         </div>
 
                                                     </div>
-
-                                                    {/* ==========================================
-                                                        ACTIONS
-                                                    ========================================== */}
 
                                                     <div className="flex gap-2 mt-4">
 
@@ -3490,7 +3532,7 @@ if (paymentMethod === "Cash") {
                                                                     bill.id
                                                                 )
                                                             }
-                                                            className="flex-1 px-5 bg-red-100 hover:bg-red-200 text-red-700 px-4 font-semibold py-2 rounded-lg transition"
+                                                            className="flex-1 bg-red-100 hover:bg-red-200 text-red-700 font-semibold px-4 py-2 rounded-lg transition"
                                                         >
                                                             Delete
                                                         </button>
@@ -3508,10 +3550,6 @@ if (paymentMethod === "Cash") {
                             )}
 
                         </div>
-
-                        {/* ==========================================
-                            MODAL FOOTER
-                        ========================================== */}
 
                         <div className="border-t p-4">
 
@@ -3533,9 +3571,9 @@ if (paymentMethod === "Cash") {
 
             )}
 
-            {/* ==========================================
+            {/* ==================================================
                 CAMERA BARCODE SCANNER
-            ========================================== */}
+            ================================================== */}
 
             {showScanner && (
 
@@ -3611,9 +3649,9 @@ if (paymentMethod === "Cash") {
 
             )}
 
-            {/* ==========================================
+            {/* ==================================================
                 INVOICE MODAL
-            ========================================== */}
+            ================================================== */}
 
             <InvoiceModal
                 isOpen={isOpen}

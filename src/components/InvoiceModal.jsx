@@ -24,11 +24,14 @@ const InvoiceModal = ({
     onAddNextInvoice,
 }) => {
 
-    const [today, setToday] =
-        useState("");
+    const [today, setToday] = useState("");
+    const [currentTime, setCurrentTime] = useState("");
 
-    const [currentTime, setCurrentTime] =
-        useState("");
+    // ==========================================
+    // PRINT REF
+    // ==========================================
+
+    const printRef = useRef(null);
 
     // ==========================================
     // DATE & TIME
@@ -38,8 +41,7 @@ const InvoiceModal = ({
 
         if (isOpen) {
 
-            const now =
-                new Date();
+            const now = new Date();
 
             setToday(
                 now.toLocaleDateString(
@@ -73,14 +75,8 @@ const InvoiceModal = ({
     function closeModal() {
 
         setIsOpen(false);
+
     }
-
-    // ==========================================
-    // PRINT REF
-    // ==========================================
-
-    const printRef =
-        useRef(null);
 
     // ==========================================
     // NEXT INVOICE
@@ -91,6 +87,7 @@ const InvoiceModal = ({
         setIsOpen(false);
 
         onAddNextInvoice();
+
     };
 
     // ==========================================
@@ -105,7 +102,86 @@ const InvoiceModal = ({
 
             documentTitle:
                 `Invoice-${invoiceInfo.invoiceNumber}`,
+
         });
+
+    // ==========================================
+    // KEYBOARD SHORTCUTS
+    // ==========================================
+
+    useEffect(() => {
+
+        if (!isOpen) {
+            return;
+        }
+
+        const handleShortcut = (event) => {
+
+            // ==========================================
+            // F6 → PRINT BILL
+            // ==========================================
+
+            if (event.key === "F6") {
+
+                event.preventDefault();
+
+                printInvoiceHandler();
+
+                return;
+
+            }
+
+            // ==========================================
+            // F7 → NEXT INVOICE
+            // ==========================================
+
+            if (event.key === "F7") {
+
+                event.preventDefault();
+
+                addNextInvoiceHandler();
+
+                return;
+
+            }
+
+            // ==========================================
+            // ESC → CLOSE MODAL
+            // ==========================================
+
+            if (event.key === "Escape") {
+
+                event.preventDefault();
+
+                closeModal();
+
+                return;
+
+            }
+
+        };
+
+        window.addEventListener(
+            "keydown",
+            handleShortcut
+        );
+
+        return () => {
+
+            window.removeEventListener(
+                "keydown",
+                handleShortcut
+            );
+
+        };
+
+    }, [
+        isOpen,
+        printInvoiceHandler,
+        onAddNextInvoice,
+        setIsOpen,
+        invoiceInfo.invoiceNumber,
+    ]);
 
     // ==========================================
     // RETURN
@@ -151,8 +227,6 @@ const InvoiceModal = ({
                 <div className="fixed inset-0 overflow-y-auto">
 
                     <div className="min-h-full text-center">
-
-                        {/* Browser centering trick */}
 
                         <span
                             className="inline-block h-screen align-middle"
@@ -351,7 +425,6 @@ const InvoiceModal = ({
 
                                                                 <td className="min-w-[65px] py-2 text-right">
 
-                                                                    
                                                                     {Number(
                                                                         item.price ||
                                                                             0
@@ -365,7 +438,6 @@ const InvoiceModal = ({
 
                                                                 <td className="min-w-[75px] py-2 text-right">
 
-                                                                    
                                                                     {itemAmount.toFixed(
                                                                         2
                                                                     )}
@@ -397,7 +469,6 @@ const InvoiceModal = ({
                                                 </span>
 
                                                 <span>
-                                                    
                                                     {Number(
                                                         invoiceInfo.subtotal ||
                                                             0
@@ -417,7 +488,6 @@ const InvoiceModal = ({
                                                 </span>
 
                                                 <span>
-                                                    
                                                     {Number(
                                                         invoiceInfo.discountRate ||
                                                             0
@@ -437,7 +507,6 @@ const InvoiceModal = ({
                                                 </span>
 
                                                 <span>
-                                                    
                                                     {Number(
                                                         invoiceInfo.loyaltyDiscount ||
                                                             0
@@ -457,7 +526,6 @@ const InvoiceModal = ({
                                                 </span>
 
                                                 <span>
-                                                    
                                                     {Number(
                                                         invoiceInfo.taxRate ||
                                                             0
@@ -477,6 +545,7 @@ const InvoiceModal = ({
                                                 </span>
 
                                                 <span className="text-[18px]">
+
                                                     Rs:
                                                     {Number(
                                                         invoiceInfo.total ||
@@ -484,6 +553,7 @@ const InvoiceModal = ({
                                                     ).toFixed(
                                                         2
                                                     )}
+
                                                 </span>
 
                                             </div>
@@ -495,9 +565,17 @@ const InvoiceModal = ({
                                         {/* ========================================== */}
 
                                         <div className="w-full text-center mt-4">
+
                                             <h4 className="font-semibold text-[15px]">
-                                            <p></p> Thank you for shopping!<p>Visit us again!❤️</p>
+
+                                                Thank you for shopping!
+
+                                                <p>
+                                                    Visit us again!❤️
+                                                </p>
+
                                             </h4>
+
                                         </div>
 
                                     </div>
@@ -510,13 +588,16 @@ const InvoiceModal = ({
 
                                 <div className="flex gap-2 p-4">
 
+                                    {/* ========================================== */}
                                     {/* PRINT */}
+                                    {/* ========================================== */}
 
                                     <button
+                                        type="button"
                                         onClick={
                                             printInvoiceHandler
                                         }
-                                        className="flex flex-1 items-center justify-center space-x-1 rounded-md border border-red-500 py-2 text-sm text-red-500 shadow-sm hover:bg-green-500 hover:text-white transition"
+                                        className="flex flex-1 items-center justify-center space-x-1 rounded-md border border-red-500 py-2 text-sm text-red-500 shadow-sm transition hover:bg-green-500 hover:text-white"
                                     >
 
                                         <svg
@@ -540,11 +621,18 @@ const InvoiceModal = ({
                                             Print Bill
                                         </span>
 
+                                        <span className="ml-1 rounded bg-red-50 px-1.5 py-0.5 text-[10px] font-bold text-red-600">
+                                            F6
+                                        </span>
+
                                     </button>
 
+                                    {/* ========================================== */}
                                     {/* NEXT */}
+                                    {/* ========================================== */}
 
                                     <button
+                                        type="button"
                                         onClick={
                                             addNextInvoiceHandler
                                         }
@@ -570,6 +658,10 @@ const InvoiceModal = ({
 
                                         <span>
                                             Next
+                                        </span>
+
+                                        <span className="ml-1 rounded bg-white/20 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                                            F7
                                         </span>
 
                                     </button>
