@@ -1,281 +1,1276 @@
-
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+
+import {
+    LayoutDashboard,
+    ShoppingCart,
+    Receipt,
+    Wallet,
+    Package,
+    Boxes,
+    Users,
+    BarChart3,
+    UserCog,
+    Settings,
+    LogOut,
+    Menu,
+    X,
+    ChevronDown,
+    Store,
+} from "lucide-react";
+
 
 const Navbar = ({ onLogout }) => {
 
-    const navigate = useNavigate();
+    const location = useLocation();
 
-    const user = JSON.parse(sessionStorage.getItem("user"));
+    const user = JSON.parse(
+        sessionStorage.getItem("user")
+    );
 
-    const [menuOpen, setMenuOpen] = useState(false);
+    const [sidebarOpen, setSidebarOpen] =
+        useState(false);
+
+    const [managementOpen, setManagementOpen] =
+        useState(true);
+
+
+    // =========================================================
+    // ACTIVE ROUTE
+    // =========================================================
+
+    const isActive = (path) =>
+        location.pathname === path;
+
+
+    // =========================================================
+    // CLOSE SIDEBAR
+    // =========================================================
+
+    const closeSidebar = () => {
+        setSidebarOpen(false);
+    };
+
+
+    // =========================================================
+    // LOGOUT
+    // =========================================================
+
+    const handleLogout = () => {
+
+        closeSidebar();
+
+        onLogout();
+
+    };
+
+
+    // =========================================================
+    // USER INITIAL
+    // =========================================================
+
+    const userInitial =
+        user?.username
+            ?.charAt(0)
+            ?.toUpperCase() || "U";
+
+
+    // =========================================================
+    // PAGE TITLE
+    // =========================================================
+
+    const getPageTitle = () => {
+
+        switch (location.pathname) {
+
+            case "/":
+                return "New Sale";
+
+            case "/dashboard":
+                return "Dashboard";
+
+            case "/invoices":
+                return "Invoices";
+
+            case "/cash-register":
+                return "Cash Register";
+
+            case "/products":
+                return "Products";
+
+            case "/inventory":
+                return "Inventory";
+
+            case "/customers":
+                return "Customers";
+
+            case "/reports":
+                return "Reports";
+
+            case "/users":
+                return "Users";
+
+            default:
+                return "AK Super Market";
+        }
+    };
 
 
     return (
+        <>
 
-        <nav className="bg-slate-800 text-white shadow-md">
+            {/* =====================================================
+                MOBILE TOP BAR
+            ===================================================== */}
 
-            <div className="max-w-7xl mx-auto px-4">
+            <header
+                className="
+                    lg:hidden
+                    fixed
+                    top-0
+                    left-0
+                    right-0
+                    h-16
+                    bg-white
+                    text-gray-800
+                    border-b
+                    border-gray-200
+                    z-50
+                    shadow-sm
+                "
+            >
 
-                <div className="flex justify-between items-center h-16">
+                <div
+                    className="
+                        h-full
+                        flex
+                        items-center
+                        justify-between
+                        px-3
+                    "
+                >
 
-                    {/* Logo */}
+                    {/* =================================================
+                        MOBILE LEFT
+                    ================================================= */}
 
                     <div
-                        className="font-bold text-xl cursor-pointer truncate mr-2"
-                        onClick={() => navigate("/")}
+                        className="
+                            flex
+                            items-center
+                            gap-2
+                            min-w-0
+                        "
                     >
-                        🛒 AK SUPER MARKET
-                    </div>
 
-
-                    {/* ============================= */}
-                    {/* DESKTOP MENU */}
-                    {/* ============================= */}
-
-                    <div className="hidden md:flex items-center gap-6">
-
-                        {/* Admin Menu */}
-
-                        {user?.role === "Admin" && (
-                            <>
-
-                                <Link
-                                    to="/dashboard"
-                                    className="hover:text-gray-300"
-                                >
-                                    Dashboard
-                                </Link>
-
-                                <Link
-                                    to="/reports"
-                                    className="hover:text-gray-300"
-                                >
-                                    Reports
-                                </Link>
-
-                                <Link
-                                    to="/products"
-                                    className="hover:text-gray-300"
-                                >
-                                    Products
-                                </Link>
-
-                                <Link
-                                    to="/inventory"
-                                    className="hover:text-gray-300"
-                                >
-                                    Inventory
-                                </Link>
-
-                                <Link
-                                    to="/customers"
-                                    className="hover:text-gray-300"
-                                >
-                                    Customers
-                                </Link>
-
-                                <Link
-                                    to="/users"
-                                    className="hover:text-gray-300"
-                                >
-                                    Users
-                                </Link>
-
-                            </>
-                        )}
-
-
-                        {/* Billing */}
-
-                        <Link
-                            to="/"
-                            className="hover:text-gray-300"
-                        >
-                            Billing
-                        </Link>
-
-
-                        {/* Invoices */}
-
-                        <Link
-                            to="/invoices"
-                            className="hover:text-gray-300"
-                        >
-                            Invoices
-                        </Link>
-
-{/* Cash Register */}
-
-<Link
-    to="/cash-register"
-    className="hover:text-gray-300"
->
-    Cash Register
-</Link>
-                        {/* Username */}
-
-                        <span className="text-sm text-gray-300">
-                            👤 {user?.username}
-                        </span>
-
-
-                        {/* Logout */}
+                        {/* MENU BUTTON */}
 
                         <button
-                            onClick={onLogout}
-                            className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded"
+                            onClick={() =>
+                                setSidebarOpen(true)
+                            }
+                            className="
+                                p-2
+                                rounded-lg
+                                text-gray-600
+                                hover:bg-gray-100
+                                transition
+                                flex-shrink-0
+                            "
+                            aria-label="Open menu"
                         >
-                            Logout
+
+                            <Menu size={23} />
+
                         </button>
+
+
+                        {/* STORE */}
+
+                        <div
+                            className="
+                                flex
+                                items-center
+                                gap-2
+                                min-w-0
+                            "
+                        >
+
+                            {/* STORE ICON */}
+
+                            <div
+                                className="
+                                    bg-blue-600
+                                    text-white
+                                    p-2
+                                    rounded-lg
+                                    flex-shrink-0
+                                "
+                            >
+
+                                <Store size={19} />
+
+                            </div>
+
+
+                            {/* STORE TEXT */}
+
+                            <div
+                                className="
+                                    min-w-0
+                                    leading-tight
+                                "
+                            >
+
+                                <h1
+                                    className="
+                                        font-bold
+                                        text-xs
+                                        sm:text-sm
+                                        text-gray-800
+                                        leading-tight
+                                        truncate
+                                    "
+                                >
+                                    AK SUPER MARKET
+                                </h1>
+
+                                <p
+                                    className="
+                                        text-[9px]
+                                        sm:text-[10px]
+                                        text-gray-500
+                                        leading-tight
+                                        mt-0.5
+                                    "
+                                >
+                                    Point of Sale
+                                </p>
+
+                            </div>
+
+                        </div>
 
                     </div>
 
 
-                    {/* ============================= */}
-                    {/* MOBILE USERNAME + MENU BUTTON */}
-                    {/* ============================= */}
+                    {/* =================================================
+                        MOBILE RIGHT
+                    ================================================= */}
 
-                    <div className="md:hidden flex items-center gap-3 pr-2">
+                    <div
+                        className="
+                            flex
+                            items-center
+                            gap-2
+                            flex-shrink-0
+                        "
+                    >
 
-                        {/* Username */}
+                        {/* SYSTEM STATUS */}
 
-                        <span className="text-sm text-gray-300">
-                            👤 {user?.username}
-                        </span>
-
-
-                        {/* Menu Button */}
-
-                        <button
-                            className="text-3xl px-1"
-                            onClick={() => setMenuOpen(!menuOpen)}
+                        <div
+                            className="
+                                flex
+                                items-center
+                                gap-1.5
+                                text-[9px]
+                                sm:text-xs
+                                text-gray-500
+                                whitespace-nowrap
+                            "
                         >
-                            ☰
-                        </button>
+
+                            <span
+                                className="
+                                    w-2
+                                    h-2
+                                    rounded-full
+                                    bg-green-500
+                                    flex-shrink-0
+                                "
+                            />
+
+                            <span>
+                                System Online
+                            </span>
+
+                        </div>
+
+
+                        {/* MOBILE USER */}
+
+                        <div
+                            className="
+                                flex
+                                items-center
+                                gap-2
+                                pl-2
+                                border-l
+                                border-gray-200
+                            "
+                        >
+
+                            {/* AVATAR */}
+
+                            <div
+                                className="
+                                    w-8
+                                    h-8
+                                    rounded-full
+                                    bg-blue-600
+                                    text-white
+                                    flex
+                                    items-center
+                                    justify-center
+                                    font-bold
+                                    text-sm
+                                    flex-shrink-0
+                                "
+                            >
+                                {userInitial}
+                            </div>
+
+
+                            {/* USER TEXT */}
+
+                            <div
+                                className="
+                                    leading-tight
+                                "
+                            >
+
+                                <p
+                                    className="
+                                        text-[10px]
+                                        sm:text-xs
+                                        font-semibold
+                                        text-gray-800
+                                        leading-tight
+                                        max-w-[65px]
+                                        sm:max-w-[90px]
+                                        truncate
+                                    "
+                                >
+                                    {user?.username}
+                                </p>
+
+                                <p
+                                    className="
+                                        text-[8px]
+                                        sm:text-[10px]
+                                        text-gray-500
+                                        leading-tight
+                                        mt-0.5
+                                    "
+                                >
+                                    {user?.role}
+                                </p>
+
+                            </div>
+
+                        </div>
 
                     </div>
 
                 </div>
 
-            </div>
+            </header>
 
 
-            {/* ============================= */}
-            {/* MOBILE MENU */}
-            {/* ============================= */}
+            {/* =====================================================
+                MOBILE OVERLAY
+            ===================================================== */}
 
-            {menuOpen && (
+            {sidebarOpen && (
 
-                <div className="md:hidden bg-slate-700 flex flex-col">
+                <div
+                    className="
+                        lg:hidden
+                        fixed
+                        inset-0
+                        bg-black/30
+                        z-40
+                    "
+                    onClick={closeSidebar}
+                />
 
-
-                    {/* Admin Menu */}
-
-                    {user?.role === "Admin" && (
-                        <>
-
-                            <Link
-                                className="p-3 border-b hover:bg-slate-600"
-                                to="/dashboard"
-                                onClick={() => setMenuOpen(false)}
-                            >
-                                Dashboard
-                            </Link>
-                            <Link
-                                className="p-3 border-b hover:bg-slate-600"
-                                to="/reports"
-                                onClick={() => setMenuOpen(false)}
-                            >
-                                Reports
-                            </Link>
-
-                            <Link
-                                className="p-3 border-b hover:bg-slate-600"
-                                to="/products"
-                                onClick={() => setMenuOpen(false)}
-                            >
-                                Products
-                            </Link>
-
-                            <Link
-                                className="p-3 border-b hover:bg-slate-600"
-                                to="/inventory"
-                                onClick={() => setMenuOpen(false)}
-                            >
-                                Inventory
-                            </Link>
-
-                            
-                                <Link
-                                    className="p-3 border-b hover:bg-slate-600"
-                                    to="/customers"
-                                    onClick={() => setMenuOpen(false)}
-                                >
-                                    Customers
-                                </Link>
-
-                            <Link
-                                className="p-3 border-b hover:bg-slate-600"
-                                to="/users"
-                                onClick={() => setMenuOpen(false)}
-                            >
-                                Users
-                            </Link>
-
-                        </>
-                    )}
+            )}
 
 
-                    {/* Billing */}
+            {/* =====================================================
+                SIDEBAR
+            ===================================================== */}
 
-                    <Link
-                        className="p-3 border-b hover:bg-slate-600"
-                        to="/"
-                        onClick={() => setMenuOpen(false)}
+            <aside
+                className={`
+                    fixed
+                    top-0
+                    left-0
+                    bottom-0
+                    w-64
+                    bg-white
+                    text-gray-800
+                    border-r
+                    border-gray-200
+                    z-50
+                    flex
+                    flex-col
+                    shadow-lg
+                    transition-transform
+                    duration-300
+
+                    lg:translate-x-0
+
+                    ${
+                        sidebarOpen
+                            ? "translate-x-0"
+                            : "-translate-x-full"
+                    }
+                `}
+            >
+
+                {/* =================================================
+                    SIDEBAR HEADER
+                ================================================= */}
+
+                <div
+                    className="
+                        h-16
+                        flex
+                        items-center
+                        justify-between
+                        px-5
+                        border-b
+                        border-gray-200
+                    "
+                >
+
+                    <div
+                        className="
+                            flex
+                            items-center
+                            gap-3
+                        "
                     >
-                        Billing
-                    </Link>
+
+                        {/* STORE ICON */}
+
+                        <div
+                            className="
+                                bg-blue-600
+                                text-white
+                                p-2.5
+                                rounded-xl
+                                flex-shrink-0
+                            "
+                        >
+
+                            <Store size={24} />
+
+                        </div>
 
 
-                    {/* Invoices */}
+                        {/* STORE NAME */}
 
-                    <Link
-                        className="p-3 border-b hover:bg-slate-600"
-                        to="/invoices"
-                        onClick={() => setMenuOpen(false)}
-                    >
-                        Invoices
-                    </Link>
+                        <div
+                            className="
+                                leading-tight
+                            "
+                        >
 
-                    {/* Cash Register */}
+                            <h1
+                                className="
+                                    font-bold
+                                    text-base
+                                    text-gray-800
+                                    leading-tight
+                                "
+                            >
+                                AK SUPER MARKET
+                            </h1>
 
-<Link
-    className="p-3 border-b hover:bg-slate-600"
-    to="/cash-register"
-    onClick={() => setMenuOpen(false)}
->
-    Cash Register
-</Link>
+                            <p
+                                className="
+                                    text-xs
+                                    text-gray-500
+                                    leading-tight
+                                    mt-0.5
+                                "
+                            >
+                                Point of Sale
+                            </p>
+
+                        </div>
+
+                    </div>
 
 
-                    {/* Logout */}
+                    {/* MOBILE CLOSE */}
 
                     <button
-                        onClick={onLogout}
-                        className="text-left p-3 hover:bg-red-700"
+                        onClick={closeSidebar}
+                        className="
+                            lg:hidden
+                            p-1.5
+                            rounded-lg
+                            text-gray-500
+                            hover:bg-gray-100
+                        "
+                        aria-label="Close menu"
                     >
-                        Logout
+
+                        <X size={22} />
+
                     </button>
 
                 </div>
 
-            )}
 
-        </nav>
+                {/* =================================================
+                    NAVIGATION
+                ================================================= */}
 
+                <div
+                    className="
+                        flex-1
+                        overflow-y-auto
+                        px-3
+                        py-5
+                    "
+                >
+
+                    {/* =================================================
+                        OPERATIONS
+                    ================================================= */}
+
+                    <p
+                        className="
+                            px-3
+                            mb-2
+                            text-[11px]
+                            font-semibold
+                            tracking-wider
+                            text-gray-400
+                            uppercase
+                        "
+                    >
+                        Operations
+                    </p>
+
+
+                    {/* NEW SALE */}
+
+                    <Link
+                        to="/"
+                        onClick={closeSidebar}
+                        className={`
+                            flex
+                            items-center
+                            gap-3
+                            px-3
+                            py-3
+                            mb-1
+                            rounded-lg
+                            text-sm
+                            font-medium
+                            transition
+
+                            ${
+                                isActive("/")
+                                    ? "bg-blue-50 text-blue-700"
+                                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                            }
+                        `}
+                    >
+
+                        <ShoppingCart size={19} />
+
+                        <span>
+                            New Sale
+                        </span>
+
+                    </Link>
+
+
+                    {/* INVOICES */}
+
+                    <Link
+                        to="/invoices"
+                        onClick={closeSidebar}
+                        className={`
+                            flex
+                            items-center
+                            gap-3
+                            px-3
+                            py-3
+                            mb-1
+                            rounded-lg
+                            text-sm
+                            font-medium
+                            transition
+
+                            ${
+                                isActive("/invoices")
+                                    ? "bg-blue-50 text-blue-700"
+                                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                            }
+                        `}
+                    >
+
+                        <Receipt size={19} />
+
+                        <span>
+                            Invoices
+                        </span>
+
+                    </Link>
+
+
+                    {/* CASH REGISTER */}
+
+                    <Link
+                        to="/cash-register"
+                        onClick={closeSidebar}
+                        className={`
+                            flex
+                            items-center
+                            gap-3
+                            px-3
+                            py-3
+                            mb-1
+                            rounded-lg
+                            text-sm
+                            font-medium
+                            transition
+
+                            ${
+                                isActive("/cash-register")
+                                    ? "bg-blue-50 text-blue-700"
+                                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                            }
+                        `}
+                    >
+
+                        <Wallet size={19} />
+
+                        <span>
+                            Cash Register
+                        </span>
+
+                    </Link>
+
+
+                    {/* =================================================
+                        MANAGEMENT
+                    ================================================= */}
+
+                    {user?.role === "Admin" && (
+
+                        <div className="mt-7">
+
+                            {/* MANAGEMENT TITLE */}
+
+                            <p
+                                className="
+                                    px-3
+                                    mb-2
+                                    text-[11px]
+                                    font-semibold
+                                    tracking-wider
+                                    text-gray-400
+                                    uppercase
+                                "
+                            >
+                                Management
+                            </p>
+
+
+                            {/* DASHBOARD */}
+
+                            <Link
+                                to="/dashboard"
+                                onClick={closeSidebar}
+                                className={`
+                                    flex
+                                    items-center
+                                    gap-3
+                                    px-3
+                                    py-3
+                                    mb-1
+                                    rounded-lg
+                                    text-sm
+                                    font-medium
+                                    transition
+
+                                    ${
+                                        isActive("/dashboard")
+                                            ? "bg-blue-50 text-blue-700"
+                                            : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                                    }
+                                `}
+                            >
+
+                                <LayoutDashboard size={19} />
+
+                                <span>
+                                    Dashboard
+                                </span>
+
+                            </Link>
+
+
+                            {/* MANAGE DROPDOWN */}
+
+                            <button
+                                onClick={() =>
+                                    setManagementOpen(
+                                        !managementOpen
+                                    )
+                                }
+                                className="
+                                    w-full
+                                    flex
+                                    items-center
+                                    justify-between
+                                    px-3
+                                    py-3
+                                    rounded-lg
+                                    text-sm
+                                    font-medium
+                                    text-gray-600
+                                    hover:bg-gray-100
+                                    hover:text-gray-900
+                                    transition
+                                "
+                            >
+
+                                <div
+                                    className="
+                                        flex
+                                        items-center
+                                        gap-3
+                                    "
+                                >
+
+                                    <Settings size={19} />
+
+                                    <span>
+                                        Manage
+                                    </span>
+
+                                </div>
+
+
+                                <ChevronDown
+                                    size={16}
+                                    className={`
+                                        transition-transform
+
+                                        ${
+                                            managementOpen
+                                                ? "rotate-180"
+                                                : ""
+                                        }
+                                    `}
+                                />
+
+                            </button>
+
+
+                            {/* =================================================
+                                MANAGEMENT ITEMS
+                            ================================================= */}
+
+                            {managementOpen && (
+
+                                <div
+                                    className="
+                                        ml-3
+                                        mt-1
+                                        pl-3
+                                        border-l
+                                        border-gray-200
+                                    "
+                                >
+
+                                    {/* PRODUCTS */}
+
+                                    <Link
+                                        to="/products"
+                                        onClick={closeSidebar}
+                                        className={`
+                                            flex
+                                            items-center
+                                            gap-3
+                                            px-3
+                                            py-2.5
+                                            rounded-lg
+                                            text-sm
+                                            transition
+
+                                            ${
+                                                isActive("/products")
+                                                    ? "bg-gray-100 text-gray-900 font-medium"
+                                                    : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                                            }
+                                        `}
+                                    >
+
+                                        <Package size={17} />
+
+                                        <span>
+                                            Products
+                                        </span>
+
+                                    </Link>
+
+
+                                    {/* INVENTORY */}
+
+                                    <Link
+                                        to="/inventory"
+                                        onClick={closeSidebar}
+                                        className={`
+                                            flex
+                                            items-center
+                                            gap-3
+                                            px-3
+                                            py-2.5
+                                            rounded-lg
+                                            text-sm
+                                            transition
+
+                                            ${
+                                                isActive("/inventory")
+                                                    ? "bg-gray-100 text-gray-900 font-medium"
+                                                    : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                                            }
+                                        `}
+                                    >
+
+                                        <Boxes size={17} />
+
+                                        <span>
+                                            Inventory
+                                        </span>
+
+                                    </Link>
+
+
+                                    {/* CUSTOMERS */}
+
+                                    <Link
+                                        to="/customers"
+                                        onClick={closeSidebar}
+                                        className={`
+                                            flex
+                                            items-center
+                                            gap-3
+                                            px-3
+                                            py-2.5
+                                            rounded-lg
+                                            text-sm
+                                            transition
+
+                                            ${
+                                                isActive("/customers")
+                                                    ? "bg-gray-100 text-gray-900 font-medium"
+                                                    : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                                            }
+                                        `}
+                                    >
+
+                                        <Users size={17} />
+
+                                        <span>
+                                            Customers
+                                        </span>
+
+                                    </Link>
+
+
+                                    {/* REPORTS */}
+
+                                    <Link
+                                        to="/reports"
+                                        onClick={closeSidebar}
+                                        className={`
+                                            flex
+                                            items-center
+                                            gap-3
+                                            px-3
+                                            py-2.5
+                                            rounded-lg
+                                            text-sm
+                                            transition
+
+                                            ${
+                                                isActive("/reports")
+                                                    ? "bg-gray-100 text-gray-900 font-medium"
+                                                    : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                                            }
+                                        `}
+                                    >
+
+                                        <BarChart3 size={17} />
+
+                                        <span>
+                                            Reports
+                                        </span>
+
+                                    </Link>
+
+
+                                    {/* USERS */}
+
+                                    <Link
+                                        to="/users"
+                                        onClick={closeSidebar}
+                                        className={`
+                                            flex
+                                            items-center
+                                            gap-3
+                                            px-3
+                                            py-2.5
+                                            rounded-lg
+                                            text-sm
+                                            transition
+
+                                            ${
+                                                isActive("/users")
+                                                    ? "bg-gray-100 text-gray-900 font-medium"
+                                                    : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                                            }
+                                        `}
+                                    >
+
+                                        <UserCog size={17} />
+
+                                        <span>
+                                            Users
+                                        </span>
+
+                                    </Link>
+
+                                </div>
+
+                            )}
+
+                        </div>
+
+                    )}
+
+                </div>
+
+
+                {/* =================================================
+                    USER + LOGOUT
+                ================================================= */}
+
+                <div
+                    className="
+                        border-t
+                        border-gray-200
+                        p-3
+                    "
+                >
+
+                    {/* USER CARD */}
+
+                    <div
+                        className="
+                            flex
+                            items-center
+                            gap-3
+                            px-3
+                            py-3
+                            mb-2
+                            rounded-lg
+                            bg-gray-50
+                            border
+                            border-gray-200
+                        "
+                    >
+
+                        {/* AVATAR */}
+
+                        <div
+                            className="
+                                w-9
+                                h-9
+                                rounded-full
+                                bg-blue-600
+                                text-white
+                                flex
+                                items-center
+                                justify-center
+                                font-bold
+                                text-sm
+                                flex-shrink-0
+                            "
+                        >
+                            {userInitial}
+                        </div>
+
+
+                        {/* USER DETAILS */}
+
+                        <div
+                            className="
+                                flex-1
+                                min-w-0
+                                leading-tight
+                            "
+                        >
+
+                            <p
+                                className="
+                                    text-sm
+                                    font-semibold
+                                    text-gray-800
+                                    leading-tight
+                                    truncate
+                                "
+                            >
+                                {user?.username}
+                            </p>
+
+                            <p
+                                className="
+                                    text-xs
+                                    text-gray-500
+                                    leading-tight
+                                    mt-0.5
+                                "
+                            >
+                                {user?.role}
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    {/* LOGOUT */}
+
+                    <button
+                        onClick={handleLogout}
+                        className="
+                            w-full
+                            flex
+                            items-center
+                            gap-3
+                            px-3
+                            py-3
+                            rounded-lg
+                            text-sm
+                            font-medium
+                            text-gray-600
+                            hover:bg-red-50
+                            hover:text-red-600
+                            transition
+                        "
+                    >
+
+                        <LogOut size={19} />
+
+                        <span>
+                            Logout
+                        </span>
+
+                    </button>
+
+                </div>
+
+            </aside>
+
+
+            {/* =====================================================
+                DESKTOP TOP BAR
+            ===================================================== */}
+
+            <header
+                className="
+                    hidden
+                    lg:flex
+                    fixed
+                    top-0
+                    left-64
+                    right-0
+                    h-16
+                    bg-white
+                    border-b
+                    border-gray-200
+                    z-40
+                    items-center
+                    justify-between
+                    px-6
+                    shadow-sm
+                "
+            >
+
+                {/* =================================================
+                    PAGE INFO
+                ================================================= */}
+
+                <div
+                    className="
+                        leading-tight
+                    "
+                >
+
+                    <h2
+                        className="
+                            text-lg
+                            font-semibold
+                            text-gray-800
+                            leading-tight
+                        "
+                    >
+                        {getPageTitle()}
+                    </h2>
+
+                    <p
+                        className="
+                            text-xs
+                            text-gray-500
+                            leading-tight
+                            mt-0.5
+                        "
+                    >
+                        Point of Sale System
+                    </p>
+
+                </div>
+
+
+                {/* =================================================
+                    RIGHT SIDE
+                ================================================= */}
+
+                <div
+                    className="
+                        flex
+                        items-center
+                        gap-4
+                    "
+                >
+
+                    {/* SYSTEM STATUS */}
+
+                    <div
+                        className="
+                            flex
+                            items-center
+                            gap-2
+                            text-xs
+                            text-gray-500
+                        "
+                    >
+
+                        <span
+                            className="
+                                w-2
+                                h-2
+                                rounded-full
+                                bg-green-500
+                            "
+                        />
+
+                        System Online
+
+                    </div>
+
+
+                    {/* USER */}
+
+                    <div
+                        className="
+                            flex
+                            items-center
+                            gap-3
+                            pl-4
+                            border-l
+                            border-gray-200
+                        "
+                    >
+
+                        {/* AVATAR */}
+
+                        <div
+                            className="
+                                w-9
+                                h-9
+                                rounded-full
+                                bg-blue-600
+                                text-white
+                                flex
+                                items-center
+                                justify-center
+                                font-bold
+                                text-sm
+                                flex-shrink-0
+                            "
+                        >
+                            {userInitial}
+                        </div>
+
+
+                        {/* USER DETAILS */}
+
+                        <div
+                            className="
+                                leading-tight
+                            "
+                        >
+
+                            <p
+                                className="
+                                    text-sm
+                                    font-semibold
+                                    text-gray-800
+                                    leading-tight
+                                "
+                            >
+                                {user?.username}
+                            </p>
+
+                            <p
+                                className="
+                                    text-xs
+                                    text-gray-500
+                                    leading-tight
+                                    mt-0.5
+                                "
+                            >
+                                {user?.role}
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </header>
+
+
+            {/* =====================================================
+                DESKTOP CONTENT OFFSET
+            ===================================================== */}
+
+            <div
+                className="
+                    hidden
+                    lg:block
+                    w-64
+                    flex-shrink-0
+                "
+            />
+
+        </>
     );
-
 };
 
 export default Navbar;

@@ -16,10 +16,6 @@ import Customers from "./components/Customers";
 import Reports from "./components/Reports";
 import CashRegister from "./components/CashRegister";
 import CashRegisterHistory from "./components/CashRegisterHistory";
-
-// ======================================================
-// REFUND HISTORY
-// ======================================================
 import RefundHistory from "./components/RefundHistory";
 
 function App() {
@@ -27,6 +23,7 @@ function App() {
     const [user, setUser] = useState(
         JSON.parse(sessionStorage.getItem("user"))
     );
+
 
     // ======================================================
     // LOGIN HANDLER
@@ -36,21 +33,26 @@ function App() {
         setUser(loggedInUser);
     };
 
+
     // ======================================================
     // LOGOUT HANDLER
     // ======================================================
 
     const handleLogout = () => {
+
         sessionStorage.removeItem("user");
         sessionStorage.removeItem("token");
+
         setUser(null);
     };
+
 
     // ======================================================
     // NOT LOGGED IN
     // ======================================================
 
     if (!user) {
+
         return (
             <Routes>
 
@@ -75,230 +77,274 @@ function App() {
         );
     }
 
+
     // ======================================================
     // LOGGED IN
     // ======================================================
 
     return (
-        <div>
+        <div className="min-h-screen bg-slate-100">
 
-            {/* NAVBAR */}
-            <Navbar onLogout={handleLogout} />
+            {/* ==================================================
+                POS NAVIGATION
+            ================================================== */}
 
-            <Routes>
+            <Navbar
+                onLogout={handleLogout}
+            />
 
-                {/* ================================================== */}
-                {/* BILLING */}
-                {/* ================================================== */}
 
-                <Route
-                    path="/"
-                    element={
-                        <ProtectedRoute
-                            allowedRoles={[
-                                "Admin",
-                                "Cashier"
-                            ]}
-                        >
-                            <InvoiceForm />
-                        </ProtectedRoute>
-                    }
-                />
+            {/* ==================================================
+                MAIN POS CONTENT
+            ================================================== */}
 
-                {/* ================================================== */}
-                {/* DASHBOARD */}
-                {/* ================================================== */}
+            <main
+                className="
+                    min-h-screen
 
-                <Route
-                    path="/dashboard"
-                    element={
-                        <ProtectedRoute
-                            allowedRoles={["Admin"]}
-                        >
-                            <Dashboard />
-                        </ProtectedRoute>
-                    }
-                />
+                    pt-16
 
-                {/* ================================================== */}
-                {/* PRODUCTS */}
-                {/* ================================================== */}
+                    lg:ml-64
+                    lg:pt-16
+                "
+            >
 
-                <Route
-                    path="/products"
-                    element={
-                        <ProtectedRoute
-                            allowedRoles={["Admin"]}
-                        >
-                            <ProductManagement />
-                        </ProtectedRoute>
-                    }
-                />
+                <div className="w-full min-h-[calc(100vh-4rem)]">
 
-                {/* ================================================== */}
-                {/* INVENTORY */}
-                {/* ================================================== */}
+                    <Routes>
 
-                <Route
-                    path="/inventory"
-                    element={
-                        <ProtectedRoute
-                            allowedRoles={["Admin"]}
-                        >
-                            <Inventory />
-                        </ProtectedRoute>
-                    }
-                />
+                        {/* ==================================================
+                            BILLING / NEW SALE
+                        ================================================== */}
 
-                {/* ================================================== */}
-                {/* USERS */}
-                {/* ================================================== */}
-
-                <Route
-                    path="/users"
-                    element={
-                        <ProtectedRoute
-                            allowedRoles={["Admin"]}
-                        >
-                            <UserManagement />
-                        </ProtectedRoute>
-                    }
-                />
-
-                {/* ================================================== */}
-                {/* INVOICE HISTORY */}
-                {/* ================================================== */}
-
-                <Route
-                    path="/invoices"
-                    element={
-                        <ProtectedRoute
-                            allowedRoles={[
-                                "Admin",
-                                "Cashier"
-                            ]}
-                        >
-                            <InvoiceHistory />
-                        </ProtectedRoute>
-                    }
-                />
-
-                {/* ================================================== */}
-                {/* INVOICE DETAILS */}
-                {/* ================================================== */}
-
-                <Route
-                    path="/invoice/:id"
-                    element={
-                        <ProtectedRoute
-                            allowedRoles={[
-                                "Admin",
-                                "Cashier"
-                            ]}
-                        >
-                            <InvoiceDetails />
-                        </ProtectedRoute>
-                    }
-                />
-
-                {/* ================================================== */}
-                {/* REFUND HISTORY */}
-                {/* ================================================== */}
-
-                <Route
-                    path="/refund-history"
-                    element={
-                        <ProtectedRoute
-                            allowedRoles={[
-                                "Admin",
-                                "Cashier"
-                            ]}
-                        >
-                            <RefundHistory />
-                        </ProtectedRoute>
-                    }
-                />
-
-                {/* ================================================== */}
-                {/* CUSTOMERS */}
-                {/* ================================================== */}
-
-                <Route
-                    path="/customers"
-                    element={
-                        <ProtectedRoute
-                            allowedRoles={[
-                                "Admin",
-                                "Cashier"
-                            ]}
-                        >
-                            <Customers />
-                        </ProtectedRoute>
-                    }
-                />
-                {/* ================================================== */}
-{/* CASH REGISTER */}
-{/* ================================================== */}
-
-<Route
-    path="/cash-register"
-    element={
-        <ProtectedRoute
-            allowedRoles={[
-                "Admin",
-                "Cashier"
-            ]}
-        >
-            <CashRegister />
-        </ProtectedRoute>
-    }
-/>
-
-{/* ================================================== */}
-{/* CASH REGISTER HISTORY */}
-{/* ================================================== */}
-
-<Route
-    path="/cash-register-history"
-    element={
-        <ProtectedRoute
-            allowedRoles={[
-                "Admin",
-                "Cashier"
-            ]}
-        >
-            <CashRegisterHistory />
-        </ProtectedRoute>
-    }
-/>
-
-  {/* ========================= */}
-{/* REPORTS */}
-{/* ========================= */}
-
-<Route
-  path="/reports"
-  element={
-    <ProtectedRoute allowedRoles={["Admin"]}>
-      <Reports />
-    </ProtectedRoute>
-  }
-/>
-                {/* ================================================== */}
-                {/* UNKNOWN URL → BILLING */}
-                {/* ================================================== */}
-
-                <Route
-                    path="*"
-                    element={
-                        <Navigate
-                            to="/"
-                            replace
+                        <Route
+                            path="/"
+                            element={
+                                <ProtectedRoute
+                                    allowedRoles={[
+                                        "Admin",
+                                        "Cashier"
+                                    ]}
+                                >
+                                    <InvoiceForm />
+                                </ProtectedRoute>
+                            }
                         />
-                    }
-                />
 
-            </Routes>
+
+                        {/* ==================================================
+                            DASHBOARD
+                        ================================================== */}
+
+                        <Route
+                            path="/dashboard"
+                            element={
+                                <ProtectedRoute
+                                    allowedRoles={["Admin"]}
+                                >
+                                    <Dashboard />
+                                </ProtectedRoute>
+                            }
+                        />
+
+
+                        {/* ==================================================
+                            PRODUCTS
+                        ================================================== */}
+
+                        <Route
+                            path="/products"
+                            element={
+                                <ProtectedRoute
+                                    allowedRoles={["Admin"]}
+                                >
+                                    <ProductManagement />
+                                </ProtectedRoute>
+                            }
+                        />
+
+
+                        {/* ==================================================
+                            INVENTORY
+                        ================================================== */}
+
+                        <Route
+                            path="/inventory"
+                            element={
+                                <ProtectedRoute
+                                    allowedRoles={["Admin"]}
+                                >
+                                    <Inventory />
+                                </ProtectedRoute>
+                            }
+                        />
+
+
+                        {/* ==================================================
+                            USERS
+                        ================================================== */}
+
+                        <Route
+                            path="/users"
+                            element={
+                                <ProtectedRoute
+                                    allowedRoles={["Admin"]}
+                                >
+                                    <UserManagement />
+                                </ProtectedRoute>
+                            }
+                        />
+
+
+                        {/* ==================================================
+                            INVOICES
+                        ================================================== */}
+
+                        <Route
+                            path="/invoices"
+                            element={
+                                <ProtectedRoute
+                                    allowedRoles={[
+                                        "Admin",
+                                        "Cashier"
+                                    ]}
+                                >
+                                    <InvoiceHistory />
+                                </ProtectedRoute>
+                            }
+                        />
+
+
+                        {/* ==================================================
+                            INVOICE DETAILS
+                        ================================================== */}
+
+                        <Route
+                            path="/invoice/:id"
+                            element={
+                                <ProtectedRoute
+                                    allowedRoles={[
+                                        "Admin",
+                                        "Cashier"
+                                    ]}
+                                >
+                                    <InvoiceDetails />
+                                </ProtectedRoute>
+                            }
+                        />
+
+
+                        {/* ==================================================
+                            REFUND HISTORY
+                        ================================================== */}
+
+                        <Route
+                            path="/refund-history"
+                            element={
+                                <ProtectedRoute
+                                    allowedRoles={[
+                                        "Admin",
+                                        "Cashier"
+                                    ]}
+                                >
+                                    <RefundHistory />
+                                </ProtectedRoute>
+                            }
+                        />
+
+
+                        {/* ==================================================
+                            CUSTOMERS
+                        ================================================== */}
+
+                        <Route
+                            path="/customers"
+                            element={
+                                <ProtectedRoute
+                                    allowedRoles={[
+                                        "Admin",
+                                        "Cashier"
+                                    ]}
+                                >
+                                    <Customers />
+                                </ProtectedRoute>
+                            }
+                        />
+
+
+                        {/* ==================================================
+                            CASH REGISTER
+                        ================================================== */}
+
+                        <Route
+                            path="/cash-register"
+                            element={
+                                <ProtectedRoute
+                                    allowedRoles={[
+                                        "Admin",
+                                        "Cashier"
+                                    ]}
+                                >
+                                    <CashRegister />
+                                </ProtectedRoute>
+                            }
+                        />
+
+
+                        {/* ==================================================
+                            CASH REGISTER HISTORY
+                        ================================================== */}
+
+                        <Route
+                            path="/cash-register-history"
+                            element={
+                                <ProtectedRoute
+                                    allowedRoles={[
+                                        "Admin",
+                                        "Cashier"
+                                    ]}
+                                >
+                                    <CashRegisterHistory />
+                                </ProtectedRoute>
+                            }
+                        />
+
+
+                        {/* ==================================================
+                            REPORTS
+                        ================================================== */}
+
+                        <Route
+                            path="/reports"
+                            element={
+                                <ProtectedRoute
+                                    allowedRoles={["Admin"]}
+                                >
+                                    <Reports />
+                                </ProtectedRoute>
+                            }
+                        />
+
+
+                        {/* ==================================================
+                            UNKNOWN URL → BILLING
+                        ================================================== */}
+
+                        <Route
+                            path="*"
+                            element={
+                                <Navigate
+                                    to="/"
+                                    replace
+                                />
+                            }
+                        />
+
+                    </Routes>
+
+                </div>
+
+            </main>
 
         </div>
     );

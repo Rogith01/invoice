@@ -468,6 +468,7 @@ const CashRegisterHistory = () => {
             </div>
 
         </div>
+        
 
     );
 
