@@ -3753,10 +3753,10 @@ app.get(
     }
 );
 
+
 // ======================================================
 // CASH REGISTER - HISTORY
-// ADMIN → ALL CASH REGISTER HISTORY
-// CASHIER → ONLY THEIR OWN HISTORY
+// ONLY LOGGED-IN CASHIER
 // ======================================================
 
 app.get(
@@ -3766,70 +3766,6 @@ app.get(
 
         const cashierName =
             req.user.username;
-
-        const userRole =
-            String(req.user.role || "").toLowerCase();
-
-        // ==================================================
-        // ADMIN
-        // ROGITH / GUHAN
-        // CAN SEE ALL USERS' REGISTER HISTORY
-        // ==================================================
-
-        if (userRole === "admin") {
-
-            const sql = `
-                SELECT
-                    id,
-                    cashier_name,
-                    opening_cash,
-                    opening_time,
-                    actual_cash,
-                    expected_cash,
-                    difference,
-                    owner_taken,
-                    closing_time,
-                    status
-                FROM cash_registers
-                ORDER BY id DESC
-            `;
-
-            db.query(
-                sql,
-                (err, rows) => {
-
-                    if (err) {
-
-                        console.error(
-                            "Admin Cash Register History Error:",
-                            err
-                        );
-
-                        return res.status(500).json({
-                            success: false,
-                            message: err.message
-                        });
-
-                    }
-
-                    return res.json({
-                        success: true,
-                        cashierName,
-                        role: "admin",
-                        history: rows
-                    });
-
-                }
-            );
-
-            return;
-        }
-
-        // ==================================================
-        // CASHIER
-        // FAYAZ
-        // ONLY HIS OWN REGISTER HISTORY
-        // ==================================================
 
         const sql = `
             SELECT
@@ -3856,7 +3792,7 @@ app.get(
                 if (err) {
 
                     console.error(
-                        "Cashier Cash Register History Error:",
+                        "Cash Register History Error:",
                         err
                     );
 
@@ -3867,10 +3803,9 @@ app.get(
 
                 }
 
-                return res.json({
+                res.json({
                     success: true,
                     cashierName,
-                    role: "cashier",
                     history: rows
                 });
 
@@ -3879,6 +3814,469 @@ app.get(
 
     }
 );
+
+
+// ======================================================
+// OPEN CASH REGISTER
+// ======================================================
+
+app.post(
+    "/api/cash-register/open",
+    authenticateToken,
+    (req, res) => {
+
+        const {
+            openingCash
+        } = req.body;
+
+        const amount =
+            Number(openingCash);
+
+        if (
+            !Number.isFinite(amount) ||
+            amount < 0
+        ) {
+
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Invalid opening cash amount"
+            });
+
+        }
+
+        // ==================================================
+        // LOGGED-IN CASHIER
+        // ==================================================
+
+        const cashierName =
+            req.user.username;
+
+        // ==================================================
+        // CHECK EXISTING OPEN REGISTER
+        // ONLY THIS CASHIER
+        // ==================================================
+
+        const checkSql = `
+            SELECT *
+            FROM cash_registers
+            WHERE cashier_name = ?
+            AND status = 'OPEN'
+            LIMIT 1
+        `;
+
+        db.query(
+            checkSql,
+            [cashierName],
+            (err, rows) => {
+
+                if (err) {
+
+                    console.error(
+                        "Cash Register Check Error:",
+                        err
+                    );
+
+                    return res.status(500).json({
+                        success: false,
+                        message: err.message
+                    });
+
+                }
+
+                if (rows.length > 0) {
+
+                    return res.status(400).json({
+                        success: false,
+                        message:
+                            "You already have an open cash register"
+                    });
+
+                }
+
+                // ==================================================
+                // CREATE REGISTER FOR THIS CASHIER
+                // ==================================================
+
+                const insertSql = `
+                    INSERT INTO cash_registers
+                    (
+                        cashier_name,
+                        opening_cash,
+                        opening_time,
+                        status
+                    )
+                    VALUES
+                    (
+                        ?,
+                        ?,
+                        NOW(),
+                        'OPEN'
+                    )
+                `;
+
+                db.query(
+                    insertSql,
+                    [
+                        cashierName,
+                        amount
+                    ],
+                    (err, result) => {
+
+                        if (err) {
+
+                            console.error(
+                                "Cash Register Open Error:",
+                                err
+                            );
+
+                            return res.status(500).json({
+                                success: false,
+                                message: err.message
+                            });
+
+                        }
+
+                        res.json({
+                            success: true,
+
+                            message:
+                                "Cash register opened successfully",
+
+                            registerId:
+                                result.insertId,
+
+                            cashierName
+                        });
+
+                    }
+                );
+
+            }
+        );
+
+    }
+);
+
+
+// ======================================================
+// CLOSE CASH REGISTER
+// ======================================================
+
+app.post(
+    "/api/cash-register/close",
+    authenticateToken,
+    (req, res) => {
+
+        const {
+            actualCash,
+            ownerTaken
+        } = req.body;
+
+        const amount =
+            Number(actualCash);
+
+        const ownerTakenAmount =
+            Number(ownerTaken || 0);
+
+        // ==================================================
+        // VALIDATE ACTUAL CASH
+        // ==================================================
+
+        if (
+            !Number.isFinite(amount) ||
+            amount < 0
+        ) {
+
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Invalid actual cash amount"
+            });
+
+        }
+
+        // ==================================================
+        // VALIDATE OWNER TAKEN
+        // ==================================================
+
+        if (
+            !Number.isFinite(ownerTakenAmount) ||
+            ownerTakenAmount < 0
+        ) {
+
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Invalid owner taken amount"
+            });
+
+        }
+
+        // ==================================================
+        // OWNER CANNOT TAKE MORE THAN ACTUAL CASH
+        // ==================================================
+
+        if (
+            ownerTakenAmount >
+            amount
+        ) {
+
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Owner taken amount cannot be greater than actual cash"
+            });
+
+        }
+
+        // ==================================================
+        // LOGGED-IN CASHIER
+        // ==================================================
+
+        const cashierName =
+            req.user.username;
+
+        // ==================================================
+        // FIND THIS CASHIER'S OPEN REGISTER
+        // ==================================================
+
+        const findSql = `
+            SELECT
+                id,
+                opening_cash
+            FROM cash_registers
+            WHERE cashier_name = ?
+            AND status = 'OPEN'
+            ORDER BY id DESC
+            LIMIT 1
+        `;
+
+        db.query(
+            findSql,
+            [cashierName],
+            (err, rows) => {
+
+                if (err) {
+
+                    console.error(
+                        "Cash Register Find Error:",
+                        err
+                    );
+
+                    return res.status(500).json({
+                        success: false,
+                        message: err.message
+                    });
+
+                }
+
+                if (rows.length === 0) {
+
+                    return res.status(400).json({
+                        success: false,
+                        message:
+                            "No open cash register found"
+                    });
+
+                }
+
+                const register =
+                    rows[0];
+
+                const openingCash =
+                    Number(
+                        register.opening_cash || 0
+                    );
+
+                // ==================================================
+                // CASH SALES
+                // ONLY THIS CASHIER
+                // ==================================================
+
+                const cashSalesSql = `
+                    SELECT
+                        COALESCE(
+                            SUM(total),
+                            0
+                        ) AS cashSales
+                    FROM invoices
+                    WHERE payment_Method = 'Cash'
+                    AND cashier_name = ?
+                    AND DATE(invoice_date) = CURDATE()
+                `;
+
+                db.query(
+                    cashSalesSql,
+                    [cashierName],
+                    (err, cashRows) => {
+
+                        if (err) {
+
+                            console.error(
+                                "Cash Sales Error:",
+                                err
+                            );
+
+                            return res.status(500).json({
+                                success: false,
+                                message: err.message
+                            });
+
+                        }
+
+                        const cashSales =
+                            Number(
+                                cashRows[0].cashSales || 0
+                            );
+
+                        // ==================================================
+                        // REFUNDS
+                        // ==================================================
+
+const refundsSql = `
+    SELECT
+        COALESCE(
+            SUM(ir.refund_amount),
+            0
+        ) AS refunds
+    FROM invoice_returns ir
+    INNER JOIN invoices i
+        ON ir.invoice_id = i.id
+    WHERE i.cashier_name = ?
+    AND DATE(ir.created_at) = CURDATE()
+`;
+
+db.query(
+    refundsSql,
+    [cashierName],
+    (err, rows) => {
+
+                                if (err) {
+
+                                    console.error(
+                                        "Refund Error:",
+                                        err
+                                    );
+
+                                    return res.status(500).json({
+                                        success: false,
+                                        message: err.message
+                                    });
+
+                                }
+
+                                const refunds =
+                                    Number(
+                                        refundRows[0].refunds || 0
+                                    );
+
+                                // ==================================================
+                                // EXPECTED CASH
+                                // ==================================================
+
+                                const expectedCash =
+                                    openingCash +
+                                    cashSales -
+                                    refunds;
+
+                                // ==================================================
+                                // DIFFERENCE
+                                // ==================================================
+
+                                const difference =
+                                    amount -
+                                    expectedCash;
+
+                                // ==================================================
+                                // REMAINING CASH
+                                // ==================================================
+
+                                const remainingCash =
+                                    amount -
+                                    ownerTakenAmount;
+
+                                // ==================================================
+                                // UPDATE REGISTER
+                                // ==================================================
+
+                                const updateSql = `
+                                    UPDATE cash_registers
+                                    SET
+                                        actual_cash = ?,
+                                        expected_cash = ?,
+                                        difference = ?,
+                                        owner_taken = ?,
+                                        closing_time = NOW(),
+                                        status = 'CLOSED'
+                                    WHERE id = ?
+                                `;
+
+                                db.query(
+                                    updateSql,
+                                    [
+                                        amount,
+                                        expectedCash,
+                                        difference,
+                                        ownerTakenAmount,
+                                        register.id
+                                    ],
+                                    (err) => {
+
+                                        if (err) {
+
+                                            console.error(
+                                                "Cash Register Close Error:",
+                                                err
+                                            );
+
+                                            return res.status(500).json({
+                                                success: false,
+                                                message: err.message
+                                            });
+
+                                        }
+
+                                        // ==================================================
+                                        // FINAL RESPONSE
+                                        // ==================================================
+
+                                        res.json({
+                                            success: true,
+
+                                            message:
+                                                "Cash register closed successfully",
+
+                                            cashierName,
+
+                                            expectedCash,
+
+                                            actualCash:
+                                                amount,
+
+                                            difference,
+
+                                            ownerTaken:
+                                                ownerTakenAmount,
+
+                                            remainingCash
+                                        });
+
+                                    }
+                                );
+
+                            }
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+    }
+);
+
 // ======================================================
 // START SERVER
 // ======================================================
