@@ -113,6 +113,7 @@ const Navbar = ({ onLogout }) => {
             default:
                 return "AK Super Market";
         }
+
     };
 
 
@@ -132,9 +133,9 @@ const Navbar = ({ onLogout }) => {
                     right-0
                     h-16
                     bg-white
-                    text-gray-800
+                    text-slate-800
                     border-b
-                    border-gray-200
+                    border-slate-200
                     z-50
                     shadow-sm
                 "
@@ -172,8 +173,9 @@ const Navbar = ({ onLogout }) => {
                             className="
                                 p-2
                                 rounded-lg
-                                text-gray-600
-                                hover:bg-gray-100
+                                text-slate-600
+                                hover:bg-slate-100
+                                hover:text-slate-900
                                 transition
                                 flex-shrink-0
                             "
@@ -200,7 +202,7 @@ const Navbar = ({ onLogout }) => {
 
                             <div
                                 className="
-                                    bg-blue-600
+                                    bg-slate-800
                                     text-white
                                     p-2
                                     rounded-lg
@@ -227,7 +229,7 @@ const Navbar = ({ onLogout }) => {
                                         font-bold
                                         text-xs
                                         sm:text-sm
-                                        text-gray-800
+                                        text-slate-800
                                         leading-tight
                                         truncate
                                     "
@@ -239,7 +241,7 @@ const Navbar = ({ onLogout }) => {
                                     className="
                                         text-[9px]
                                         sm:text-[10px]
-                                        text-gray-500
+                                        text-slate-500
                                         leading-tight
                                         mt-0.5
                                     "
@@ -276,7 +278,7 @@ const Navbar = ({ onLogout }) => {
                                 gap-1.5
                                 text-[9px]
                                 sm:text-xs
-                                text-gray-500
+                                text-slate-500
                                 whitespace-nowrap
                             "
                         >
@@ -286,7 +288,7 @@ const Navbar = ({ onLogout }) => {
                                     w-2
                                     h-2
                                     rounded-full
-                                    bg-green-500
+                                    bg-emerald-500
                                     flex-shrink-0
                                 "
                             />
@@ -307,7 +309,7 @@ const Navbar = ({ onLogout }) => {
                                 gap-2
                                 pl-2
                                 border-l
-                                border-gray-200
+                                border-slate-200
                             "
                         >
 
@@ -318,7 +320,7 @@ const Navbar = ({ onLogout }) => {
                                     w-8
                                     h-8
                                     rounded-full
-                                    bg-blue-600
+                                    bg-slate-800
                                     text-white
                                     flex
                                     items-center
@@ -345,7 +347,7 @@ const Navbar = ({ onLogout }) => {
                                         text-[10px]
                                         sm:text-xs
                                         font-semibold
-                                        text-gray-800
+                                        text-slate-800
                                         leading-tight
                                         max-w-[65px]
                                         sm:max-w-[90px]
@@ -359,7 +361,7 @@ const Navbar = ({ onLogout }) => {
                                     className="
                                         text-[8px]
                                         sm:text-[10px]
-                                        text-gray-500
+                                        text-slate-500
                                         leading-tight
                                         mt-0.5
                                     "
@@ -389,7 +391,8 @@ const Navbar = ({ onLogout }) => {
                         lg:hidden
                         fixed
                         inset-0
-                        bg-black/30
+                        bg-slate-900/30
+                        backdrop-blur-[1px]
                         z-40
                     "
                     onClick={closeSidebar}
@@ -410,9 +413,9 @@ const Navbar = ({ onLogout }) => {
                     bottom-0
                     w-64
                     bg-white
-                    text-gray-800
+                    text-slate-800
                     border-r
-                    border-gray-200
+                    border-slate-200
                     z-50
                     flex
                     flex-col
@@ -442,7 +445,7 @@ const Navbar = ({ onLogout }) => {
                         justify-between
                         px-5
                         border-b
-                        border-gray-200
+                        border-slate-200
                     "
                 >
 
@@ -458,11 +461,12 @@ const Navbar = ({ onLogout }) => {
 
                         <div
                             className="
-                                bg-blue-600
+                                bg-slate-800
                                 text-white
                                 p-2.5
                                 rounded-xl
                                 flex-shrink-0
+                                shadow-sm
                             "
                         >
 
@@ -483,7 +487,7 @@ const Navbar = ({ onLogout }) => {
                                 className="
                                     font-bold
                                     text-base
-                                    text-gray-800
+                                    text-slate-800
                                     leading-tight
                                 "
                             >
@@ -493,7 +497,7 @@ const Navbar = ({ onLogout }) => {
                             <p
                                 className="
                                     text-xs
-                                    text-gray-500
+                                    text-slate-500
                                     leading-tight
                                     mt-0.5
                                 "
@@ -514,8 +518,10 @@ const Navbar = ({ onLogout }) => {
                             lg:hidden
                             p-1.5
                             rounded-lg
-                            text-gray-500
-                            hover:bg-gray-100
+                            text-slate-500
+                            hover:bg-slate-100
+                            hover:text-slate-800
+                            transition
                         "
                         aria-label="Close menu"
                     >
@@ -549,9 +555,9 @@ const Navbar = ({ onLogout }) => {
                             px-3
                             mb-2
                             text-[11px]
-                            font-semibold
+                            font-bold
                             tracking-wider
-                            text-gray-400
+                            text-slate-400
                             uppercase
                         "
                     >
@@ -578,8 +584,8 @@ const Navbar = ({ onLogout }) => {
 
                             ${
                                 isActive("/")
-                                    ? "bg-blue-50 text-blue-700"
-                                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                                    ? "bg-slate-100 text-slate-900 font-semibold"
+                                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                             }
                         `}
                     >
@@ -612,8 +618,8 @@ const Navbar = ({ onLogout }) => {
 
                             ${
                                 isActive("/invoices")
-                                    ? "bg-blue-50 text-blue-700"
-                                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                                    ? "bg-slate-100 text-slate-900 font-semibold"
+                                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                             }
                         `}
                     >
@@ -646,8 +652,8 @@ const Navbar = ({ onLogout }) => {
 
                             ${
                                 isActive("/cash-register")
-                                    ? "bg-blue-50 text-blue-700"
-                                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                                    ? "bg-slate-100 text-slate-900 font-semibold"
+                                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                             }
                         `}
                     >
@@ -676,9 +682,9 @@ const Navbar = ({ onLogout }) => {
                                     px-3
                                     mb-2
                                     text-[11px]
-                                    font-semibold
+                                    font-bold
                                     tracking-wider
-                                    text-gray-400
+                                    text-slate-400
                                     uppercase
                                 "
                             >
@@ -705,8 +711,8 @@ const Navbar = ({ onLogout }) => {
 
                                     ${
                                         isActive("/dashboard")
-                                            ? "bg-blue-50 text-blue-700"
-                                            : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                                            ? "bg-slate-100 text-slate-900 font-semibold"
+                                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                                     }
                                 `}
                             >
@@ -738,9 +744,9 @@ const Navbar = ({ onLogout }) => {
                                     rounded-lg
                                     text-sm
                                     font-medium
-                                    text-gray-600
-                                    hover:bg-gray-100
-                                    hover:text-gray-900
+                                    text-slate-600
+                                    hover:bg-slate-50
+                                    hover:text-slate-900
                                     transition
                                 "
                             >
@@ -790,7 +796,7 @@ const Navbar = ({ onLogout }) => {
                                         mt-1
                                         pl-3
                                         border-l
-                                        border-gray-200
+                                        border-slate-200
                                     "
                                 >
 
@@ -811,8 +817,8 @@ const Navbar = ({ onLogout }) => {
 
                                             ${
                                                 isActive("/products")
-                                                    ? "bg-gray-100 text-gray-900 font-medium"
-                                                    : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                                                    ? "bg-slate-100 text-slate-900 font-semibold"
+                                                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
                                             }
                                         `}
                                     >
@@ -843,8 +849,8 @@ const Navbar = ({ onLogout }) => {
 
                                             ${
                                                 isActive("/inventory")
-                                                    ? "bg-gray-100 text-gray-900 font-medium"
-                                                    : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                                                    ? "bg-slate-100 text-slate-900 font-semibold"
+                                                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
                                             }
                                         `}
                                     >
@@ -875,8 +881,8 @@ const Navbar = ({ onLogout }) => {
 
                                             ${
                                                 isActive("/customers")
-                                                    ? "bg-gray-100 text-gray-900 font-medium"
-                                                    : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                                                    ? "bg-slate-100 text-slate-900 font-semibold"
+                                                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
                                             }
                                         `}
                                     >
@@ -907,8 +913,8 @@ const Navbar = ({ onLogout }) => {
 
                                             ${
                                                 isActive("/reports")
-                                                    ? "bg-gray-100 text-gray-900 font-medium"
-                                                    : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                                                    ? "bg-slate-100 text-slate-900 font-semibold"
+                                                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
                                             }
                                         `}
                                     >
@@ -939,8 +945,8 @@ const Navbar = ({ onLogout }) => {
 
                                             ${
                                                 isActive("/users")
-                                                    ? "bg-gray-100 text-gray-900 font-medium"
-                                                    : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                                                    ? "bg-slate-100 text-slate-900 font-semibold"
+                                                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
                                             }
                                         `}
                                     >
@@ -971,7 +977,7 @@ const Navbar = ({ onLogout }) => {
                 <div
                     className="
                         border-t
-                        border-gray-200
+                        border-slate-200
                         p-3
                     "
                 >
@@ -987,9 +993,9 @@ const Navbar = ({ onLogout }) => {
                             py-3
                             mb-2
                             rounded-lg
-                            bg-gray-50
+                            bg-slate-50
                             border
-                            border-gray-200
+                            border-slate-200
                         "
                     >
 
@@ -1000,7 +1006,7 @@ const Navbar = ({ onLogout }) => {
                                 w-9
                                 h-9
                                 rounded-full
-                                bg-blue-600
+                                bg-slate-800
                                 text-white
                                 flex
                                 items-center
@@ -1028,7 +1034,7 @@ const Navbar = ({ onLogout }) => {
                                 className="
                                     text-sm
                                     font-semibold
-                                    text-gray-800
+                                    text-slate-800
                                     leading-tight
                                     truncate
                                 "
@@ -1039,7 +1045,7 @@ const Navbar = ({ onLogout }) => {
                             <p
                                 className="
                                     text-xs
-                                    text-gray-500
+                                    text-slate-500
                                     leading-tight
                                     mt-0.5
                                 "
@@ -1066,7 +1072,7 @@ const Navbar = ({ onLogout }) => {
                             rounded-lg
                             text-sm
                             font-medium
-                            text-gray-600
+                            text-slate-600
                             hover:bg-red-50
                             hover:text-red-600
                             transition
@@ -1101,7 +1107,7 @@ const Navbar = ({ onLogout }) => {
                     h-16
                     bg-white
                     border-b
-                    border-gray-200
+                    border-slate-200
                     z-40
                     items-center
                     justify-between
@@ -1124,7 +1130,7 @@ const Navbar = ({ onLogout }) => {
                         className="
                             text-lg
                             font-semibold
-                            text-gray-800
+                            text-slate-800
                             leading-tight
                         "
                     >
@@ -1134,7 +1140,7 @@ const Navbar = ({ onLogout }) => {
                     <p
                         className="
                             text-xs
-                            text-gray-500
+                            text-slate-500
                             leading-tight
                             mt-0.5
                         "
@@ -1165,7 +1171,7 @@ const Navbar = ({ onLogout }) => {
                             items-center
                             gap-2
                             text-xs
-                            text-gray-500
+                            text-slate-500
                         "
                     >
 
@@ -1174,7 +1180,7 @@ const Navbar = ({ onLogout }) => {
                                 w-2
                                 h-2
                                 rounded-full
-                                bg-green-500
+                                bg-emerald-500
                             "
                         />
 
@@ -1192,7 +1198,7 @@ const Navbar = ({ onLogout }) => {
                             gap-3
                             pl-4
                             border-l
-                            border-gray-200
+                            border-slate-200
                         "
                     >
 
@@ -1203,7 +1209,7 @@ const Navbar = ({ onLogout }) => {
                                 w-9
                                 h-9
                                 rounded-full
-                                bg-blue-600
+                                bg-slate-800
                                 text-white
                                 flex
                                 items-center
@@ -1229,7 +1235,7 @@ const Navbar = ({ onLogout }) => {
                                 className="
                                     text-sm
                                     font-semibold
-                                    text-gray-800
+                                    text-slate-800
                                     leading-tight
                                 "
                             >
@@ -1239,7 +1245,7 @@ const Navbar = ({ onLogout }) => {
                             <p
                                 className="
                                     text-xs
-                                    text-gray-500
+                                    text-slate-500
                                     leading-tight
                                     mt-0.5
                                 "
@@ -1271,6 +1277,8 @@ const Navbar = ({ onLogout }) => {
 
         </>
     );
+
 };
+
 
 export default Navbar;

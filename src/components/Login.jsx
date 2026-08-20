@@ -339,12 +339,12 @@ const Login = ({ onLogin }) => {
                   w-11
                   h-11
                   rounded-lg
-                  bg-blue-600
+                  bg-slate-900
                   flex
                   items-center
                   justify-center
                   shadow-lg
-                  shadow-blue-600/30
+                  shadow-slate-600/30
                 "
               >
                 <span className="text-xl">
@@ -551,7 +551,7 @@ const Login = ({ onLogin }) => {
                   w-11
                   h-11
                   rounded-lg
-                  bg-blue-600
+                  bg-slate-900
                   text-white
                   flex
                   items-center
@@ -819,8 +819,8 @@ const Login = ({ onLogin }) => {
                     text-xs
                     font-semibold
                     text-slate-400
-                    hover:text-blue-600
-                    hover:bg-blue-50
+                    hover:text-slate-600
+                    hover:bg-slate-50
                     transition-all
                     duration-200
                   "
@@ -846,14 +846,14 @@ const Login = ({ onLogin }) => {
                 w-full
                 h-12
                 rounded-xl
-                bg-blue-600
-                hover:bg-blue-700
-                active:bg-blue-800
+                bg-slate-900
+                hover:bg-slate-700
+                active:bg-slate-800
                 text-white
                 font-semibold
                 text-sm
                 shadow-sm
-                shadow-blue-600/20
+                shadow-slate-600/20
                 transition-all
                 duration-200
                 flex

@@ -2314,169 +2314,264 @@ useEffect(() => {
 
     };
 
-    // ==========================================
-    // RENDER
-    // ==========================================
+// ==========================================
+// RENDER
+// ==========================================
 
-    return (
+return (
 
-        <div className="min-h-screen bg-slate-50 p-3 md:p-5">
+    <div className="min-h-screen bg-[#f7f8fa] text-slate-800">
 
-            <Toast
-                message={toast.message}
-                type={toast.type}
-                onClose={closeToast}
-            />
+        <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={closeToast}
+        />
 
-            <form
-                onSubmit={reviewInvoiceHandler}
-                className="max-w-[1500px] mx-auto"
-            >
+        <form
+            onSubmit={reviewInvoiceHandler}
+            className="max-w-[1600px] mx-auto p-4 lg:p-6"
+        >
 
-                {/* ==================================================
-                    BILLING HEADER
-                ================================================== */}
+            {/* ==================================================
+                PAGE HEADER
+            ================================================== */}
 
-                <div className="bg-white border border-slate-200 rounded-2xl shadow-sm px-5 py-4 mb-4">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-5">
 
-                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div className="flex items-center gap-3">
 
-                        <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-lg bg-slate-900 flex items-center justify-center shadow-sm">
 
-<div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center">
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="22"
-        height="22"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="white"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-    >
-        <circle cx="9" cy="20" r="1" />
-        <circle cx="20" cy="20" r="1" />
-        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-    </svg>
-</div>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="white"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        >
+                            <path d="M6 2v20" />
+                            <path d="M18 2v20" />
+                            <path d="M2 6h20" />
+                            <path d="M2 18h20" />
+                        </svg>
 
-                            <div>
+                    </div>
 
-                                <div className="flex items-center gap-3 flex-wrap">
+                    <div>
 
-                                    <h1 className="text-2xl font-bold text-slate-800">
-                                        New Sale
-                                    </h1>
+                        <div className="flex items-center gap-2">
 
-                                    <span className="text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100 px-2.5 py-1 rounded-full">
-                                        BILLING
-                                    </span>
+                            <h1 className="text-xl font-semibold text-slate-900">
+                                New Sale
+                            </h1>
 
-                                </div>
-
-                                <p className="text-sm text-slate-500 mt-0.5">
-                                    Create a new supermarket sale
-                                </p>
-
-                            </div>
+                            <span className="text-[10px] font-bold tracking-wide bg-blue-50 text-blue-700 border border-blue-100 px-2 py-1 rounded-md">
+                                BILLING
+                            </span>
 
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-3">
-
-                            <div className="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl">
-
-
-
-                                <p className="font-bold text-slate-800">
-                                    {invoiceNumber}
-                                </p>
-
-                            </div>
-
-                            <div className="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl">
-
-                                <p className="font-semibold text-slate-800 text-sm">
-                                    {today} • {currentTime}
-                                </p>
-
-                            </div>
-
-                        </div>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                            Create and complete a customer sale
+                        </p>
 
                     </div>
 
                 </div>
 
-                {/* ==================================================
-                    QUICK ACTIONS
-                ================================================== */}
+                <div className="flex items-center gap-2">
 
-                <div className="flex flex-wrap gap-2 mb-4">
+                    <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-2">
 
-                    <button
-                        type="button"
-                        onClick={holdBillHandler}
-                        className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl shadow-sm transition"
-                    >
-                        <span>⏸</span>
-                        Hold Bill
-                    </button>
+                        <span className="text-sm font-semibold text-slate-800">
+                            {invoiceNumber}
+                        </span>
 
-                    <button
-                        type="button"
-                        onClick={() =>
-                            setShowHeldBills(true)
-                        }
-                        className="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl shadow-sm transition"
-                    >
-                        <span>▶</span>
-                        Resume Bill
+                    </div>
 
-                        {heldBills.length > 0 && (
-                            <span className="bg-white text-purple-700 text-[11px] font-bold rounded-full min-w-[21px] h-5 flex items-center justify-center px-1">
-                                {heldBills.length}
-                            </span>
-                        )}
-                    </button>
+                    <div className="hidden sm:flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-2">
 
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="15"
+                            height="15"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            className="text-slate-400"
+                        >
+                            <rect
+                                width="18"
+                                height="18"
+                                x="3"
+                                y="4"
+                                rx="2"
+                            />
+                            <line
+                                x1="16"
+                                x2="16"
+                                y1="2"
+                                y2="6"
+                            />
+                            <line
+                                x1="8"
+                                x2="8"
+                                y1="2"
+                                y2="6"
+                            />
+                            <line
+                                x1="3"
+                                x2="21"
+                                y1="10"
+                                y2="10"
+                            />
+                        </svg>
+
+                        <span className="text-xs font-medium text-slate-600">
+                            {today}
+                        </span>
+
+                        <span className="text-slate-300">
+                            •
+                        </span>
+
+                        <span className="text-xs font-medium text-slate-600">
+                            {currentTime}
+                        </span>
+
+                    </div>
 
                 </div>
 
+            </div>
+
+
+            {/* ==================================================
+                QUICK ACTION BAR
+            ================================================== */}
+
+            <div className="bg-white border border-slate-200 rounded-xl px-3 py-2.5 mb-5 flex flex-wrap items-center gap-2">
+
+                <span className="text-xs font-semibold text-slate-500 mr-1">
+                    Quick Actions
+                </span>
+
+                <button
+                    type="button"
+                    onClick={holdBillHandler}
+                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100 text-xs font-semibold transition"
+                >
+                    <span>⏸</span>
+                    Hold Bill
+                </button>
+
+                <button
+                    type="button"
+                    onClick={() =>
+                        setShowHeldBills(true)
+                    }
+                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 text-xs font-semibold transition"
+                >
+                    <span>▶</span>
+                    Resume Bill
+
+                    {heldBills.length > 0 && (
+                        <span className="bg-purple-600 text-white text-[10px] min-w-[18px] h-[18px] rounded-full flex items-center justify-center">
+                            {heldBills.length}
+                        </span>
+                    )}
+
+                </button>
+
+                <div className="hidden md:block h-5 w-px bg-slate-200 mx-1" />
+
+                <span className="text-[11px] text-slate-400">
+                    F2 Scan
+                </span>
+
+                <span className="text-[11px] text-slate-400">
+                    F3 Quantity
+                </span>
+
+                <span className="text-[11px] text-slate-400">
+                    F4 Payment
+                </span>
+
+                <span className="text-[11px] text-slate-400">
+                    F5 Review
+                </span>
+
+            </div>
+
+
+            {/* ==================================================
+                MAIN POS LAYOUT
+            ================================================== */}
+
+            <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_390px] gap-5">
+
+
                 {/* ==================================================
-                    MAIN POS GRID
+                    LEFT CONTENT
                 ================================================== */}
 
-                <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_430px] gap-4">
+                <div className="space-y-5">
+
 
                     {/* ==================================================
-                        LEFT SIDE
+                        CUSTOMER
                     ================================================== */}
 
-                    <div className="space-y-4">
+                    <section className="bg-white border border-slate-200 rounded-xl overflow-hidden">
 
-                        {/* CUSTOMER CARD */}
+                        <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
 
-                        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
+                            <div>
 
-                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-sm font-semibold text-slate-900">
+                                    Customer Details
+                                </h2>
 
-                                <div>
-
-                                    <h2 className="text-base font-bold text-slate-800">
-                                        Customer Details
-                                    </h2>
-
-
-
-                                </div>
-
-                                <div className="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
-                                    👤
-                                </div>
+                                <p className="text-xs text-slate-400 mt-0.5">
+                                    Customer and cashier information
+                                </p>
 
                             </div>
+
+                            <div className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center">
+
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    className="text-slate-500"
+                                >
+                                    <path d="M20 21a8 8 0 0 0-16 0" />
+                                    <circle
+                                        cx="12"
+                                        cy="7"
+                                        r="4"
+                                    />
+                                </svg>
+
+                            </div>
+
+                        </div>
+
+
+                        <div className="p-5">
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
@@ -2484,7 +2579,7 @@ useEffect(() => {
 
                                     <label
                                         htmlFor="customerName"
-                                        className="block text-xs font-semibold text-slate-600 mb-1.5"
+                                        className="block text-[11px] font-semibold text-slate-600 mb-1.5"
                                     >
                                         Customer Name
                                     </label>
@@ -2498,17 +2593,18 @@ useEffect(() => {
                                                 e.target.value
                                             )
                                         }
-                                        placeholder="Customer name"
-                                        className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+                                        placeholder="Enter customer name"
+                                        className="w-full h-10 border border-slate-200 rounded-lg px-3 text-sm outline-none bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
                                     />
 
                                 </div>
+
 
                                 <div>
 
                                     <label
                                         htmlFor="phoneNumber"
-                                        className="block text-xs font-semibold text-slate-600 mb-1.5"
+                                        className="block text-[11px] font-semibold text-slate-600 mb-1.5"
                                     >
                                         Phone Number
                                     </label>
@@ -2518,7 +2614,7 @@ useEffect(() => {
                                         id="phoneNumber"
                                         maxLength={10}
                                         value={phoneNumber}
-                                        placeholder="10 digit phone number"
+                                        placeholder="10 digit number"
                                         onChange={(e) => {
 
                                             const value =
@@ -2540,14 +2636,15 @@ useEffect(() => {
                                             }
 
                                         }}
-                                        className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+                                        className="w-full h-10 border border-slate-200 rounded-lg px-3 text-sm outline-none bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
                                     />
 
                                 </div>
 
+
                                 <div>
 
-                                    <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+                                    <label className="block text-[11px] font-semibold text-slate-600 mb-1.5">
                                         Cashier
                                     </label>
 
@@ -2555,28 +2652,31 @@ useEffect(() => {
                                         type="text"
                                         value={cashierName}
                                         readOnly
-                                        className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm bg-slate-50 text-slate-600"
+                                        className="w-full h-10 border border-slate-200 rounded-lg px-3 text-sm bg-slate-50 text-slate-500 outline-none"
                                     />
 
                                 </div>
 
                             </div>
 
-                            <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-purple-50 border border-purple-100 rounded-xl px-4 py-3">
+
+                            {/* LOYALTY */}
+
+                            <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-3 bg-purple-50/60 border border-purple-100 rounded-lg">
 
                                 <div className="flex items-center gap-3">
 
-                                    <div className="w-9 h-9 rounded-full bg-purple-100 flex items-center justify-center">
+                                    <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
                                         ⭐
                                     </div>
 
                                     <div>
 
-                                        <p className="text-xs text-purple-600 font-semibold">
-                                            Loyalty Points
+                                        <p className="text-[10px] font-semibold uppercase tracking-wide text-purple-500">
+                                            Loyalty Balance
                                         </p>
 
-                                        <p className="font-bold text-purple-800">
+                                        <p className="text-sm font-bold text-purple-800">
                                             {loyaltyPoints} Points
                                         </p>
 
@@ -2586,7 +2686,7 @@ useEffect(() => {
 
                                 <label
                                     htmlFor="redeemPoints"
-                                    className={`flex items-center gap-2 text-sm font-semibold ${
+                                    className={`flex items-center gap-2 text-xs font-semibold ${
                                         availablePoints <= 0
                                             ? "text-slate-400"
                                             : "text-purple-700"
@@ -2608,7 +2708,7 @@ useEffect(() => {
                                         className="w-4 h-4 accent-purple-600"
                                     />
 
-                                    Redeem Loyalty Points
+                                    Redeem available points
 
                                 </label>
 
@@ -2616,22 +2716,27 @@ useEffect(() => {
 
                         </div>
 
-                        {/* ==================================================
-                            BARCODE / PRODUCT SEARCH
-                        ================================================== */}
+                    </section>
 
-                        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
 
-                            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+                    {/* ==================================================
+                        PRODUCT SEARCH
+                    ================================================== */}
+
+                    <section className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+
+                        <div className="px-5 py-4 border-b border-slate-100">
+
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
 
                                 <div>
 
-                                    <h2 className="text-base font-bold text-slate-800">
+                                    <h2 className="text-sm font-semibold text-slate-900">
                                         Add Products
                                     </h2>
 
-                                    <p className="text-xs text-slate-500 mt-0.5">
-                                        Scan a barcode or select products below
+                                    <p className="text-xs text-slate-400 mt-0.5">
+                                        Scan barcode or search products
                                     </p>
 
                                 </div>
@@ -2639,13 +2744,13 @@ useEffect(() => {
                                 <button
                                     type="button"
                                     onClick={startBarcodeScanner}
-                                    className="inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl shadow-sm transition"
+                                    className="inline-flex items-center justify-center gap-2 h-9 px-4 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition"
                                 >
 
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
-                                        width="19"
-                                        height="19"
+                                        width="16"
+                                        height="16"
                                         viewBox="0 0 24 24"
                                         fill="none"
                                         stroke="currentColor"
@@ -2671,10 +2776,32 @@ useEffect(() => {
 
                             </div>
 
+                        </div>
+
+
+                        <div className="p-5">
+
                             <div className="relative">
 
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
-                                    🔍
+                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="17"
+                                        height="17"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                    >
+                                        <circle
+                                            cx="11"
+                                            cy="11"
+                                            r="8"
+                                        />
+                                        <path d="m21 21-4.3-4.3" />
+                                    </svg>
+
                                 </div>
 
                                 <input
@@ -2687,14 +2814,11 @@ useEffect(() => {
                                         const value =
                                             e.target.value;
 
-                                        const cleanValue =
+                                        setBarcode(
                                             value.replace(
                                                 /[\r\n]/g,
                                                 ""
-                                            );
-
-                                        setBarcode(
-                                            cleanValue
+                                            )
                                         );
 
                                     }}
@@ -2714,526 +2838,541 @@ useEffect(() => {
 
                                     }}
                                     placeholder="Scan or enter barcode..."
-                                    className="w-full border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+                                    className="w-full h-11 border border-slate-200 rounded-lg pl-10 pr-4 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
                                 />
 
                             </div>
-<div className="flex items-center justify-between mt-2">
 
-    <p className="text-xs text-slate-400">
-        Barcode scanner is ready
-    </p>
+                            <div className="flex items-center justify-between mt-2">
 
-    <div className="flex items-center gap-2">
+                                <p className="text-[11px] text-slate-400">
+                                    Barcode scanner ready
+                                </p>
 
-        <span className="text-[11px] bg-slate-100 text-slate-500 px-2 py-1 rounded-md font-medium">
-            F2 Scan
-        </span>
-
-        <span className="text-[11px] bg-slate-100 text-slate-500 px-2 py-1 rounded-md font-medium">
-            Enter to add
-        </span>
-
-    </div>
-
-</div>
-
-                        </div>
-
-                        {/* ==================================================
-                            ITEM TABLE
-                        ================================================== */}
-
-                        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-
-                            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-
-                                <div>
-
-                                    <h2 className="text-base font-bold text-slate-800">
-                                        Sale Items
-                                    </h2>
-
-                                    <p className="text-xs text-slate-500 mt-0.5">
-                                        Add products to this invoice
-                                    </p>
-
-                                </div>
-
-                                <span className="text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">
-                                    {items.filter(
-                                        (item) =>
-                                            item.name &&
-                                            item.name.trim()
-                                                .length > 0
-                                    ).length}{" "}
-                                    Items
+                                <span className="text-[10px] text-slate-400">
+                                    Press Enter to add
                                 </span>
 
                             </div>
 
-                            <div className="overflow-x-auto">
+                        </div>
 
-                                <table className="w-full text-center">
+                    </section>
 
-                                    <thead className="bg-slate-50">
 
-                                        <tr className="border-b border-slate-100 text-[11px] uppercase tracking-wide font-bold text-slate-500">
+                    {/* ==================================================
+                        SALE ITEMS
+                    ================================================== */}
 
-                                            <th className="px-5 py-3 min-w-[220px] text-center">
-                                                Item
-                                            </th>
+                    <section className="bg-white border border-slate-200 rounded-xl overflow-hidden">
 
-                                            <th className="px-3 py-3 ">
-                                                Qty
-                                            </th>
+                        <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
 
-                                            <th className="px-3 py-3 text-center">
-                                                Price
-                                            </th>
+                            <div>
 
-                                            <th className="px-3 py-3 text-center">
-                                                Amount
-                                            </th>
+                                <h2 className="text-sm font-semibold text-slate-900">
+                                    Sale Items
+                                </h2>
 
-                                            <th className="px-3 py-3 text-center">
-                                                Action
-                                            </th>
-
-                                        </tr>
-
-                                    </thead>
-
-                                    <tbody>
-
-                                        {items.map(
-                                            (
-                                                item,
-                                                index
-                                            ) => (
-
-                                                <InvoiceItem
-                                                    key={
-                                                        item.id
-                                                    }
-
-                                                    id={
-                                                        item.id
-                                                    }
-
-                                                    name={
-                                                        item.name
-                                                    }
-
-                                                    qty={
-                                                        item.qty
-                                                    }
-
-                                                    price={
-                                                        item.price
-                                                    }
-
-                                                    amount={
-                                                        item.amount
-                                                    }
-
-                                                    onDeleteItem={
-                                                        deleteItemHandler
-                                                    }
-
-                                                    onEdtiItem={
-                                                        edtiItemHandler
-                                                    }
-
-                                                    itemOptions={
-                                                        itemOptions
-                                                    }
-
-                                                    onAddItem={
-                                                        addItemHandler
-                                                    }
-
-                                                    autoFocus={
-                                                        index ===
-                                                        items.length -
-                                                            1
-                                                    }
-                                                />
-
-                                            )
-                                        )}
-
-                                    </tbody>
-
-                                </table>
+                                <p className="text-xs text-slate-400 mt-0.5">
+                                    Products included in this sale
+                                </p>
 
                             </div>
 
-                            <div className="px-5 py-4 border-t border-slate-100">
+                            <span className="text-[10px] font-bold uppercase tracking-wide bg-slate-100 text-slate-500 px-2.5 py-1.5 rounded-md">
 
-                                <button
-                                    type="button"
-                                    onClick={addItemHandler}
-                                    className="inline-flex items-center gap-2 border border-dashed border-slate-300 hover:border-blue-400 hover:bg-blue-50 text-slate-600 hover:text-blue-600 font-semibold text-sm px-4 py-2.5 rounded-xl transition"
-                                >
-                                    <span>＋</span>
-                                    Add Item
-                                </button>
+                                {items.filter(
+                                    (item) =>
+                                        item.name &&
+                                        item.name.trim().length > 0
+                                ).length}{" "}
+                                Items
 
-                            </div>
+                            </span>
 
                         </div>
 
-                    </div>
 
-                    {/* ==================================================
-                        RIGHT SIDE - CART / PAYMENT
-                    ================================================== */}
+                        <div className="overflow-x-auto">
 
-                    <div className="xl:sticky xl:top-4 h-fit">
+                            <table className="w-full">
 
-                        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                                <thead>
 
-                            {/* CART HEADER */}
+                                    <tr className="bg-slate-50 border-b border-slate-200">
 
-                            <div className="bg-blue-600 px-5 py-5 text-white">
+                                        <th className="px-5 py-3 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 min-w-[260px]">
+                                            Item
+                                        </th>
 
-                                <div className="flex items-center justify-between">
+                                        <th className="px-3 py-3 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                                            Qty
+                                        </th>
 
-                                    <div className="flex items-center gap-3">
+                                        <th className="px-3 py-3 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                                            Price
+                                        </th>
 
-<div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center">
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="22"
-        height="22"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="white"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-    >
-        <circle cx="9" cy="20" r="1" />
-        <circle cx="20" cy="20" r="1" />
-        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-    </svg>
-</div>
+                                        <th className="px-3 py-3 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                                            Amount
+                                        </th>
 
-                                        <div>
+                                        <th className="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                                            Action
+                                        </th>
 
-                                            <h2 className="font-bold text-lg">
-                                                Current Sale
-                                            </h2>
+                                    </tr>
 
-                                            <p className="text-xs text-slate-300">
-                                                {invoiceNumber}
-                                            </p>
+                                </thead>
 
-                                        </div>
+                                <tbody>
 
-                                    </div>
+                                    {items.map(
+                                        (
+                                            item,
+                                            index
+                                        ) => (
 
-                                    <div className="bg-white/10 px-3 py-1.5 rounded-lg text-xs font-semibold">
+                                            <InvoiceItem
+                                                key={
+                                                    item.id
+                                                }
+
+                                                id={
+                                                    item.id
+                                                }
+
+                                                name={
+                                                    item.name
+                                                }
+
+                                                qty={
+                                                    item.qty
+                                                }
+
+                                                price={
+                                                    item.price
+                                                }
+
+                                                amount={
+                                                    item.amount
+                                                }
+
+                                                onDeleteItem={
+                                                    deleteItemHandler
+                                                }
+
+                                                onEdtiItem={
+                                                    edtiItemHandler
+                                                }
+
+                                                itemOptions={
+                                                    itemOptions
+                                                }
+
+                                                onAddItem={
+                                                    addItemHandler
+                                                }
+
+                                                autoFocus={
+                                                    index ===
+                                                    items.length - 1
+                                                }
+                                            />
+
+                                        )
+                                    )}
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+
+                        <div className="px-5 py-3 border-t border-slate-100">
+
+                            <button
+                                type="button"
+                                onClick={addItemHandler}
+                                className="inline-flex items-center gap-2 text-xs font-semibold text-blue-600 hover:text-blue-700 px-2 py-2 rounded-lg hover:bg-blue-50 transition"
+                            >
+
+                                <span className="text-base">
+                                    ＋
+                                </span>
+
+                                Add another item
+
+                            </button>
+
+                        </div>
+
+                    </section>
+
+                </div>
+
+
+                {/* ==================================================
+                    RIGHT - CURRENT SALE
+                ================================================== */}
+
+                <div className="xl:sticky xl:top-5 h-fit">
+
+                    <section className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+
+
+                        {/* CART HEADER */}
+
+                        <div className="px-5 py-4 bg-slate-900 text-white">
+
+                            <div className="flex items-center justify-between">
+
+                                <div>
+
+                                    <p className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                                        Current Sale
+                                    </p>
+
+                                    <h2 className="text-lg font-semibold mt-0.5">
+                                        {invoiceNumber}
+                                    </h2>
+
+                                </div>
+
+                                <div className="text-right">
+
+                                    <p className="text-[10px] text-slate-400">
+                                        Items
+                                    </p>
+
+                                    <p className="text-sm font-semibold">
                                         {items.filter(
                                             (item) =>
                                                 item.name &&
                                                 item.name.trim()
                                                     .length > 0
-                                        ).length}{" "}
-                                        items
+                                        ).length}
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div className="p-5">
+
+
+                            {/* ==================================================
+                                CART ITEMS
+                            ================================================== */}
+
+                            <div className="max-h-[220px] overflow-y-auto pr-1">
+
+                                {items.filter(
+                                    (item) =>
+                                        item.name &&
+                                        item.name.trim().length > 0
+                                ).length === 0 ? (
+
+                                    <div className="py-8 text-center">
+
+                                        <div className="w-12 h-12 mx-auto rounded-full bg-slate-100 flex items-center justify-center mb-3">
+
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                width="21"
+                                                height="21"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="1.8"
+                                            >
+                                                <circle
+                                                    cx="9"
+                                                    cy="20"
+                                                    r="1"
+                                                />
+                                                <circle
+                                                    cx="20"
+                                                    cy="20"
+                                                    r="1"
+                                                />
+                                                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                                            </svg>
+
+                                        </div>
+
+                                        <p className="text-sm font-semibold text-slate-600">
+                                            No items added
+                                        </p>
+
+                                        <p className="text-xs text-slate-400 mt-1">
+                                            Scan or add a product
+                                        </p>
+
+                                    </div>
+
+                                ) : (
+
+                                    items
+                                        .filter(
+                                            (item) =>
+                                                item.name &&
+                                                item.name.trim()
+                                                    .length > 0
+                                        )
+                                        .map((item) => (
+
+                                            <div
+                                                key={item.id}
+                                                className="flex items-center justify-between gap-3 py-3 border-b border-slate-100 last:border-0"
+                                            >
+
+                                                <div className="min-w-0">
+
+                                                    <p className="text-xs font-semibold text-slate-700 truncate">
+                                                        {item.name}
+                                                    </p>
+
+                                                    <p className="text-[11px] text-slate-400 mt-1">
+
+                                                        {Math.floor(
+                                                            Number(
+                                                                item.qty || 0
+                                                            )
+                                                        )}
+
+                                                        {" × ₹"}
+
+                                                        {Number(
+                                                            item.price || 0
+                                                        ).toFixed(2)}
+
+                                                    </p>
+
+                                                </div>
+
+                                                <p className="text-xs font-bold text-slate-800 whitespace-nowrap">
+                                                    ₹
+                                                    {Number(
+                                                        item.amount || 0
+                                                    ).toFixed(2)}
+                                                </p>
+
+                                            </div>
+
+                                        ))
+
+                                )}
+
+                            </div>
+
+
+                            {/* ==================================================
+                                DISCOUNT / TAX
+                            ================================================== */}
+
+                            <div className="border-t border-slate-200 mt-4 pt-4">
+
+                                <div className="grid grid-cols-2 gap-3">
+
+                                    <div>
+
+                                        <label
+                                            htmlFor="discount"
+                                            className="block text-[10px] font-bold uppercase tracking-wide text-slate-500 mb-1.5"
+                                        >
+                                            Discount %
+                                        </label>
+
+                                        <input
+                                            type="number"
+                                            id="discount"
+                                            min="0"
+                                            value={discount}
+                                            onChange={(e) =>
+                                                setDiscount(
+                                                    e.target.value
+                                                )
+                                            }
+                                            className="w-full h-9 border border-slate-200 rounded-lg px-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                        />
+
+                                    </div>
+
+                                    <div>
+
+                                        <label
+                                            htmlFor="tax"
+                                            className="block text-[10px] font-bold uppercase tracking-wide text-slate-500 mb-1.5"
+                                        >
+                                            Tax %
+                                        </label>
+
+                                        <input
+                                            type="number"
+                                            id="tax"
+                                            min="0"
+                                            value={tax}
+                                            onChange={(e) =>
+                                                setTax(
+                                                    e.target.value
+                                                )
+                                            }
+                                            className="w-full h-9 border border-slate-200 rounded-lg px-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                        />
+
                                     </div>
 
                                 </div>
 
                             </div>
 
-                            {/* QUICK SUMMARY */}
 
-                            <div className="p-5">
+                            {/* ==================================================
+                                TOTALS
+                            ================================================== */}
 
-                                <div className="space-y-2.5 max-h-[230px] overflow-y-auto pr-1">
+                            <div className="mt-5 space-y-3">
 
-                                    {items.filter(
-                                        (item) =>
-                                            item.name &&
-                                            item.name.trim()
-                                                .length > 0
-                                    ).length === 0 ? (
+                                <div className="flex justify-between text-xs">
 
-                                        <div className="text-center py-8">
+                                    <span className="text-slate-500">
+                                        Subtotal
+                                    </span>
 
-                                            <div className="text-4xl mb-2">
-                                                🛒
-                                            </div>
-
-                                            <p className="font-semibold text-slate-600">
-                                                No items added
-                                            </p>
-
-                                            <p className="text-xs text-slate-400 mt-1">
-                                                Scan a barcode or add an item
-                                            </p>
-
-                                        </div>
-
-                                    ) : (
-
-                                        items
-                                            .filter(
-                                                (item) =>
-                                                    item.name &&
-                                                    item.name.trim()
-                                                        .length > 0
-                                            )
-                                            .map((item) => (
-
-                                                <div
-                                                    key={
-                                                        item.id
-                                                    }
-                                                    className="flex items-center justify-between gap-3 py-2.5 border-b border-slate-100 last:border-0"
-                                                >
-
-                                                    <div className="min-w-0">
-
-                                                        <p className="text-sm font-semibold text-slate-700 truncate">
-                                                            {item.name}
-                                                        </p>
-
-                                                        <p className="text-xs text-slate-400">
-                                                            {Math.floor(
-                                                                Number(
-                                                                    item.qty ||
-                                                                        0
-                                                                )
-                                                            )}{" "}
-                                                            × ₹
-                                                            {Number(
-                                                                item.price ||
-                                                                    0
-                                                            ).toFixed(
-                                                                2
-                                                            )}
-                                                        </p>
-
-                                                    </div>
-
-                                                    <p className="text-sm font-bold text-slate-800 whitespace-nowrap">
-                                                        ₹
-                                                        {Number(
-                                                            item.amount ||
-                                                                0
-                                                        ).toFixed(
-                                                            2
-                                                        )}
-                                                    </p>
-
-                                                </div>
-
-                                            ))
-
-                                    )}
+                                    <span className="font-medium text-slate-700">
+                                        ₹{subtotal.toFixed(2)}
+                                    </span>
 
                                 </div>
 
-                                {/* ==================================================
-                                    DISCOUNT / TAX
-                                ================================================== */}
 
-                                <div className="border-t border-slate-200 mt-4 pt-4">
+                                <div className="flex justify-between text-xs">
 
-                                    <div className="grid grid-cols-2 gap-3">
+                                    <span className="text-slate-500">
+                                        Discount ({discount || 0}%)
+                                    </span>
+
+                                    <span className="font-medium text-red-500">
+                                        - ₹{discountRate.toFixed(2)}
+                                    </span>
+
+                                </div>
+
+
+                                <div className="flex justify-between text-xs">
+
+                                    <span className="text-slate-500">
+                                        Loyalty Discount
+                                    </span>
+
+                                    <span className="font-medium text-purple-600">
+                                        - ₹
+                                        {redeemPoints
+                                            ? Number(
+                                                availablePoints
+                                            ).toFixed(2)
+                                            : "0.00"}
+                                    </span>
+
+                                </div>
+
+
+                                <div className="flex justify-between text-xs">
+
+                                    <span className="text-slate-500">
+                                        Tax ({tax || 0}%)
+                                    </span>
+
+                                    <span className="font-medium text-slate-700">
+                                        + ₹{taxRate.toFixed(2)}
+                                    </span>
+
+                                </div>
+
+
+                                <div className="border-t border-slate-200 pt-4 mt-4">
+
+                                    <div className="flex items-end justify-between">
 
                                         <div>
 
-                                            <label
-                                                htmlFor="discount"
-                                                className="block text-xs font-semibold text-slate-600 mb-1.5"
-                                            >
-                                                Discount %
-                                            </label>
+                                            <p className="text-xs text-slate-500">
+                                                Grand Total
+                                            </p>
 
-                                            <input
-                                                type="number"
-                                                id="discount"
-                                                min="0"
-                                                value={
-                                                    discount
-                                                }
-                                                onChange={(e) =>
-                                                    setDiscount(
-                                                        e.target.value
-                                                    )
-                                                }
-                                                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                            />
+                                            <p className="text-2xl font-bold text-slate-900 mt-1">
+                                                ₹{total.toFixed(2)}
+                                            </p>
 
                                         </div>
 
-                                        <div>
-
-                                            <label
-                                                htmlFor="tax"
-                                                className="block text-xs font-semibold text-slate-600 mb-1.5"
-                                            >
-                                                Tax %
-                                            </label>
-
-                                            <input
-                                                type="number"
-                                                id="tax"
-                                                min="0"
-                                                value={
-                                                    tax
-                                                }
-                                                onChange={(e) =>
-                                                    setTax(
-                                                        e.target.value
-                                                    )
-                                                }
-                                                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                            />
-
-                                        </div>
-
-                                    </div>
-
-                                </div>
-
-                                {/* ==================================================
-                                    TOTAL BREAKDOWN
-                                ================================================== */}
-
-                                <div className="mt-5 space-y-3">
-
-                                    <div className="flex justify-between text-sm">
-
-                                        <span className="text-slate-500">
-                                            Subtotal
-                                        </span>
-
-                                        <span className="font-semibold text-slate-700">
-                                            ₹{subtotal.toFixed(2)}
-                                        </span>
-
-                                    </div>
-
-                                    <div className="flex justify-between text-sm">
-
-                                        <span className="text-slate-500">
-                                            Discount
-                                            <span className="text-xs ml-1">
-                                                ({discount || 0}%)
-                                            </span>
-                                        </span>
-
-                                        <span className="font-semibold text-red-500">
-                                            - ₹{discountRate.toFixed(2)}
-                                        </span>
-
-                                    </div>
-
-                                    <div className="flex justify-between text-sm">
-
-                                        <span className="text-slate-500">
-                                            Loyalty Discount
-                                        </span>
-
-                                        <span className="font-semibold text-purple-600">
-                                            - ₹
-                                            {redeemPoints
-                                                ? Number(
-                                                    availablePoints
-                                                ).toFixed(2)
-                                                : "0.00"}
-                                        </span>
-
-                                    </div>
-
-                                    <div className="flex justify-between text-sm">
-
-                                        <span className="text-slate-500">
-                                            Tax
-                                        </span>
-
-                                        <span className="font-semibold text-slate-700">
-                                            + ₹{taxRate.toFixed(2)}
-                                        </span>
-
-                                    </div>
-
-                                    <div className="font-bold flex justify-between text-lg">
-
-                                        <span className="text-blue-600">
-                                            Grand Total
-                                        </span>
-
-                                        <span className="font-semibold text-blue-600">
-                                            ₹{total.toFixed(2)}
+                                        <span className="text-[10px] font-bold uppercase tracking-wide bg-blue-50 text-blue-600 px-2 py-1 rounded-md">
+                                            Payable
                                         </span>
 
                                     </div>
 
                                 </div>
 
-                                {/* ==================================================
-                                    PAYMENT METHOD
-                                ================================================== */}
+                            </div>
 
-                                <div className="mt-5">
 
-                                    <label
-                                        htmlFor="paymentMethod"
-                                        className="block text-xs font-semibold text-slate-600 mb-1.5"
-                                    >
-                                        Payment Method
-                                    </label>
+                            {/* ==================================================
+                                PAYMENT
+                            ================================================== */}
 
-                                    <select
-                                        id="paymentMethod"
-                                        value={
-                                            paymentMethod
-                                        }
-                                        onChange={(e) => {
+                            <div className="mt-5 pt-5 border-t border-slate-200">
 
-                                            const method =
-                                                e.target.value;
+                                <label
+                                    htmlFor="paymentMethod"
+                                    className="block text-[10px] font-bold uppercase tracking-wide text-slate-500 mb-1.5"
+                                >
+                                    Payment Method
+                                </label>
 
-                                            setPaymentMethod(
-                                                method
+                                <select
+                                    id="paymentMethod"
+                                    value={paymentMethod}
+                                    onChange={(e) => {
+
+                                        const method =
+                                            e.target.value;
+
+                                        setPaymentMethod(
+                                            method
+                                        );
+
+                                        if (
+                                            method !==
+                                            "Cash"
+                                        ) {
+
+                                            setCashReceived(
+                                                ""
                                             );
 
-                                            if (
-                                                method !==
-                                                "Cash"
-                                            ) {
+                                        }
 
-                                                setCashReceived(
-                                                    ""
-                                                );
+                                    }}
+                                    className="w-full h-10 border border-slate-200 rounded-lg px-3 text-sm font-medium outline-none bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                >
 
-                                            }
+                                    <option value="Cash">
+                                        Cash
+                                    </option>
 
-                                        }}
-                                        className="w-full border border-slate-200 rounded-xl px-3.5 py-3 text-sm font-semibold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white"
-                                    >
+                                    <option value="Online">
+                                        Online
+                                    </option>
 
-                                        <option value="Cash">
-                                            Cash
-                                        </option>
+                                </select>
 
-                                        <option value="Online">
-                                            Online
-                                        </option>
-
-                                    </select>
-
-                                </div>
-
-                                {/* ==================================================
-                                    CASH PAYMENT
-                                ================================================== */}
 
                                 {paymentMethod === "Cash" && (
 
@@ -3241,7 +3380,7 @@ useEffect(() => {
 
                                         <label
                                             htmlFor="cashReceived"
-                                            className="block text-xs font-semibold text-slate-600 mb-1.5"
+                                            className="block text-[10px] font-bold uppercase tracking-wide text-slate-500 mb-1.5"
                                         >
                                             Cash Received
                                         </label>
@@ -3251,37 +3390,37 @@ useEffect(() => {
                                             id="cashReceived"
                                             min="0"
                                             step="0.01"
-                                            value={
-                                                cashReceived
-                                            }
+                                            value={cashReceived}
                                             onChange={(e) =>
                                                 setCashReceived(
                                                     e.target.value
                                                 )
                                             }
                                             placeholder="Enter amount received"
-                                            className={`w-full border rounded-xl px-3.5 py-3 text-sm outline-none focus:ring-2 transition ${
+                                            className={`w-full h-10 border rounded-lg px-3 text-sm outline-none transition ${
                                                 insufficientCash
-                                                    ? "border-red-400 focus:ring-red-100"
-                                                    : "border-slate-200 focus:border-blue-500 focus:ring-blue-100"
+                                                    ? "border-red-400 focus:ring-2 focus:ring-red-100"
+                                                    : "border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                             }`}
                                         />
 
+
                                         {insufficientCash && (
 
-                                            <p className="text-red-600 text-xs font-semibold mt-1.5">
-                                                ⚠ Insufficient cash amount.
+                                            <p className="text-[11px] text-red-600 font-semibold mt-1.5">
+                                                ⚠ Insufficient cash amount
                                             </p>
 
                                         )}
 
-                                        <div className="flex justify-between items-center mt-3 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
 
-                                            <span className="text-sm font-semibold text-green-700">
+                                        <div className="flex items-center justify-between mt-3 px-3 py-2.5 bg-emerald-50 border border-emerald-100 rounded-lg">
+
+                                            <span className="text-xs font-medium text-emerald-700">
                                                 Change to Return
                                             </span>
 
-                                            <span className="text-base font-bold text-green-700">
+                                            <span className="text-sm font-bold text-emerald-700">
                                                 ₹ {changeAmount.toFixed(2)}
                                             </span>
 
@@ -3291,408 +3430,406 @@ useEffect(() => {
 
                                 )}
 
-                                {/* ==================================================
-                                    REVIEW / PAYMENT BUTTON
-                                ================================================== */}
-
-                                <button
-                                    type="submit"
-                                    ref={reviewBtnRef}
-                                    className="hidden md:flex w-full mt-5 items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-3.5 rounded-xl shadow-sm transition"
-                                >
-
-                                    <span>Review Invoice</span>
-
-                                    <span className="text-xs bg-white/15 px-2 py-1 rounded-md">
-                                        F5
-                                    </span>
-
-                                </button>
-
                             </div>
 
-                        </div>
 
-                    </div>
-
-                </div>
-
-                {/* ==================================================
-                    MOBILE REVIEW BUTTON
-                ================================================== */}
-
-                <div className="md:hidden mt-4">
-
-                    <button
-                        type="submit"
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-sm transition"
-                    >
-                        Review Invoice • ₹{total.toFixed(2)}
-                    </button>
-
-                </div>
-
-            </form>
-
-            {/* ==================================================
-                HELD BILLS MODAL
-            ================================================== */}
-
-            {showHeldBills && (
-
-                <div className="fixed inset-0 z-[9998] bg-black/60 flex items-center justify-center p-4">
-
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden">
-
-                        <div className="flex items-center justify-between p-5 border-b">
-
-                            <div>
-
-                                <h2 className="text-xl font-bold text-gray-800">
-                                    Held Bills
-                                </h2>
-
-                                <p className="text-sm text-gray-500 mt-1">
-                                    Select a bill to continue billing.
-                                </p>
-
-                            </div>
+                            {/* ==================================================
+                                REVIEW BUTTON
+                            ================================================== */}
 
                             <button
-                                type="button"
-                                onClick={() =>
-                                    setShowHeldBills(false)
-                                }
-                                className="text-gray-500 hover:text-red-600 text-3xl leading-none"
+                                type="submit"
+                                ref={reviewBtnRef}
+                                className="hidden md:flex w-full mt-5 h-11 items-center justify-center gap-2 bg-slate-900 hover:bg-slate-700 active:bg-blue-800 text-white text-sm font-semibold rounded-lg shadow-sm transition"
                             >
-                                ×
+
+                                Review Invoice
+
+                                <span className="text-[10px] bg-white/15 px-2 py-1 rounded">
+                                    F5
+                                </span>
+
                             </button>
 
                         </div>
 
-                        <div className="p-5 overflow-y-auto max-h-[60vh]">
+                    </section>
 
-                            {heldBills.length === 0 ? (
+                </div>
 
-                                <div className="text-center py-12">
+            </div>
 
-                                    <div className="text-5xl mb-4">
-                                        🛒
-                                    </div>
 
-                                    <h3 className="text-lg font-semibold text-gray-700">
-                                        No Held Bills
-                                    </h3>
+            {/* ==================================================
+                MOBILE REVIEW
+            ================================================== */}
 
-                                    <p className="text-sm text-gray-500 mt-1">
-                                        Bills that you hold will appear here.
-                                    </p>
+            <div className="md:hidden mt-5">
 
+                <button
+                    type="submit"
+                    className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-sm transition"
+                >
+                    Review Invoice • ₹{total.toFixed(2)}
+                </button>
+
+            </div>
+
+        </form>
+
+
+        {/* ==================================================
+            HELD BILLS MODAL
+        ================================================== */}
+
+        {showHeldBills && (
+
+            <div className="fixed inset-0 z-[9998] bg-slate-950/50 backdrop-blur-sm flex items-center justify-center p-4">
+
+                <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden">
+
+                    <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
+
+                        <div>
+
+                            <h2 className="text-lg font-semibold text-slate-900">
+                                Held Bills
+                            </h2>
+
+                            <p className="text-xs text-slate-500 mt-0.5">
+                                Select a bill to continue billing
+                            </p>
+
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={() =>
+                                setShowHeldBills(false)
+                            }
+                            className="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 text-xl transition"
+                        >
+                            ×
+                        </button>
+
+                    </div>
+
+
+                    <div className="p-5 overflow-y-auto max-h-[60vh]">
+
+                        {heldBills.length === 0 ? (
+
+                            <div className="text-center py-12">
+
+                                <div className="w-14 h-14 mx-auto rounded-full bg-slate-100 flex items-center justify-center mb-4 text-2xl">
+                                    🛒
                                 </div>
 
-                            ) : (
+                                <h3 className="text-sm font-semibold text-slate-700">
+                                    No Held Bills
+                                </h3>
 
-                                <div className="space-y-3">
+                                <p className="text-xs text-slate-400 mt-1">
+                                    Held bills will appear here.
+                                </p>
 
-                                    {heldBills
-                                        .slice()
-                                        .reverse()
-                                        .map((bill) => {
+                            </div>
 
-                                            const itemCount =
-                                                bill.items.reduce(
-                                                    (
-                                                        itemTotal,
-                                                        item
-                                                    ) =>
-                                                        itemTotal +
-                                                        Number(
-                                                            item.qty ||
-                                                                0
-                                                        ),
-                                                    0
-                                                );
+                        ) : (
 
-                                            const heldTime =
-                                                new Date(
-                                                    bill.createdAt
-                                                ).toLocaleTimeString(
-                                                    "en-GB",
-                                                    {
-                                                        hour: "2-digit",
-                                                        minute: "2-digit",
-                                                    }
-                                                );
+                            <div className="space-y-3">
 
-                                            const heldDate =
-                                                new Date(
-                                                    bill.createdAt
-                                                ).toLocaleDateString(
-                                                    "en-GB"
-                                                );
+                                {heldBills
+                                    .slice()
+                                    .reverse()
+                                    .map((bill) => {
 
-                                            return (
+                                        const itemCount =
+                                            bill.items.reduce(
+                                                (
+                                                    itemTotal,
+                                                    item
+                                                ) =>
+                                                    itemTotal +
+                                                    Number(
+                                                        item.qty ||
+                                                            0
+                                                    ),
+                                                0
+                                            );
 
-                                                <div
-                                                    key={
-                                                        bill.id
-                                                    }
-                                                    className="border rounded-xl p-4 hover:bg-gray-50 transition"
-                                                >
+                                        const heldTime =
+                                            new Date(
+                                                bill.createdAt
+                                            ).toLocaleTimeString(
+                                                "en-GB",
+                                                {
+                                                    hour: "2-digit",
+                                                    minute: "2-digit",
+                                                }
+                                            );
 
-                                                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                        const heldDate =
+                                            new Date(
+                                                bill.createdAt
+                                            ).toLocaleDateString(
+                                                "en-GB"
+                                            );
 
-                                                        <div className="flex-1">
+                                        return (
 
-                                                            <div className="flex items-center gap-2">
+                                            <div
+                                                key={
+                                                    bill.id
+                                                }
+                                                className="border border-slate-200 rounded-xl p-4 hover:bg-slate-50 transition"
+                                            >
 
-                                                                <h3 className="font-bold text-gray-800">
-                                                                    {
-                                                                        bill.invoiceNumber
-                                                                    }
-                                                                </h3>
+                                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
 
-                                                                <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full font-semibold">
-                                                                    HELD
-                                                                </span>
+                                                    <div>
 
-                                                            </div>
+                                                        <div className="flex items-center gap-2">
 
-                                                            <p className="text-sm text-gray-600 mt-1">
-
-                                                                Customer:{" "}
-
-                                                                <span className="font-semibold">
-                                                                    {
-                                                                        bill.customerName ||
-                                                                        "Walk-in Customer"
-                                                                    }
-                                                                </span>
-
-                                                            </p>
-
-                                                            <p className="text-sm text-gray-500">
-
-                                                                {itemCount}{" "}
-                                                                item
-                                                                {itemCount !==
-                                                                1
-                                                                    ? "s"
-                                                                    : ""}{" "}
-                                                                •{" "}
+                                                            <h3 className="text-sm font-bold text-slate-800">
                                                                 {
-                                                                    heldDate
-                                                                }{" "}
-                                                                •{" "}
-                                                                {
-                                                                    heldTime
+                                                                    bill.invoiceNumber
                                                                 }
+                                                            </h3>
 
-                                                            </p>
-
-                                                        </div>
-
-                                                        <div className="text-left md:text-right">
-
-                                                            <p className="text-lg font-bold text-blue-600">
-
-                                                                ₹{" "}
-
-                                                                {Number(
-                                                                    bill.total ||
-                                                                        0
-                                                                ).toFixed(
-                                                                    2
-                                                                )}
-
-                                                            </p>
+                                                            <span className="text-[9px] font-bold bg-orange-50 text-orange-600 border border-orange-100 px-2 py-1 rounded-md">
+                                                                HELD
+                                                            </span>
 
                                                         </div>
 
-                                                    </div>
+                                                        <p className="text-xs text-slate-500 mt-1">
 
-                                                    <div className="flex gap-2 mt-4">
+                                                            Customer:{" "}
 
-                                                        <button
-                                                            type="button"
-                                                            onClick={() =>
-                                                                resumeBillHandler(
-                                                                    bill
-                                                                )
-                                                            }
-                                                            className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-lg transition"
-                                                        >
-                                                            ▶ Resume
-                                                        </button>
+                                                            <span className="font-medium text-slate-700">
+                                                                {
+                                                                    bill.customerName ||
+                                                                    "Walk-in Customer"
+                                                                }
+                                                            </span>
 
-                                                        <button
-                                                            type="button"
-                                                            onClick={() =>
-                                                                deleteHeldBillHandler(
-                                                                    bill.id
-                                                                )
-                                                            }
-                                                            className="flex-1 bg-red-100 hover:bg-red-200 text-red-700 font-semibold px-4 py-2 rounded-lg transition"
-                                                        >
-                                                            Delete
-                                                        </button>
+                                                        </p>
+
+                                                        <p className="text-[11px] text-slate-400 mt-1">
+
+                                                            {itemCount} items
+                                                            {" • "}
+                                                            {heldDate}
+                                                            {" • "}
+                                                            {heldTime}
+
+                                                        </p>
 
                                                     </div>
+
+
+                                                    <p className="text-lg font-bold text-slate-900">
+
+                                                        ₹
+                                                        {Number(
+                                                            bill.total || 0
+                                                        ).toFixed(2)}
+
+                                                    </p>
 
                                                 </div>
 
-                                            );
 
-                                        })}
+                                                <div className="flex gap-2 mt-4">
 
-                                </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            resumeBillHandler(
+                                                                bill
+                                                            )
+                                                        }
+                                                        className="flex-1 h-9 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition"
+                                                    >
+                                                        ▶ Resume
+                                                    </button>
 
-                            )}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            deleteHeldBillHandler(
+                                                                bill.id
+                                                            )
+                                                        }
+                                                        className="flex-1 h-9 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-lg transition"
+                                                    >
+                                                        Delete
+                                                    </button>
 
-                        </div>
+                                                </div>
 
-                        <div className="border-t p-4">
+                                            </div>
 
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    setShowHeldBills(false)
-                                }
-                                className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 rounded-lg transition"
-                            >
-                                Close
-                            </button>
+                                        );
 
-                        </div>
+                                    })}
+
+                            </div>
+
+                        )}
+
+                    </div>
+
+
+                    <div className="border-t border-slate-200 p-4">
+
+                        <button
+                            type="button"
+                            onClick={() =>
+                                setShowHeldBills(false)
+                            }
+                            className="w-full h-10 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-lg transition"
+                        >
+                            Close
+                        </button>
 
                     </div>
 
                 </div>
 
-            )}
+            </div>
 
-            {/* ==================================================
-                CAMERA BARCODE SCANNER
-            ================================================== */}
+        )}
 
-            {showScanner && (
 
-                <div className="fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center p-4">
+        {/* ==================================================
+            CAMERA BARCODE SCANNER
+        ================================================== */}
 
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+        {showScanner && (
 
-                        <div className="flex items-center justify-between p-4 border-b">
+            <div className="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
 
-                            <div>
+                <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
 
-                                <h2 className="text-lg font-bold text-gray-800">
-                                    Scan Barcode
-                                </h2>
+                    <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
 
-                                <p className="text-sm text-gray-500">
-                                    Point your camera at the barcode
-                                </p>
+                        <div>
 
-                            </div>
+                            <h2 className="text-sm font-semibold text-slate-900">
+                                Scan Barcode
+                            </h2>
 
-                            <button
-                                type="button"
-                                onClick={
-                                    stopBarcodeScanner
-                                }
-                                className="text-gray-500 hover:text-red-600 text-2xl"
-                            >
-                                ×
-                            </button>
+                            <p className="text-xs text-slate-500 mt-0.5">
+                                Point your camera at the barcode
+                            </p>
 
                         </div>
 
-                        <div className="relative bg-black">
+                        <button
+                            type="button"
+                            onClick={
+                                stopBarcodeScanner
+                            }
+                            className="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-red-600 text-xl transition"
+                        >
+                            ×
+                        </button>
 
-                            <video
-                                ref={videoRef}
-                                className="w-full aspect-video object-cover bg-black"
-                                autoPlay
-                                muted
-                                playsInline
-                            />
+                    </div>
 
-                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
 
-                                <div className="w-64 h-32 border-2 border-white rounded-lg relative">
+                    <div className="relative bg-black">
 
-                                    <div className="absolute left-0 right-0 top-1/2 h-0.5 bg-red-500" />
+                        <video
+                            ref={videoRef}
+                            className="w-full aspect-video object-cover bg-black"
+                            autoPlay
+                            muted
+                            playsInline
+                        />
 
-                                </div>
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+
+                            <div className="w-64 h-32 border-2 border-white/80 rounded-lg relative shadow-lg">
+
+                                <div className="absolute left-0 right-0 top-1/2 h-0.5 bg-red-500 shadow-lg" />
 
                             </div>
-
-                        </div>
-
-                        <div className="p-4">
-
-                            <button
-                                type="button"
-                                onClick={
-                                    stopBarcodeScanner
-                                }
-                                className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-lg transition"
-                            >
-                                Cancel
-                            </button>
 
                         </div>
 
                     </div>
 
+
+                    <div className="p-4">
+
+                        <button
+                            type="button"
+                            onClick={
+                                stopBarcodeScanner
+                            }
+                            className="w-full h-10 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition"
+                        >
+                            Cancel
+                        </button>
+
+                    </div>
+
                 </div>
 
-            )}
+            </div>
 
-            {/* ==================================================
-                INVOICE MODAL
-            ================================================== */}
+        )}
 
-            <InvoiceModal
-                isOpen={isOpen}
-                setIsOpen={setIsOpen}
 
-                invoiceInfo={{
+        {/* ==================================================
+            INVOICE MODAL
+        ================================================== */}
 
-                    invoiceNumber,
+        <InvoiceModal
+            isOpen={isOpen}
+            setIsOpen={setIsOpen}
 
-                    cashierName,
+            invoiceInfo={{
 
-                    customerName,
+                invoiceNumber,
 
-                    phoneNumber,
+                cashierName,
 
-                    paymentMethod,
+                customerName,
 
-                    subtotal,
+                phoneNumber,
 
-                    discountRate,
+                paymentMethod,
 
-                    taxRate,
+                subtotal,
 
-                    loyaltyDiscount:
-                        redeemedAmount,
+                discountRate,
 
-                    total:
-                        reviewTotal,
+                taxRate,
 
-                }}
+                loyaltyDiscount:
+                    redeemedAmount,
 
-                items={items}
+                total:
+                    reviewTotal,
 
-                onAddNextInvoice={
-                    addNextInvoiceHandler
-                }
-            />
+            }}
 
-        </div>
+            items={items}
 
-    );
+            onAddNextInvoice={
+                addNextInvoiceHandler
+            }
+        />
+
+    </div>
+
+);
+
+    
 
 };
 
