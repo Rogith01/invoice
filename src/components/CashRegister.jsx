@@ -230,8 +230,6 @@ const CashRegister = () => {
 
     // ==================================================
     // TOTAL SALES
-    //
-    // CASH + ONLINE
     // ==================================================
 
     const totalSales =
@@ -242,16 +240,11 @@ const CashRegister = () => {
     // ==================================================
     // EXPECTED CASH
     //
-    // IMPORTANT:
-    //
-    // Online Sales are NOT included.
-    //
-    // Only physical cash:
+    // Online sales are NOT included.
     //
     // Opening Cash
     // + Cash Sales
     // - Refunds
-    //
     // ==================================================
 
     const expectedCash =
@@ -262,8 +255,6 @@ const CashRegister = () => {
 
     // ==================================================
     // DIFFERENCE
-    //
-    // Actual Cash - Expected Cash
     // ==================================================
 
     const difference =
@@ -273,8 +264,6 @@ const CashRegister = () => {
 
     // ==================================================
     // REMAINING CASH
-    //
-    // Actual Cash - Owner Taken
     // ==================================================
 
     const remainingCash =
@@ -290,6 +279,7 @@ const CashRegister = () => {
         async () => {
 
             setError("");
+
             setMessage("");
 
 
@@ -348,7 +338,6 @@ const CashRegister = () => {
                     );
 
 
-                    // Refresh summary
                     fetchCashRegisterSummary();
 
                     fetchCurrentRegister();
@@ -409,7 +398,6 @@ const CashRegister = () => {
 
             const actual =
                 Number(actualCash);
-
 
             const owner =
                 Number(ownerTaken || 0);
@@ -543,9 +531,6 @@ const CashRegister = () => {
 
                         // ------------------------------------------
                         // SALES VALUES
-                        //
-                        // Backend may return these.
-                        // If not, use current frontend values.
                         // ------------------------------------------
 
                         cashSales:
@@ -1145,12 +1130,19 @@ const CashRegister = () => {
 
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
 
-                        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
+                        {/* ==================================================
+                            MODAL
+                            FIXED HEIGHT + SCROLLABLE BODY
+                        ================================================== */}
+
+                        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
 
 
-                            {/* HEADER */}
+                            {/* ==================================================
+                                HEADER
+                            ================================================== */}
 
-                            <div className="px-6 py-5 border-b">
+                            <div className="px-6 py-5 border-b shrink-0">
 
                                 <h2 className="text-2xl font-bold text-gray-800">
 
@@ -1167,9 +1159,12 @@ const CashRegister = () => {
                             </div>
 
 
-                            {/* BODY */}
+                            {/* ==================================================
+                                BODY
+                                SCROLLABLE
+                            ================================================== */}
 
-                            <div className="p-6">
+                            <div className="p-6 overflow-y-auto flex-1">
 
 
                                 {/* ==================================================
@@ -1459,9 +1454,10 @@ const CashRegister = () => {
 
                             {/* ==================================================
                                 FOOTER
+                                ALWAYS VISIBLE
                             ================================================== */}
 
-                            <div className="px-6 py-5 border-t flex justify-end gap-3">
+                            <div className="px-6 py-5 border-t flex justify-end gap-3 shrink-0 bg-white rounded-b-2xl">
 
                                 <button
                                     onClick={() => {
@@ -1517,12 +1513,12 @@ const CashRegister = () => {
 
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
 
-                        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
+                        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
 
 
                             {/* HEADER */}
 
-                            <div className="p-6 text-center border-b">
+                            <div className="p-6 text-center border-b shrink-0">
 
                                 <div className="text-5xl mb-3">
 
@@ -1547,7 +1543,7 @@ const CashRegister = () => {
 
                             {/* SUMMARY */}
 
-                            <div className="p-6 space-y-4">
+                            <div className="p-6 space-y-4 overflow-y-auto flex-1">
 
 
                                 {/* CASH SALES */}
@@ -1770,7 +1766,7 @@ const CashRegister = () => {
 
                             {/* FOOTER */}
 
-                            <div className="p-6 border-t">
+                            <div className="p-6 border-t shrink-0">
 
                                 <button
                                     onClick={

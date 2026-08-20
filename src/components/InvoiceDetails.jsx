@@ -974,7 +974,7 @@ const showToast = (
                             </span>
 
                             <span className="text-[15px]">
-                                {invoice.payment_Method}
+                                {invoice.payment_method}
                             </span>
 
                         </div>
