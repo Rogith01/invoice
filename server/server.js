@@ -3620,19 +3620,23 @@ app.get(
                         // REFUNDS
                         // ==================================================
 
-                        const refundsSql = `
-                            SELECT
-                                COALESCE(
-                                    SUM(refund_amount),
-                                    0
-                                ) AS refunds
-                            FROM invoice_returns
-                            WHERE DATE(created_at) = CURDATE()
-                        `;
+const refundsSql = `
+    SELECT
+        COALESCE(
+            SUM(ir.refund_amount),
+            0
+        ) AS refunds
+    FROM invoice_returns ir
+    INNER JOIN invoices i
+        ON ir.invoice_id = i.id
+    WHERE i.cashier_name = ?
+    AND DATE(ir.created_at) = CURDATE()
+`;
 
-                        db.query(
-                            refundsSql,
-                            (err, rows) => {
+db.query(
+    refundsSql,
+    [cashierName],
+    (err, rows) => {
 
                                 if (err) {
 
@@ -4130,19 +4134,23 @@ app.post(
                         // REFUNDS
                         // ==================================================
 
-                        const refundsSql = `
-                            SELECT
-                                COALESCE(
-                                    SUM(refund_amount),
-                                    0
-                                ) AS refunds
-                            FROM invoice_returns
-                            WHERE DATE(created_at) = CURDATE()
-                        `;
+const refundsSql = `
+    SELECT
+        COALESCE(
+            SUM(ir.refund_amount),
+            0
+        ) AS refunds
+    FROM invoice_returns ir
+    INNER JOIN invoices i
+        ON ir.invoice_id = i.id
+    WHERE i.cashier_name = ?
+    AND DATE(ir.created_at) = CURDATE()
+`;
 
-                        db.query(
-                            refundsSql,
-                            (err, refundRows) => {
+db.query(
+    refundsSql,
+    [cashierName],
+    (err, rows) => {
 
                                 if (err) {
 

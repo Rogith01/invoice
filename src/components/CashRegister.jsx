@@ -10,9 +10,11 @@ import { useNavigate } from "react-router-dom";
 const API_URL =
     "https://invoice-backend-78hd.onrender.com";
 
+
 const CashRegister = () => {
 
     const navigate = useNavigate();
+
 
     // ==================================================
     // STATES
@@ -48,12 +50,14 @@ const CashRegister = () => {
     const [error, setError] =
         useState("");
 
+
     // ==================================================
     // CLOSE DIALOG
     // ==================================================
 
     const [showCloseDialog, setShowCloseDialog] =
         useState(false);
+
 
     // ==================================================
     // FINAL CLOSE SUMMARY
@@ -97,6 +101,7 @@ const CashRegister = () => {
                         }
                     );
 
+
                 if (
                     response.data.success
                 ) {
@@ -104,17 +109,20 @@ const CashRegister = () => {
                     const summary =
                         response.data.summary;
 
+
                     setCashSales(
                         Number(
                             summary.cashSales || 0
                         )
                     );
 
+
                     setOnlineSales(
                         Number(
                             summary.onlineSales || 0
                         )
                     );
+
 
                     setRefunds(
                         Number(
@@ -163,6 +171,7 @@ const CashRegister = () => {
                         }
                     );
 
+
                 if (
                     response.data.success
                 ) {
@@ -174,7 +183,9 @@ const CashRegister = () => {
                         const register =
                             response.data.register;
 
+
                         setRegisterOpen(true);
+
 
                         setOpeningCash(
                             Number(
@@ -218,10 +229,29 @@ const CashRegister = () => {
 
 
     // ==================================================
+    // TOTAL SALES
+    //
+    // CASH + ONLINE
+    // ==================================================
+
+    const totalSales =
+        Number(cashSales || 0) +
+        Number(onlineSales || 0);
+
+
+    // ==================================================
     // EXPECTED CASH
     //
     // IMPORTANT:
-    // Owner Taken is NOT included.
+    //
+    // Online Sales are NOT included.
+    //
+    // Only physical cash:
+    //
+    // Opening Cash
+    // + Cash Sales
+    // - Refunds
+    //
     // ==================================================
 
     const expectedCash =
@@ -233,7 +263,6 @@ const CashRegister = () => {
     // ==================================================
     // DIFFERENCE
     //
-    // ONLY:
     // Actual Cash - Expected Cash
     // ==================================================
 
@@ -263,8 +292,10 @@ const CashRegister = () => {
             setError("");
             setMessage("");
 
+
             const amount =
                 Number(openingCash);
+
 
             if (
                 !Number.isFinite(amount) ||
@@ -276,14 +307,18 @@ const CashRegister = () => {
                 );
 
                 return;
+
             }
+
 
             try {
 
                 setLoading(true);
 
+
                 const token =
                     getToken();
+
 
                 const response =
                     await axios.post(
@@ -300,15 +335,23 @@ const CashRegister = () => {
                         }
                     );
 
+
                 if (
                     response.data.success
                 ) {
 
                     setRegisterOpen(true);
 
+
                     setMessage(
                         "Cash register opened successfully."
                     );
+
+
+                    // Refresh summary
+                    fetchCashRegisterSummary();
+
+                    fetchCurrentRegister();
 
                 }
 
@@ -318,6 +361,7 @@ const CashRegister = () => {
                     "Open Register Error:",
                     err
                 );
+
 
                 setError(
                     err.response?.data?.message ||
@@ -341,6 +385,7 @@ const CashRegister = () => {
         () => {
 
             setError("");
+
             setMessage("");
 
             setActualCash("");
@@ -361,8 +406,10 @@ const CashRegister = () => {
 
             setError("");
 
+
             const actual =
                 Number(actualCash);
+
 
             const owner =
                 Number(ownerTaken || 0);
@@ -425,8 +472,10 @@ const CashRegister = () => {
 
                 setLoading(true);
 
+
                 const token =
                     getToken();
+
 
                 const response =
                     await axios.post(
@@ -453,29 +502,80 @@ const CashRegister = () => {
 
                     const summary = {
 
+                        // ------------------------------------------
+                        // REGISTER VALUES
+                        // ------------------------------------------
+
                         expectedCash:
                             Number(
-                                response.data.expectedCash || 0
+                                response.data.expectedCash ??
+                                expectedCash ??
+                                0
                             ),
 
                         actualCash:
                             Number(
-                                response.data.actualCash || 0
+                                response.data.actualCash ??
+                                actual ??
+                                0
                             ),
 
                         difference:
                             Number(
-                                response.data.difference || 0
+                                response.data.difference ??
+                                difference ??
+                                0
                             ),
 
                         ownerTaken:
                             Number(
-                                response.data.ownerTaken || 0
+                                response.data.ownerTaken ??
+                                owner ??
+                                0
                             ),
 
                         remainingCash:
                             Number(
-                                response.data.remainingCash || 0
+                                response.data.remainingCash ??
+                                remainingCash ??
+                                0
+                            ),
+
+                        // ------------------------------------------
+                        // SALES VALUES
+                        //
+                        // Backend may return these.
+                        // If not, use current frontend values.
+                        // ------------------------------------------
+
+                        cashSales:
+                            Number(
+                                response.data.cashSales ??
+                                cashSales ??
+                                0
+                            ),
+
+                        onlineSales:
+                            Number(
+                                response.data.onlineSales ??
+                                onlineSales ??
+                                0
+                            ),
+
+                        refunds:
+                            Number(
+                                response.data.refunds ??
+                                refunds ??
+                                0
+                            ),
+
+                        totalSales:
+                            Number(
+                                response.data.totalSales ??
+                                (
+                                    Number(cashSales || 0) +
+                                    Number(onlineSales || 0)
+                                )
                             )
 
                     };
@@ -485,13 +585,16 @@ const CashRegister = () => {
                         summary
                     );
 
+
                     setShowCloseDialog(
                         false
                     );
 
+
                     setRegisterOpen(
                         false
                     );
+
 
                     setActualCash("");
 
@@ -505,6 +608,7 @@ const CashRegister = () => {
                     "Close Register Error:",
                     err
                 );
+
 
                 setError(
                     err.response?.data?.message ||
@@ -542,9 +646,11 @@ const CashRegister = () => {
 
         setCloseSummary(null);
 
+
         setMessage(
             "Cash register closed successfully."
         );
+
 
         fetchCashRegisterSummary();
 
@@ -742,7 +848,7 @@ const CashRegister = () => {
                     SALES SUMMARY
                 ================================================== */}
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
 
 
                     {/* CASH SALES */}
@@ -780,6 +886,27 @@ const CashRegister = () => {
 
                             {formatMoney(
                                 onlineSales
+                            )}
+
+                        </h2>
+
+                    </div>
+
+
+                    {/* TOTAL SALES */}
+
+                    <div className="bg-white rounded-xl shadow p-5">
+
+                        <p className="text-gray-500">
+
+                            Total Sales
+
+                        </p>
+
+                        <h2 className="text-2xl font-bold mt-2">
+
+                            {formatMoney(
+                                totalSales
                             )}
 
                         </h2>
@@ -826,61 +953,143 @@ const CashRegister = () => {
                     <div className="space-y-4">
 
 
+                        {/* OPENING CASH */}
+
                         <div className="flex justify-between">
 
                             <span>
+
                                 Opening Cash
+
                             </span>
 
-                            <span>
+                            <span className="font-semibold">
+
                                 {formatMoney(
                                     openingCash
                                 )}
+
                             </span>
 
                         </div>
 
 
+                        {/* CASH SALES */}
+
                         <div className="flex justify-between">
 
                             <span>
+
                                 Cash Sales
+
                             </span>
 
-                            <span>
+                            <span className="font-semibold">
+
                                 {formatMoney(
                                     cashSales
                                 )}
+
                             </span>
 
                         </div>
 
+
+                        {/* ONLINE SALES */}
 
                         <div className="flex justify-between">
 
                             <span>
-                                Refunds
+
+                                Online Sales
+
                             </span>
 
-                            <span>
-                                - {formatMoney(
-                                    refunds
+                            <span className="font-semibold">
+
+                                {formatMoney(
+                                    onlineSales
                                 )}
+
                             </span>
 
                         </div>
 
+
+                        {/* TOTAL SALES */}
+
+                        <div className="flex justify-between">
+
+                            <span>
+
+                                Total Sales
+
+                            </span>
+
+                            <span className="font-semibold">
+
+                                {formatMoney(
+                                    totalSales
+                                )}
+
+                            </span>
+
+                        </div>
+
+
+                        {/* REFUNDS */}
+
+                        <div className="flex justify-between">
+
+                            <span>
+
+                                Refunds
+
+                            </span>
+
+                            <span className="font-semibold">
+
+                                - {formatMoney(
+                                    refunds
+                                )}
+
+                            </span>
+
+                        </div>
+
+
+                        {/* EXPLANATION */}
+
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+
+                            <p className="text-sm text-blue-700">
+
+                                💡 Online sales are displayed for
+                                reporting, but they are not added
+                                to Expected Cash because they are
+                                not physical cash in the drawer.
+
+                            </p>
+
+                        </div>
+
+
+                        {/* EXPECTED CASH */}
 
                         <div className="border-t pt-4 flex justify-between text-xl font-bold">
 
                             <span>
+
                                 Expected Cash
+
                             </span>
 
-                            <span>
+                            <span className="text-blue-700">
+
                                 {formatMoney(
                                     expectedCash
                                 )}
+
                             </span>
 
                         </div>
@@ -938,6 +1147,7 @@ const CashRegister = () => {
 
                         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
 
+
                             {/* HEADER */}
 
                             <div className="px-6 py-5 border-b">
@@ -962,7 +1172,92 @@ const CashRegister = () => {
                             <div className="p-6">
 
 
-                                {/* EXPECTED */}
+                                {/* ==================================================
+                                    SALES INFORMATION
+                                ================================================== */}
+
+                                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-5">
+
+                                    <h3 className="font-bold text-gray-800 mb-4">
+
+                                        Today's Sales
+
+                                    </h3>
+
+
+                                    <div className="space-y-3">
+
+
+                                        {/* CASH */}
+
+                                        <div className="flex justify-between">
+
+                                            <span className="text-gray-600">
+
+                                                Cash Sales
+
+                                            </span>
+
+                                            <span className="font-semibold">
+
+                                                {formatMoney(
+                                                    cashSales
+                                                )}
+
+                                            </span>
+
+                                        </div>
+
+
+                                        {/* ONLINE */}
+
+                                        <div className="flex justify-between">
+
+                                            <span className="text-gray-600">
+
+                                                Online Sales
+
+                                            </span>
+
+                                            <span className="font-semibold">
+
+                                                {formatMoney(
+                                                    onlineSales
+                                                )}
+
+                                            </span>
+
+                                        </div>
+
+
+                                        {/* TOTAL */}
+
+                                        <div className="border-t pt-3 flex justify-between">
+
+                                            <span className="font-semibold">
+
+                                                Total Sales
+
+                                            </span>
+
+                                            <span className="font-bold">
+
+                                                {formatMoney(
+                                                    totalSales
+                                                )}
+
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+
+                                {/* ==================================================
+                                    EXPECTED CASH
+                                ================================================== */}
 
                                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-5">
 
@@ -984,16 +1279,27 @@ const CashRegister = () => {
 
                                     </div>
 
+
+                                    <p className="text-xs text-blue-600 mt-2">
+
+                                        Opening Cash + Cash Sales - Refunds.
+                                        Online Sales are not included.
+
+                                    </p>
+
                                 </div>
 
 
-                                {/* ACTUAL CASH */}
+                                {/* ==================================================
+                                    ACTUAL CASH
+                                ================================================== */}
 
                                 <label className="block font-semibold mb-2">
 
                                     Actual Cash Counted
 
                                 </label>
+
 
                                 <input
                                     type="number"
@@ -1011,7 +1317,9 @@ const CashRegister = () => {
                                 />
 
 
-                                {/* DIFFERENCE */}
+                                {/* ==================================================
+                                    DIFFERENCE
+                                ================================================== */}
 
                                 {actualCash !== "" && (
 
@@ -1066,13 +1374,16 @@ const CashRegister = () => {
                                 )}
 
 
-                                {/* OWNER TAKEN */}
+                                {/* ==================================================
+                                    OWNER TAKEN
+                                ================================================== */}
 
                                 <label className="block font-semibold mb-2">
 
                                     Owner Taken Amount
 
                                 </label>
+
 
                                 <input
                                     type="number"
@@ -1091,12 +1402,15 @@ const CashRegister = () => {
 
                                 <p className="text-xs text-gray-500 mt-2">
 
-                                    This amount is recorded separately and does not affect the cash difference.
+                                    This amount is recorded separately
+                                    and does not affect the cash difference.
 
                                 </p>
 
 
-                                {/* REMAINING CASH */}
+                                {/* ==================================================
+                                    REMAINING CASH
+                                ================================================== */}
 
                                 {ownerTaken !== "" &&
                                     actualCash !== "" && (
@@ -1126,7 +1440,9 @@ const CashRegister = () => {
                                 )}
 
 
-                                {/* ERROR */}
+                                {/* ==================================================
+                                    ERROR
+                                ================================================== */}
 
                                 {error && (
 
@@ -1141,7 +1457,9 @@ const CashRegister = () => {
                             </div>
 
 
-                            {/* FOOTER */}
+                            {/* ==================================================
+                                FOOTER
+                            ================================================== */}
 
                             <div className="px-6 py-5 border-t flex justify-end gap-3">
 
@@ -1201,6 +1519,9 @@ const CashRegister = () => {
 
                         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
 
+
+                            {/* HEADER */}
+
                             <div className="p-6 text-center border-b">
 
                                 <div className="text-5xl mb-3">
@@ -1224,19 +1545,25 @@ const CashRegister = () => {
                             </div>
 
 
+                            {/* SUMMARY */}
+
                             <div className="p-6 space-y-4">
 
 
+                                {/* CASH SALES */}
+
                                 <div className="flex justify-between">
 
                                     <span>
-                                        Expected Cash
+
+                                        Cash Sales
+
                                     </span>
 
                                     <span className="font-bold">
 
                                         {formatMoney(
-                                            closeSummary.expectedCash
+                                            closeSummary.cashSales
                                         )}
 
                                     </span>
@@ -1244,47 +1571,148 @@ const CashRegister = () => {
                                 </div>
 
 
+                                {/* ONLINE SALES */}
+
                                 <div className="flex justify-between">
 
                                     <span>
-                                        Actual Cash
+
+                                        Online Sales
+
                                     </span>
 
                                     <span className="font-bold">
 
                                         {formatMoney(
-                                            closeSummary.actualCash
+                                            closeSummary.onlineSales
                                         )}
 
                                     </span>
 
                                 </div>
 
+
+                                {/* TOTAL SALES */}
+
+                                <div className="flex justify-between">
+
+                                    <span className="font-semibold">
+
+                                        Total Sales
+
+                                    </span>
+
+                                    <span className="font-bold">
+
+                                        {formatMoney(
+                                            closeSummary.totalSales
+                                        )}
+
+                                    </span>
+
+                                </div>
+
+
+                                {/* REFUNDS */}
 
                                 <div className="flex justify-between">
 
                                     <span>
-                                        Difference
+
+                                        Refunds
+
                                     </span>
 
-                                    <span
-                                        className={`font-bold ${
-                                            closeSummary.difference < 0
-                                                ? "text-red-600"
-                                                : closeSummary.difference > 0
-                                                ? "text-green-600"
-                                                : "text-gray-700"
-                                        }`}
-                                    >
+                                    <span className="font-bold">
 
-                                        {formatMoney(
-                                            closeSummary.difference
+                                        - {formatMoney(
+                                            closeSummary.refunds
                                         )}
 
                                     </span>
 
                                 </div>
 
+
+                                {/* SEPARATOR */}
+
+                                <div className="border-t pt-4">
+
+
+                                    {/* EXPECTED CASH */}
+
+                                    <div className="flex justify-between">
+
+                                        <span>
+
+                                            Expected Cash
+
+                                        </span>
+
+                                        <span className="font-bold">
+
+                                            {formatMoney(
+                                                closeSummary.expectedCash
+                                            )}
+
+                                        </span>
+
+                                    </div>
+
+
+                                    {/* ACTUAL CASH */}
+
+                                    <div className="flex justify-between mt-4">
+
+                                        <span>
+
+                                            Actual Cash
+
+                                        </span>
+
+                                        <span className="font-bold">
+
+                                            {formatMoney(
+                                                closeSummary.actualCash
+                                            )}
+
+                                        </span>
+
+                                    </div>
+
+
+                                    {/* DIFFERENCE */}
+
+                                    <div className="flex justify-between mt-4">
+
+                                        <span>
+
+                                            Difference
+
+                                        </span>
+
+                                        <span
+                                            className={`font-bold ${
+                                                closeSummary.difference < 0
+                                                    ? "text-red-600"
+                                                    : closeSummary.difference > 0
+                                                    ? "text-green-600"
+                                                    : "text-gray-700"
+                                            }`}
+                                        >
+
+                                            {formatMoney(
+                                                closeSummary.difference
+                                            )}
+
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+
+                                {/* OWNER TAKEN */}
 
                                 <div className="border-t pt-4 flex justify-between">
 
@@ -1304,6 +1732,8 @@ const CashRegister = () => {
 
                                 </div>
 
+
+                                {/* REMAINING CASH */}
 
                                 <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
 
@@ -1325,9 +1755,11 @@ const CashRegister = () => {
 
                                     </div>
 
+
                                     <p className="text-sm text-gray-500 mt-2">
 
-                                        Enter this amount as the opening cash when starting the next register.
+                                        Enter this amount as the opening
+                                        cash when starting the next register.
 
                                     </p>
 
@@ -1335,6 +1767,8 @@ const CashRegister = () => {
 
                             </div>
 
+
+                            {/* FOOTER */}
 
                             <div className="p-6 border-t">
 
@@ -1364,5 +1798,6 @@ const CashRegister = () => {
     );
 
 };
+
 
 export default CashRegister;
