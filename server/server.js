@@ -3531,7 +3531,6 @@ app.get("/", (req, res) => {
 
 });
 
-
 // ======================================================
 // CASH REGISTER - TODAY'S SUMMARY
 // ======================================================
@@ -3541,10 +3540,12 @@ app.get(
     authenticateToken,
     (req, res) => {
 
+        const cashierName = req.user.username;
+
         const summary = {};
 
         // ==================================================
-        // CASH SALES
+        // CASH SALES - ONLY LOGGED-IN CASHIER
         // ==================================================
 
         const cashSalesSql = `
@@ -3552,11 +3553,13 @@ app.get(
                 COALESCE(SUM(total), 0) AS cashSales
             FROM invoices
             WHERE payment_Method = 'Cash'
+            AND cashier_name = ?
             AND DATE(invoice_date) = CURDATE()
         `;
 
         db.query(
             cashSalesSql,
+            [cashierName],
             (err, rows) => {
 
                 if (err) {
@@ -3570,7 +3573,6 @@ app.get(
                         success: false,
                         message: err.message
                     });
-
                 }
 
                 summary.cashSales =
@@ -3578,9 +3580,8 @@ app.get(
                         rows[0].cashSales || 0
                     );
 
-
                 // ==================================================
-                // ONLINE SALES
+                // ONLINE SALES - ONLY LOGGED-IN CASHIER
                 // ==================================================
 
                 const onlineSalesSql = `
@@ -3588,11 +3589,13 @@ app.get(
                         COALESCE(SUM(total), 0) AS onlineSales
                     FROM invoices
                     WHERE payment_Method = 'Online'
+                    AND cashier_name = ?
                     AND DATE(invoice_date) = CURDATE()
                 `;
 
                 db.query(
                     onlineSalesSql,
+                    [cashierName],
                     (err, rows) => {
 
                         if (err) {
@@ -3606,14 +3609,12 @@ app.get(
                                 success: false,
                                 message: err.message
                             });
-
                         }
 
                         summary.onlineSales =
                             Number(
                                 rows[0].onlineSales || 0
                             );
-
 
                         // ==================================================
                         // REFUNDS
@@ -3644,7 +3645,6 @@ app.get(
                                         success: false,
                                         message: err.message
                                     });
-
                                 }
 
                                 summary.refunds =
@@ -3652,13 +3652,15 @@ app.get(
                                         rows[0].refunds || 0
                                     );
 
-
                                 // ==================================================
                                 // SEND RESULT
                                 // ==================================================
 
                                 res.json({
                                     success: true,
+
+                                    cashierName,
+
                                     summary
                                 });
 
@@ -3673,6 +3675,7 @@ app.get(
 
     }
 );
+
 
 // ======================================================
 // CASH REGISTER - CURRENT OPEN REGISTER
@@ -3724,10 +3727,6 @@ app.get(
 
                 }
 
-                // ==================================================
-                // NO OPEN REGISTER
-                // ==================================================
-
                 if (rows.length === 0) {
 
                     return res.json({
@@ -3737,10 +3736,6 @@ app.get(
                     });
 
                 }
-
-                // ==================================================
-                // OPEN REGISTER FOUND
-                // ==================================================
 
                 res.json({
                     success: true,
@@ -3757,12 +3752,16 @@ app.get(
 
 // ======================================================
 // CASH REGISTER - HISTORY
+// ONLY LOGGED-IN CASHIER
 // ======================================================
 
 app.get(
     "/api/cash-register/history",
     authenticateToken,
     (req, res) => {
+
+        const cashierName =
+            req.user.username;
 
         const sql = `
             SELECT
@@ -3777,11 +3776,13 @@ app.get(
                 closing_time,
                 status
             FROM cash_registers
+            WHERE cashier_name = ?
             ORDER BY id DESC
         `;
 
         db.query(
             sql,
+            [cashierName],
             (err, rows) => {
 
                 if (err) {
@@ -3800,6 +3801,7 @@ app.get(
 
                 res.json({
                     success: true,
+                    cashierName,
                     history: rows
                 });
 
@@ -3826,10 +3828,6 @@ app.post(
         const amount =
             Number(openingCash);
 
-        // ==================================================
-        // VALIDATE OPENING CASH
-        // ==================================================
-
         if (
             !Number.isFinite(amount) ||
             amount < 0
@@ -3843,12 +3841,16 @@ app.post(
 
         }
 
+        // ==================================================
+        // LOGGED-IN CASHIER
+        // ==================================================
+
         const cashierName =
             req.user.username;
 
-
         // ==================================================
         // CHECK EXISTING OPEN REGISTER
+        // ONLY THIS CASHIER
         // ==================================================
 
         const checkSql = `
@@ -3878,7 +3880,6 @@ app.post(
 
                 }
 
-
                 if (rows.length > 0) {
 
                     return res.status(400).json({
@@ -3889,9 +3890,8 @@ app.post(
 
                 }
 
-
                 // ==================================================
-                // CREATE NEW REGISTER
+                // CREATE REGISTER FOR THIS CASHIER
                 // ==================================================
 
                 const insertSql = `
@@ -3933,7 +3933,6 @@ app.post(
 
                         }
 
-
                         res.json({
                             success: true,
 
@@ -3941,7 +3940,9 @@ app.post(
                                 "Cash register opened successfully",
 
                             registerId:
-                                result.insertId
+                                result.insertId,
+
+                            cashierName
                         });
 
                     }
@@ -3968,17 +3969,11 @@ app.post(
             ownerTaken
         } = req.body;
 
-
-        // ==================================================
-        // CONVERT VALUES TO NUMBERS
-        // ==================================================
-
         const amount =
             Number(actualCash);
 
         const ownerTakenAmount =
             Number(ownerTaken || 0);
-
 
         // ==================================================
         // VALIDATE ACTUAL CASH
@@ -3997,7 +3992,6 @@ app.post(
 
         }
 
-
         // ==================================================
         // VALIDATE OWNER TAKEN
         // ==================================================
@@ -4014,7 +4008,6 @@ app.post(
             });
 
         }
-
 
         // ==================================================
         // OWNER CANNOT TAKE MORE THAN ACTUAL CASH
@@ -4033,13 +4026,15 @@ app.post(
 
         }
 
+        // ==================================================
+        // LOGGED-IN CASHIER
+        // ==================================================
 
         const cashierName =
             req.user.username;
 
-
         // ==================================================
-        // FIND OPEN REGISTER
+        // FIND THIS CASHIER'S OPEN REGISTER
         // ==================================================
 
         const findSql = `
@@ -4072,11 +4067,6 @@ app.post(
 
                 }
 
-
-                // ==================================================
-                // NO OPEN REGISTER
-                // ==================================================
-
                 if (rows.length === 0) {
 
                     return res.status(400).json({
@@ -4087,19 +4077,17 @@ app.post(
 
                 }
 
-
                 const register =
                     rows[0];
-
 
                 const openingCash =
                     Number(
                         register.opening_cash || 0
                     );
 
-
                 // ==================================================
                 // CASH SALES
+                // ONLY THIS CASHIER
                 // ==================================================
 
                 const cashSalesSql = `
@@ -4110,11 +4098,13 @@ app.post(
                         ) AS cashSales
                     FROM invoices
                     WHERE payment_Method = 'Cash'
+                    AND cashier_name = ?
                     AND DATE(invoice_date) = CURDATE()
                 `;
 
                 db.query(
                     cashSalesSql,
+                    [cashierName],
                     (err, cashRows) => {
 
                         if (err) {
@@ -4131,12 +4121,10 @@ app.post(
 
                         }
 
-
                         const cashSales =
                             Number(
                                 cashRows[0].cashSales || 0
                             );
-
 
                         // ==================================================
                         // REFUNDS
@@ -4170,18 +4158,13 @@ app.post(
 
                                 }
 
-
                                 const refunds =
                                     Number(
                                         refundRows[0].refunds || 0
                                     );
 
-
                                 // ==================================================
                                 // EXPECTED CASH
-                                //
-                                // IMPORTANT:
-                                // ownerTaken is NOT included here.
                                 // ==================================================
 
                                 const expectedCash =
@@ -4189,34 +4172,21 @@ app.post(
                                     cashSales -
                                     refunds;
 
-
                                 // ==================================================
                                 // DIFFERENCE
-                                //
-                                // IMPORTANT:
-                                // Difference compares ONLY:
-                                //
-                                // Actual Cash vs Expected Cash
-                                //
-                                // ownerTaken is NOT included.
                                 // ==================================================
 
                                 const difference =
                                     amount -
                                     expectedCash;
 
-
                                 // ==================================================
-                                // REMAINING CASH AFTER OWNER TAKES
-                                //
-                                // This is informational only.
-                                // It does NOT affect difference.
+                                // REMAINING CASH
                                 // ==================================================
 
                                 const remainingCash =
                                     amount -
                                     ownerTakenAmount;
-
 
                                 // ==================================================
                                 // UPDATE REGISTER
@@ -4259,7 +4229,6 @@ app.post(
 
                                         }
 
-
                                         // ==================================================
                                         // FINAL RESPONSE
                                         // ==================================================
@@ -4270,20 +4239,19 @@ app.post(
                                             message:
                                                 "Cash register closed successfully",
 
-                                            expectedCash:
-                                                expectedCash,
+                                            cashierName,
+
+                                            expectedCash,
 
                                             actualCash:
                                                 amount,
 
-                                            difference:
-                                                difference,
+                                            difference,
 
                                             ownerTaken:
                                                 ownerTakenAmount,
 
-                                            remainingCash:
-                                                remainingCash
+                                            remainingCash
                                         });
 
                                     }
