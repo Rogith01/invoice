@@ -24,9 +24,13 @@ const Navbar = ({ onLogout }) => {
 
     const location = useLocation();
 
-    const user = JSON.parse(
-        sessionStorage.getItem("user")
-    );
+const user = JSON.parse(
+    sessionStorage.getItem("user")
+);
+
+const store = JSON.parse(
+    sessionStorage.getItem("store")
+);
 
     const [sidebarOpen, setSidebarOpen] =
         useState(false);
@@ -111,7 +115,7 @@ const Navbar = ({ onLogout }) => {
                 return "Users";
 
             default:
-                 return user?.storeName || "SUPER MARKET";
+                     return store?.storeName || "POS SYSTEM";
         }
 
     };
@@ -234,7 +238,7 @@ const Navbar = ({ onLogout }) => {
                                         truncate
                                     "
                                 >
-                                    {user?.storeName || "SUPER MARKET"}
+                                    {store?.storeName || "POS SYSTEM"}
                                 </h1>
 
                                 <p
@@ -491,7 +495,7 @@ const Navbar = ({ onLogout }) => {
                                     leading-tight
                                 "
                             >
-                                {user?.storeName || "SUPER MARKET"}
+                                {store?.storeName || "POS SYSTEM"}
                             </h1>
 
                             <p
