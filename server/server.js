@@ -2111,8 +2111,8 @@ app.get(
                 );
             }
         );
-    }
-);// ======================================================
+    })
+    // ======================================================
 // GET ALL INVOICES
 // ======================================================
 
@@ -2121,9 +2121,17 @@ app.get(
     authenticateToken,
     (req, res) => {
 
+        // ======================================================
+        // GET CURRENT STORE DATABASE
+        // ======================================================
+
         const db = getDatabase(
-            req.user.database_name
+            req.user.databaseName
         );
+
+        // ======================================================
+        // SQL
+        // ======================================================
 
         const sql = `
             SELECT
@@ -2142,7 +2150,11 @@ app.get(
             ORDER BY invoices.id DESC
         `;
 
-        storeDb.query(
+        // ======================================================
+        // QUERY CURRENT STORE DATABASE
+        // ======================================================
+
+        db.query(
             sql,
             (err, rows) => {
 
@@ -2157,14 +2169,17 @@ app.get(
                         success: false,
                         message: err.message
                     });
+
                 }
 
                 res.json({
                     success: true,
                     invoices: rows
                 });
+
             }
         );
+
     }
 );
 
@@ -2178,15 +2193,24 @@ app.get(
     authenticateToken,
     (req, res) => {
 
+        // ======================================================
+        // GET INVOICE ID
+        // ======================================================
+
+        const invoiceId =
+            req.params.id;
+
+        // ======================================================
+        // GET CURRENT STORE DATABASE
+        // ======================================================
+
         const db = getDatabase(
             req.user.databaseName
         );
 
-        // your existing code...
-
-        // ==================================================
+        // ======================================================
         // GET INVOICE
-        // ==================================================
+        // ======================================================
 
         const invoiceSql = `
             SELECT
@@ -2198,7 +2222,7 @@ app.get(
             WHERE invoices.id = ?
         `;
 
-        storeDb.query(
+        db.query(
             invoiceSql,
             [invoiceId],
             (err, invoiceRows) => {
@@ -2214,6 +2238,7 @@ app.get(
                         success: false,
                         message: err.message
                     });
+
                 }
 
                 if (invoiceRows.length === 0) {
@@ -2222,6 +2247,7 @@ app.get(
                         success: false,
                         message: "Invoice not found"
                     });
+
                 }
 
                 // ==================================================
@@ -2260,7 +2286,7 @@ app.get(
                     WHERE ii.invoice_id = ?
                 `;
 
-                storeDb.query(
+                db.query(
                     itemSql,
                     [invoiceId],
                     (err, itemRows) => {
@@ -2276,6 +2302,7 @@ app.get(
                                 success: false,
                                 message: err.message
                             });
+
                         }
 
                         res.json({
@@ -2285,10 +2312,13 @@ app.get(
                             items:
                                 itemRows
                         });
+
                     }
                 );
+
             }
         );
+
     }
 );
 // ======================================================
