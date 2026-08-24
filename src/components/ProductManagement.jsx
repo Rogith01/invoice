@@ -5,7 +5,7 @@ import React, {
     useState,
 } from "react";
 
-import axios from "axios";
+import api from "../api";
 
 import {
     BrowserMultiFormatReader
@@ -396,10 +396,10 @@ const ProductManagement = () => {
 
             try {
 
-                const res =
-                    await axios.get(
-                        `${API_URL}/api/products`
-                    );
+const res =
+    await api.get(
+        "/api/products"
+    );
 
 
                 if (
@@ -558,9 +558,9 @@ const ProductManagement = () => {
         try {
 
             const res =
-                await axios.delete(
-                    `${API_URL}/api/products/${id}`
-                );
+await api.delete(
+    `/api/products/${id}`
+);
 
 
             if (
@@ -776,19 +776,19 @@ const ProductManagement = () => {
 
             try {
 
-                const res =
-                    await axios.put(
-                        `${API_URL}/api/products/${editingId}`,
-                        {
-                            productName:
-                                productName.trim(),
+const res =
+    await api.put(
+        `/api/products/${editingId}`,
+        {
+            productName:
+                productName.trim(),
 
-                            price,
+            price,
 
-                            barcode:
-                                cleanBarcode,
-                        }
-                    );
+            barcode:
+                cleanBarcode,
+        }
+    );
 
 
                 if (
@@ -845,19 +845,19 @@ const ProductManagement = () => {
 
         try {
 
-            const res =
-                await axios.post(
-                    `${API_URL}/api/products`,
-                    {
-                        productName:
-                            productName.trim(),
+const res =
+    await api.post(
+        "/api/products",
+        {
+            productName:
+                productName.trim(),
 
-                        price,
+            price,
 
-                        barcode:
-                            cleanBarcode,
-                    }
-                );
+            barcode:
+                cleanBarcode,
+        }
+    );
 
 
             if (

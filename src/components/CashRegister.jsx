@@ -3,12 +3,8 @@ import React, {
     useState
 } from "react";
 
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
-
-const API_URL =
-    "https://invoice-backend-78hd.onrender.com";
+import api from "../api";
 
 
 const CashRegister = () => {
@@ -68,17 +64,6 @@ const CashRegister = () => {
 
 
     // ==========================================
-    // TOKEN
-    // ==========================================
-
-    const getToken = () => {
-
-        return sessionStorage.getItem("token");
-
-    };
-
-
-    // ==========================================
     // FETCH SUMMARY
     // ==========================================
 
@@ -87,18 +72,9 @@ const CashRegister = () => {
 
             try {
 
-                const token =
-                    getToken();
-
                 const response =
-                    await axios.get(
-                        `${API_URL}/api/cash-register/summary`,
-                        {
-                            headers: {
-                                Authorization:
-                                    `Bearer ${token}`
-                            }
-                        }
+                    await api.get(
+                        "/api/cash-register/summary"
                     );
 
 
@@ -157,18 +133,9 @@ const CashRegister = () => {
 
             try {
 
-                const token =
-                    getToken();
-
                 const response =
-                    await axios.get(
-                        `${API_URL}/api/cash-register/current`,
-                        {
-                            headers: {
-                                Authorization:
-                                    `Bearer ${token}`
-                            }
-                        }
+                    await api.get(
+                        "/api/cash-register/current"
                     );
 
 
@@ -300,22 +267,12 @@ const CashRegister = () => {
                 setLoading(true);
 
 
-                const token =
-                    getToken();
-
-
                 const response =
-                    await axios.post(
-                        `${API_URL}/api/cash-register/open`,
+                    await api.post(
+                        "/api/cash-register/open",
                         {
                             openingCash:
                                 amount
-                        },
-                        {
-                            headers: {
-                                Authorization:
-                                    `Bearer ${token}`
-                            }
                         }
                     );
 
@@ -443,25 +400,15 @@ const CashRegister = () => {
                 setLoading(true);
 
 
-                const token =
-                    getToken();
-
-
                 const response =
-                    await axios.post(
-                        `${API_URL}/api/cash-register/close`,
+                    await api.post(
+                        "/api/cash-register/close",
                         {
                             actualCash:
                                 actual,
 
                             ownerTaken:
                                 owner
-                        },
-                        {
-                            headers: {
-                                Authorization:
-                                    `Bearer ${token}`
-                            }
                         }
                     );
 
@@ -1505,7 +1452,7 @@ const CashRegister = () => {
                                             strokeLinecap="round"
                                             strokeLinejoin="round"
                                             strokeWidth={2}
-                                            d="M12 15v2m-6 4h12a2 2 0 002-2v-7a2 2 0 00-2-2H6a2 2 0 00-2 2v7a2 2 0 002 2zm10-11V7a4 4 0 00-8 0v3h8z"
+                                            d="M12 15v2m-6 4h12a2 2 0 002-2v-7a2 2 0 00-2-2H6a2 2 0 00-2 2v7a2 2 0 002-2zm10-11V7a4 4 0 00-8 0v3h8z"
                                         />
 
                                     </svg>
