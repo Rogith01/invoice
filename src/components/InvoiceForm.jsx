@@ -6,7 +6,7 @@ import React, {
 } from "react";
 
 import { BrowserMultiFormatReader } from "@zxing/browser";
-import axios from "axios";
+import api from "../api";
 import { uid } from "uid";
 
 import InvoiceItem from "./InvoiceItem";
@@ -362,68 +362,46 @@ const InvoiceForm = () => {
 
     }, [heldBills]);
 
-    // ==========================================
-    // FETCH CUSTOMER
-    // ==========================================
+// ==========================================
+// FETCH CUSTOMER
+// ==========================================
 
-    const fetchCustomer = async (phone) => {
+const fetchCustomer = async (phone) => {
 
-        if (phone.length !== 10) {
-            return;
-        }
+    if (phone.length !== 10) {
+        return;
+    }
 
-        try {
+    try {
 
-            const res = await axios.get(
-                `https://invoice-backend-78hd.onrender.com/api/customer/${phone}`
+        const res = await api.get(
+            `/api/customer/${phone}`
+        );
+
+        if (res.data.success) {
+
+            setCustomerName(
+                res.data.customer.customer_name
             );
 
-            if (res.data.success) {
-
-                setCustomerName(
-                    res.data.customer.customer_name
-                );
-
-                setLoyaltyPoints(
-                    Number(
-                        res.data.customer.loyalty_points || 0
-                    )
-                );
-
-                setAvailablePoints(
-                    Number(
-                        res.data.customer.loyalty_points || 0
-                    )
-                );
-
-                showToast(
-                    `Customer "${res.data.customer.customer_name}" found successfully.`,
-                    "success"
-                );
-
-            } else {
-
-                setCustomerName("");
-
-                setLoyaltyPoints(0);
-
-                setAvailablePoints(0);
-
-                setRedeemPoints(false);
-
-                showToast(
-                    "Customer not found. You can continue as a new customer.",
-                    "info"
-                );
-
-            }
-
-        } catch (err) {
-
-            console.log(
-                "Customer Fetch Error:",
-                err
+            setLoyaltyPoints(
+                Number(
+                    res.data.customer.loyalty_points || 0
+                )
             );
+
+            setAvailablePoints(
+                Number(
+                    res.data.customer.loyalty_points || 0
+                )
+            );
+
+            showToast(
+                `Customer "${res.data.customer.customer_name}" found successfully.`,
+                "success"
+            );
+
+        } else {
 
             setCustomerName("");
 
@@ -434,101 +412,141 @@ const InvoiceForm = () => {
             setRedeemPoints(false);
 
             showToast(
-                "Unable to find customer.",
-                "error"
+                "Customer not found. You can continue as a new customer.",
+                "info"
             );
 
         }
 
-    };
+    } catch (err) {
 
-    // ==========================================
-    // FETCH PRODUCTS
-    // ==========================================
+        console.log(
+            "Customer Fetch Error:",
+            err
+        );
 
-    const fetchProducts = useCallback(async () => {
+        setCustomerName("");
 
-        try {
+        setLoyaltyPoints(0);
 
-            const res = await axios.get(
-                "https://invoice-backend-78hd.onrender.com/api/products"
-            );
+        setAvailablePoints(0);
 
-            if (res.data.success) {
+        setRedeemPoints(false);
 
-                const products =
-                    res.data.products.map((p) => ({
-                        id: p.id,
+        showToast(
+            "Unable to find customer.",
+            "error"
+        );
 
-                        name: p.product_name,
+    }
 
-                        price: Number(p.price),
+};
+// ==========================================
+// FETCH PRODUCTS
+// ==========================================
 
-                        stock:
-                            Number(
-                                p.stock_quantity
-                            ) || 0,
+const fetchProducts = useCallback(async () => {
 
-                        barcode:
-                            p.barcode || "",
-                    }));
+    try {
 
-                setItemOptions(products);
+        const res = await api.get(
+            "/api/products"
+        );
 
-            }
+        if (res.data.success) {
 
-        } catch (err) {
+            const products =
+                res.data.products.map((p) => ({
+                    id: p.id,
 
-            console.error(
-                "Error fetching products:",
-                err
-            );
+                    name: p.product_name,
 
-            showToast(
-                "Failed to load products.",
-                "error"
-            );
+                    price: Number(p.price),
 
-        }
+                    stock:
+                        Number(
+                            p.stock_quantity
+                        ) || 0,
 
-    }, [showToast]);
+                    barcode:
+                        p.barcode || "",
+                }));
 
-    // ==========================================
-    // FETCH NEXT INVOICE NUMBER
-    // ==========================================
-
-    const fetchInvoiceNumber = useCallback(async () => {
-
-        try {
-
-            const response =
-                await axios.get(
-                    "https://invoice-backend-78hd.onrender.com/api/next-invoice-number"
-                );
-
-            if (response.data.success) {
-
-                setInvoiceNumber(
-                    response.data.invoiceNumber
-                );
-
-            }
-
-        } catch (error) {
-
-            console.error(
-                "Error fetching invoice number:",
-                error
-            );
-
-            showToast(
-                "Failed to generate invoice number.",
-                "error"
-            );
+            setItemOptions(products);
 
         }
 
-    }, [showToast]);
+    } catch (err) {
+
+        console.error(
+            "Error fetching products:",
+            err
+        );
+
+        showToast(
+            "Failed to load products.",
+            "error"
+        );
+
+    }
+
+}, [showToast]);
+
+// ==========================================
+// FETCH NEXT INVOICE NUMBER
+// ==========================================
+
+const fetchInvoiceNumber = useCallback(async () => {
+
+try {
+
+    const response =
+        await api.post(
+            "/api/invoices",
+            invoiceData
+        );
+
+    setRedeemedAmount(
+        invoiceLoyaltyDiscount
+    );
+
+    setReviewTotal(
+        invoiceTotal
+    );
+
+    setInvoiceNumber(
+        response.data.invoiceNumber
+    );
+
+    await fetchProducts();
+
+    await fetchCustomer(
+        phoneNumber
+    );
+
+    setIsOpen(true);
+
+    showToast(
+        `Invoice ${response.data.invoiceNumber} saved successfully!`,
+        "success"
+    );
+
+} catch (error) {
+
+    console.error(
+        "Error saving invoice:",
+        error
+    );
+
+    showToast(
+        error.response?.data?.message ||
+            "Failed to save invoice.",
+        "error"
+    );
+
+}
+
+}, [showToast]);
 // ==========================================
 // INITIAL LOAD + POS KEYBOARD SHORTCUTS
 // ==========================================

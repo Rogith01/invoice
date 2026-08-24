@@ -1,11 +1,10 @@
+
 import React, {
     useEffect,
     useRef,
     useState,
     useCallback
 } from "react";
-
-import axios from "axios";
 
 import {
     useNavigate,
@@ -16,6 +15,12 @@ import { useReactToPrint } from "react-to-print";
 
 import Toast from "./Toast";
 
+import api from "../api";
+
+
+// ======================================================
+// INVOICE DETAILS
+// ======================================================
 
 const InvoiceDetails = () => {
 
@@ -56,100 +61,116 @@ const InvoiceDetails = () => {
         message: "",
         type: "success"
     });
-// ===============================
-// Toast Sound
-// ===============================
 
-const successSoundRef = useRef(null);
-const errorSoundRef = useRef(null);
 
-useEffect(() => {
+    // ======================================================
+    // TOAST SOUND
+    // ======================================================
 
-    successSoundRef.current =
-        new Audio("/success-tone.mp3");
+    const successSoundRef = useRef(null);
 
-    successSoundRef.current.volume = 1.0;
+    const errorSoundRef = useRef(null);
 
-    errorSoundRef.current =
-        new Audio("/error-tone.mp3");
 
-    errorSoundRef.current.volume = 1.0;
+    useEffect(() => {
 
-    return () => {
+        successSoundRef.current =
+            new Audio("/success-tone.mp3");
 
-        successSoundRef.current = null;
-        errorSoundRef.current = null;
+        successSoundRef.current.volume = 1.0;
+
+
+        errorSoundRef.current =
+            new Audio("/error-tone.mp3");
+
+        errorSoundRef.current.volume = 1.0;
+
+
+        return () => {
+
+            successSoundRef.current = null;
+
+            errorSoundRef.current = null;
+
+        };
+
+    }, []);
+
+
+    // ======================================================
+    // SHOW TOAST
+    // ======================================================
+
+    const showToast = (
+        message,
+        type = "success"
+    ) => {
+
+        // ==================================================
+        // SUCCESS SOUND
+        // ==================================================
+
+        if (type === "success") {
+
+            if (successSoundRef.current) {
+
+                successSoundRef.current.currentTime = 0;
+
+                successSoundRef.current
+                    .play()
+                    .catch((error) => {
+
+                        console.log(
+                            "Success sound could not play:",
+                            error
+                        );
+
+                    });
+
+            }
+
+        }
+
+        // ==================================================
+        // ERROR / WARNING SOUND
+        // ==================================================
+
+        else if (
+            type === "error" ||
+            type === "warning"
+        ) {
+
+            if (errorSoundRef.current) {
+
+                errorSoundRef.current.currentTime = 0;
+
+                errorSoundRef.current
+                    .play()
+                    .catch((error) => {
+
+                        console.log(
+                            "Error sound could not play:",
+                            error
+                        );
+
+                    });
+
+            }
+
+        }
+
+
+        // ==================================================
+        // SET TOAST
+        // ==================================================
+
+        setToast({
+            message,
+            type
+        });
 
     };
 
-}, []);
-
-// ===============================
-// Show Toast
-// ===============================
-
-const showToast = (
-    message,
-    type = "success"
-) => {
-
-    // ===============================
-    // PLAY TOAST SOUND
-    // ===============================
-
-    if (type === "success") {
-
-        if (successSoundRef.current) {
-
-            successSoundRef.current.currentTime = 0;
-
-            successSoundRef.current
-                .play()
-                .catch((error) => {
-
-                    console.log(
-                        "Success sound could not play:",
-                        error
-                    );
-
-                });
-
-        }
-
-    } else if (
-        type === "error" ||
-        type === "warning"
-    ) {
-
-        if (errorSoundRef.current) {
-
-            errorSoundRef.current.currentTime = 0;
-
-            errorSoundRef.current
-                .play()
-                .catch((error) => {
-
-                    console.log(
-                        "Error sound could not play:",
-                        error
-                    );
-
-                });
-
-        }
-
-    }
-
-    // ===============================
-    // SHOW TOAST
-    // ===============================
-
-    setToast({
-        message,
-        type,
-    });
-
-};
 
     // ======================================================
     // HIDE TOAST
@@ -172,16 +193,21 @@ const showToast = (
     const fetchInvoice = useCallback(async () => {
 
         try {
-const token = sessionStorage.getItem("token");
 
-const res = await axios.get(
-    `https://invoice-backend-78hd.onrender.com/api/invoices/${id}`,
-    {
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
-    }
-);
+            // ==================================================
+            // CENTRALIZED API
+            // JWT TOKEN IS AUTOMATICALLY ATTACHED
+            // BY api.js INTERCEPTOR
+            // ==================================================
+
+            const res = await api.get(
+                `/api/invoices/${id}`
+            );
+
+
+            // ==================================================
+            // SUCCESS
+            // ==================================================
 
             if (res.data.success) {
 
@@ -193,7 +219,13 @@ const res = await axios.get(
                     res.data.items || []
                 );
 
-            } else {
+            }
+
+            // ==================================================
+            // FAILED
+            // ==================================================
+
+            else {
 
                 showToast(
                     "Invoice not found.",
@@ -202,17 +234,50 @@ const res = await axios.get(
 
             }
 
-        } catch (err) {
+        }
+
+        // ==================================================
+        // ERROR
+        // ==================================================
+
+        catch (err) {
 
             console.log(
                 "Fetch Invoice Error:",
                 err
             );
 
-            showToast(
-                "Failed to load invoice.",
-                "error"
-            );
+
+            if (
+                err.response?.status === 401
+            ) {
+
+                showToast(
+                    "Please login again.",
+                    "warning"
+                );
+
+            }
+
+            else if (
+                err.response?.status === 403
+            ) {
+
+                showToast(
+                    "You are not authorized to view this invoice.",
+                    "error"
+                );
+
+            }
+
+            else {
+
+                showToast(
+                    "Failed to load invoice.",
+                    "error"
+                );
+
+            }
 
         }
 
@@ -251,7 +316,9 @@ const res = await axios.get(
 
     const openReturnModal = (item) => {
 
-        // Do not open return modal if fully returned
+        // ==================================================
+        // FULLY RETURNED
+        // ==================================================
 
         if (
             Number(item.remaining_qty) <= 0
@@ -266,6 +333,10 @@ const res = await axios.get(
 
         }
 
+
+        // ==================================================
+        // OPEN MODAL
+        // ==================================================
 
         setReturnModal({
             show: true,
@@ -290,7 +361,9 @@ const res = await axios.get(
     const closeReturnModal = () => {
 
         if (returnLoading) {
+
             return;
+
         }
 
 
@@ -319,6 +392,10 @@ const res = await axios.get(
         const value = e.target.value;
 
 
+        // ==================================================
+        // EMPTY
+        // ==================================================
+
         if (value === "") {
 
             setReturnQty("");
@@ -331,6 +408,10 @@ const res = await axios.get(
         const number =
             Number(value);
 
+
+        // ==================================================
+        // ONLY POSITIVE INTEGER
+        // ==================================================
 
         if (
             Number.isInteger(number) &&
@@ -361,8 +442,14 @@ const res = await axios.get(
 
     const handleReturn = async () => {
 
+        // ==================================================
+        // NO ITEM
+        // ==================================================
+
         if (!returnModal.item) {
+
             return;
+
         }
 
 
@@ -395,9 +482,9 @@ const res = await axios.get(
         }
 
 
-        // IMPORTANT:
-        // Compare against REMAINING quantity,
-        // not original quantity.
+        // ==================================================
+        // COMPARE WITH REMAINING QUANTITY
+        // ==================================================
 
         if (quantity > remainingQty) {
 
@@ -431,7 +518,7 @@ const res = await axios.get(
 
 
         // ==================================================
-        // JWT TOKEN
+        // JWT TOKEN CHECK
         // ==================================================
 
         const token =
@@ -456,12 +543,15 @@ const res = await axios.get(
 
 
             // ==================================================
-            // CALL RETURN API
+            // RETURN API
+            //
+            // api.js AUTOMATICALLY ATTACHES:
+            // Authorization: Bearer TOKEN
             // ==================================================
 
-            const res = await axios.post(
+            const res = await api.post(
 
-                `https://invoice-backend-78hd.onrender.com/api/invoices/${id}/return`,
+                `/api/invoices/${id}/return`,
 
                 {
                     productName:
@@ -472,13 +562,6 @@ const res = await axios.get(
 
                     reason:
                         returnReason.trim()
-                },
-
-                {
-                    headers: {
-                        Authorization:
-                            `Bearer ${token}`
-                    }
                 }
 
             );
@@ -498,7 +581,9 @@ const res = await axios.get(
                 );
 
 
-                // Close modal
+                // ==================================================
+                // CLOSE MODAL
+                // ==================================================
 
                 setReturnModal({
                     show: false,
@@ -514,11 +599,19 @@ const res = await axios.get(
                 );
 
 
-                // Refresh invoice
+                // ==================================================
+                // REFRESH INVOICE
+                // ==================================================
 
                 await fetchInvoice();
 
-            } else {
+            }
+
+            // ==================================================
+            // API FAILED
+            // ==================================================
+
+            else {
 
                 showToast(
                     res.data.message ||
@@ -528,7 +621,13 @@ const res = await axios.get(
 
             }
 
-        } catch (err) {
+        }
+
+        // ==================================================
+        // ERROR
+        // ==================================================
+
+        catch (err) {
 
             console.log(
                 "Return Error:",
@@ -545,7 +644,9 @@ const res = await axios.get(
                     "warning"
                 );
 
-            } else if (
+            }
+
+            else if (
                 err.response?.status === 403
             ) {
 
@@ -554,7 +655,9 @@ const res = await axios.get(
                     "error"
                 );
 
-            } else {
+            }
+
+            else {
 
                 showToast(
                     err.response?.data?.message ||
@@ -564,7 +667,9 @@ const res = await axios.get(
 
             }
 
-        } finally {
+        }
+
+        finally {
 
             setReturnLoading(false);
 
@@ -588,6 +693,7 @@ const res = await axios.get(
                     type={toast.type}
                     onClose={hideToast}
                 />
+
 
                 <h2 className="text-center mt-10">
                     Loading...
@@ -1043,10 +1149,7 @@ const res = await axios.get(
                                         key={item.id}
                                     >
 
-                                        {/* ==================================================
-                                            ORIGINAL ITEM
-                                            THIS IS WHAT WILL PRINT
-                                        ================================================== */}
+                                        {/* ORIGINAL ITEM */}
 
                                         <tr className="border-b border-black/10">
 
@@ -1076,13 +1179,7 @@ const res = await axios.get(
                                         </tr>
 
 
-                                        {/* ==================================================
-                                            RETURN INFORMATION
-
-                                            print:hidden means:
-                                            SHOW ON SCREEN
-                                            HIDE WHEN PRINTING
-                                        ================================================== */}
+                                        {/* RETURN INFORMATION */}
 
                                         <tr className="print:hidden">
 
@@ -1091,53 +1188,50 @@ const res = await axios.get(
                                                 className="py-2"
                                             >
 
+                                                <div className="flex items-center justify-between bg-gray-50 rounded-md px-3 py-2">
 
-<div className="flex items-center justify-between bg-gray-50 rounded-md px-3 py-2">
+                                                    <div className="text-xs leading-5">
 
-    <div className="text-xs leading-5">
-
-        {/* Product + Quantity */}
-        <div className="font-semibold">
-            {item.item_name} — Qty {originalQty}
-        </div>
-
-        {/* Returned */}
-        <div className="text-red-600">
-            Returned: {returnedQty}
-        </div>
-
-        {/* Remaining */}
-        <div className="text-green-600">
-            Remaining: {remainingQty}
-        </div>
-
-    </div>
+                                                        <div className="font-semibold">
+                                                            {item.item_name} — Qty {originalQty}
+                                                        </div>
 
 
-    {/* RETURN BUTTON */}
+                                                        <div className="text-red-600">
+                                                            Returned: {returnedQty}
+                                                        </div>
 
-    {remainingQty > 0 ? (
 
-        <button
-            type="button"
-            onClick={() =>
-                openReturnModal(item)
-            }
-            className="ml-2 text-sm text-red-600 hover:text-red-800 font-semibold whitespace-nowrap"
-        >
-            ↩ Return
-        </button>
+                                                        <div className="text-green-600">
+                                                            Remaining: {remainingQty}
+                                                        </div>
 
-    ) : (
+                                                    </div>
 
-        <span className="ml-2 text-sm text-gray-500 font-semibold whitespace-nowrap">
-            Fully Returned
-        </span>
 
-    )}
+                                                    {/* RETURN BUTTON */}
 
-</div>
+                                                    {remainingQty > 0 ? (
 
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                openReturnModal(item)
+                                                            }
+                                                            className="ml-2 text-sm text-red-600 hover:text-red-800 font-semibold whitespace-nowrap"
+                                                        >
+                                                            ↩ Return
+                                                        </button>
+
+                                                    ) : (
+
+                                                        <span className="ml-2 text-sm text-gray-500 font-semibold whitespace-nowrap">
+                                                            Fully Returned
+                                                        </span>
+
+                                                    )}
+
+                                                </div>
 
                                             </td>
 
@@ -1226,6 +1320,7 @@ const res = await axios.get(
                                 Grand Total:
                             </span>
 
+
                             <span className="text-[18px]">
 
                                 Rs:
@@ -1263,10 +1358,6 @@ const res = await axios.get(
 
                     {/* ==================================================
                         BUTTONS
-
-                        IMPORTANT:
-                        print:hidden
-                        so buttons DON'T appear on printed bill.
                     ================================================== */}
 
                     <div className="mt-6 flex gap-2 w-full print:hidden">
