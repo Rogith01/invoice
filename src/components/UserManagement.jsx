@@ -8,8 +8,9 @@ import React, {
 import Toast from "./Toast";
 import api from "../api";
 
-const API_URL =
-    "https://invoice-backend-78hd.onrender.com";
+// ======================================================
+// USER MANAGEMENT
+// ======================================================
 
 const UserManagement = () => {
 
@@ -168,11 +169,13 @@ const UserManagement = () => {
 
         try {
 
-            const response = await fetch(
-                `${API_URL}/api/users`
-            );
+            const response =
+                await api.get(
+                    "/api/users"
+                );
 
-            const data = await response.json();
+            const data =
+                response.data;
 
             if (data.success) {
 
@@ -198,7 +201,8 @@ const UserManagement = () => {
             );
 
             showToast(
-                "Failed to load users.",
+                err.response?.data?.message ||
+                    "Failed to load users.",
                 "error"
             );
 
@@ -292,14 +296,13 @@ const UserManagement = () => {
 
         try {
 
-            const response = await fetch(
-                `${API_URL}/api/users/${id}`,
-                {
-                    method: "DELETE",
-                }
-            );
+            const response =
+                await api.delete(
+                    `/api/users/${id}`
+                );
 
-            const data = await response.json();
+            const data =
+                response.data;
 
             if (data.success) {
 
@@ -340,7 +343,8 @@ const UserManagement = () => {
             );
 
             showToast(
-                "Failed to delete user.",
+                err.response?.data?.message ||
+                    "Failed to delete user.",
                 "error"
             );
 
@@ -414,22 +418,13 @@ const UserManagement = () => {
                 }
 
                 const response =
-                    await fetch(
-                        `${API_URL}/api/users/${editingId}`,
-                        {
-                            method: "PUT",
-                            headers: {
-                                "Content-Type":
-                                    "application/json",
-                            },
-                            body: JSON.stringify(
-                                updateData
-                            ),
-                        }
+                    await api.put(
+                        `/api/users/${editingId}`,
+                        updateData
                     );
 
                 const data =
-                    await response.json();
+                    response.data;
 
                 if (
                     data.success
@@ -462,7 +457,8 @@ const UserManagement = () => {
                 );
 
                 showToast(
-                    "Failed to update user.",
+                    err.response?.data?.message ||
+                        "Failed to update user.",
                     "error"
                 );
 
@@ -479,25 +475,18 @@ const UserManagement = () => {
         try {
 
             const response =
-                await fetch(
-                    `${API_URL}/api/users`,
+                await api.post(
+                    "/api/users",
                     {
-                        method: "POST",
-                        headers: {
-                            "Content-Type":
-                                "application/json",
-                        },
-                        body: JSON.stringify({
-                            username:
-                                trimmedUsername,
-                            password,
-                            role,
-                        }),
+                        username:
+                            trimmedUsername,
+                        password,
+                        role,
                     }
                 );
 
             const data =
-                await response.json();
+                response.data;
 
             if (
                 data.success
@@ -530,7 +519,8 @@ const UserManagement = () => {
             );
 
             showToast(
-                "Failed to add user.",
+                err.response?.data?.message ||
+                    "Failed to add user.",
                 "error"
             );
 
