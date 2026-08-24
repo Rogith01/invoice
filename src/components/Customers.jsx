@@ -16,9 +16,13 @@ const Customers = () => {
     // STORE
     // ==========================================
 
-    const storeName =
-        localStorage.getItem("store_name") ||
-        "Supermarket";
+const store = JSON.parse(
+    sessionStorage.getItem("store")
+);
+
+const storeName =
+    store?.storeName ||
+    "Supermarket";
 
     // ==========================================
     // CUSTOMERS

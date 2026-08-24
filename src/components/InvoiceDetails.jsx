@@ -28,6 +28,12 @@ const InvoiceDetails = () => {
 
     const { id } = useParams();
 
+const store = JSON.parse(
+    sessionStorage.getItem("store")
+);
+
+
+
     const [invoice, setInvoice] = useState(null);
 
     const [items, setItems] = useState([]);
@@ -1006,7 +1012,7 @@ const InvoiceDetails = () => {
 
 <h1 className="text-center text-xl font-bold tracking-wide text-gray-900 mb-3">
 
-    {localStorage.getItem("store_name") || "Supermarket"}
+    {store?.storeName || "Supermarket"}
 
 </h1>
 

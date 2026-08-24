@@ -23,7 +23,13 @@ const InvoiceModal = ({
     items,
     onAddNextInvoice,
 }) => {
+    // ==========================================
+    // STORE DETAILS
+    // ==========================================
 
+    const store = JSON.parse(
+        sessionStorage.getItem("store") || "null"
+    );
     const [today, setToday] = useState("");
     const [currentTime, setCurrentTime] = useState("");
 
@@ -272,7 +278,7 @@ const InvoiceModal = ({
 
                                     <h1 className="text-center text-lg font-bold text-gray-900">
 
-                                       {localStorage.getItem("store_name") || "Supermarket"}
+                                       {store?.storeName || "Supermarket"}
 
                                         <br />
 
