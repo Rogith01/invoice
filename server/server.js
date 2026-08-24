@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const cors = require("cors");
 const db = require("./db");
 const masterDb = require("./masterDb");
+const getDatabase = require("./databaseManager");
 
 const app = express();
 
@@ -3445,7 +3446,6 @@ app.post(
         );
     }
 );
-
 // ======================================================
 // LOGIN
 // ======================================================
@@ -3453,27 +3453,42 @@ app.post(
 app.post("/api/login", (req, res) => {
 
     const {
+        storeCode,
         username,
         password
     } = req.body;
 
-    const sql = `
+    // ======================================================
+    // VALIDATE INPUT
+    // ======================================================
+
+    if (!storeCode || !username || !password) {
+
+        return res.status(400).json({
+            success: false,
+            message: "Store Code, Username and Password are required"
+        });
+
+    }
+
+    // ======================================================
+    // STEP 1: FIND STORE
+    // ======================================================
+
+    const storeSql = `
         SELECT
             id,
-            username,
-            role
-        FROM users
-        WHERE username = ?
-        AND password = ?
+            store_code,
+            store_name,
+            database_name
+        FROM stores
+        WHERE store_code = ?
     `;
 
-    db.query(
-        sql,
-        [
-            username,
-            password
-        ],
-        (err, rows) => {
+    masterDb.query(
+        storeSql,
+        [storeCode],
+        (err, stores) => {
 
             if (err) {
 
@@ -3481,44 +3496,119 @@ app.post("/api/login", (req, res) => {
                     success: false,
                     message: err.message
                 });
+
             }
 
-            if (rows.length === 0) {
+            if (stores.length === 0) {
 
-                return res.json({
+                return res.status(401).json({
                     success: false,
-                    message:
-                        "Invalid Username or Password"
+                    message: "Invalid Store Code"
                 });
+
             }
 
-            const user =
-                rows[0];
+            const store = stores[0];
 
             // ======================================================
-            // CREATE JWT TOKEN
+            // STEP 2: GET STORE DATABASE
             // ======================================================
 
-            const token =
-                jwt.sign(
-                    {
-                        id: user.id,
-                        username: user.username,
-                        role: user.role
-                    },
-                    process.env.JWT_SECRET,
-                    {
-                        expiresIn: "8h"
+            const storeDb = getDatabase(
+                store.database_name
+            );
+
+            // ======================================================
+            // STEP 3: CHECK USER
+            // ======================================================
+
+            const userSql = `
+                SELECT
+                    id,
+                    username,
+                    role
+                FROM users
+                WHERE username = ?
+                AND password = ?
+            `;
+
+            storeDb.query(
+                userSql,
+                [
+                    username,
+                    password
+                ],
+                (err, rows) => {
+
+                    if (err) {
+
+                        return res.status(500).json({
+                            success: false,
+                            message: err.message
+                        });
+
                     }
-                );
 
-            res.json({
-                success: true,
-                token: token,
-                user: user
-            });
+                    if (rows.length === 0) {
+
+                        return res.status(401).json({
+                            success: false,
+                            message: "Invalid Username or Password"
+                        });
+
+                    }
+
+                    const user = rows[0];
+
+                    // ======================================================
+                    // STEP 4: CREATE JWT
+                    // ======================================================
+
+                    const token = jwt.sign(
+                        {
+                            id: user.id,
+                            username: user.username,
+                            role: user.role,
+
+                            storeId: store.id,
+                            storeCode: store.store_code,
+                            storeName: store.store_name,
+                            databaseName: store.database_name
+                        },
+
+                        process.env.JWT_SECRET,
+
+                        {
+                            expiresIn: "8h"
+                        }
+                    );
+
+                    // ======================================================
+                    // STEP 5: LOGIN SUCCESS
+                    // ======================================================
+
+                    res.json({
+
+                        success: true,
+
+                        token: token,
+
+                        store: {
+                            id: store.id,
+                            storeCode: store.store_code,
+                            storeName: store.store_name
+                        },
+
+                        user: user
+
+                    });
+
+                }
+            );
+
         }
     );
+
 });
 /// ======================================================
 // TEST ROUTE
@@ -4277,7 +4367,136 @@ db.query(
 
     }
 );
+// ======================================================
+// TEST MASTER DATABASE
+// ======================================================
 
+app.get("/api/test-store", (req, res) => {
+
+    const sql = `
+        SELECT
+            id,
+            store_code,
+            store_name,
+            database_name
+        FROM stores
+        WHERE store_code = ?
+    `;
+
+    masterDb.query(
+        sql,
+        ["STORE001"],
+        (err, rows) => {
+
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err.message
+                });
+            }
+
+            res.json({
+                success: true,
+                store: rows[0] || null
+            });
+        }
+    );
+});// ======================================================
+// TEST DYNAMIC STORE DATABASE
+// ======================================================
+
+app.get("/api/test-dynamic-db/:storeCode", (req, res) => {
+
+    const { storeCode } = req.params;
+
+    // ======================================================
+    // STEP 1: FIND STORE
+    // ======================================================
+
+    const storeSql = `
+        SELECT
+            id,
+            store_code,
+            store_name,
+            database_name
+        FROM stores
+        WHERE store_code = ?
+    `;
+
+    masterDb.query(
+        storeSql,
+        [storeCode],
+        (err, stores) => {
+
+            if (err) {
+
+                return res.status(500).json({
+                    success: false,
+                    step: "master_db",
+                    message: err.message
+                });
+
+            }
+
+            if (stores.length === 0) {
+
+                return res.status(404).json({
+                    success: false,
+                    message: "Store not found"
+                });
+
+            }
+
+            const store = stores[0];
+
+            // ======================================================
+            // STEP 2: CONNECT TO STORE DATABASE
+            // ======================================================
+
+            const storeDb = getDatabase(
+                store.database_name
+            );
+
+            // ======================================================
+            // STEP 3: CHECK DATABASE
+            // ======================================================
+
+            storeDb.query(
+                "SELECT DATABASE() AS databaseName",
+                (err, rows) => {
+
+                    if (err) {
+
+                        return res.status(500).json({
+                            success: false,
+                            step: "store_database",
+                            message: err.message
+                        });
+
+                    }
+
+                    res.json({
+
+                        success: true,
+
+                        store: {
+                            id: store.id,
+                            storeCode: store.store_code,
+                            storeName: store.store_name,
+                            databaseName: store.database_name
+                        },
+
+                        connectedDatabase:
+                            rows[0].databaseName
+
+                    });
+
+                }
+            );
+
+        }
+    );
+});
 // ======================================================
 // START SERVER
 // ======================================================

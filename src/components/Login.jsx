@@ -9,8 +9,15 @@ import axios from "axios";
 import Toast from "./Toast";
 
 const Login = ({ onLogin }) => {
+
+  // ==================================================
+  // LOGIN STATE
+  // ==================================================
+
+  const [storeCode, setStoreCode] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -28,6 +35,7 @@ const Login = ({ onLogin }) => {
   // ==================================================
 
   useEffect(() => {
+
     const timer = setTimeout(() => {
       setMounted(true);
     }, 50);
@@ -35,6 +43,7 @@ const Login = ({ onLogin }) => {
     return () => {
       clearTimeout(timer);
     };
+
   }, []);
 
   // ==================================================
@@ -42,16 +51,23 @@ const Login = ({ onLogin }) => {
   // ==================================================
 
   useEffect(() => {
-    successSoundRef.current = new Audio("/success-tone.mp3");
-    errorSoundRef.current = new Audio("/error-tone.mp3");
+
+    successSoundRef.current =
+      new Audio("/success-tone.mp3");
+
+    errorSoundRef.current =
+      new Audio("/error-tone.mp3");
 
     successSoundRef.current.volume = 1;
     errorSoundRef.current.volume = 1;
 
     return () => {
+
       successSoundRef.current = null;
       errorSoundRef.current = null;
+
     };
+
   }, []);
 
   // ==================================================
@@ -60,37 +76,49 @@ const Login = ({ onLogin }) => {
 
   const showToast = useCallback(
     (message, type = "success") => {
+
       if (type === "success") {
+
         if (successSoundRef.current) {
+
           successSoundRef.current.currentTime = 0;
 
           successSoundRef.current
             .play()
             .catch(() => {});
+
         }
+
       } else {
+
         if (errorSoundRef.current) {
+
           errorSoundRef.current.currentTime = 0;
 
           errorSoundRef.current
             .play()
             .catch(() => {});
+
         }
+
       }
 
       setToast({
         message,
         type,
       });
+
     },
     []
   );
 
   const hideToast = useCallback(() => {
+
     setToast({
       message: "",
       type: "success",
     });
+
   }, []);
 
   // ==================================================
@@ -98,11 +126,21 @@ const Login = ({ onLogin }) => {
   // ==================================================
 
   const loginHandler = async (e) => {
+
     e.preventDefault();
 
-    if (!username.trim() || !password.trim()) {
+    // ==================================================
+    // VALIDATION
+    // ==================================================
+
+    if (
+      !storeCode.trim() ||
+      !username.trim() ||
+      !password.trim()
+    ) {
+
       showToast(
-        "Please enter username and password.",
+        "Please enter store code, username and password.",
         "warning"
       );
 
@@ -110,69 +148,136 @@ const Login = ({ onLogin }) => {
     }
 
     try {
+
       setIsLoading(true);
+
+      // ==================================================
+      // LOGIN API
+      // ==================================================
 
       const res = await axios.post(
         "https://invoice-backend-78hd.onrender.com/api/login",
         {
+          storeCode: storeCode.trim(),
           username: username.trim(),
           password,
         }
       );
 
+      // ==================================================
+      // LOGIN SUCCESS
+      // ==================================================
+
       if (res.data.success) {
+
         showToast(
           "Login successful.",
           "success"
         );
+
+        // ==================================================
+        // SAVE USER
+        // ==================================================
 
         sessionStorage.setItem(
           "user",
           JSON.stringify(res.data.user)
         );
 
+        // ==================================================
+        // SAVE JWT TOKEN
+        // ==================================================
+
         sessionStorage.setItem(
           "token",
           res.data.token
         );
 
+        // ==================================================
+        // SAVE STORE INFORMATION
+        // ==================================================
+
+        sessionStorage.setItem(
+          "store",
+          JSON.stringify(res.data.store)
+        );
+
+        // ==================================================
+        // CONTINUE LOGIN
+        // ==================================================
+
         onLogin(res.data.user);
+
       } else {
+
         showToast(
           res.data.message ||
-            "Invalid username or password.",
+            "Invalid store code, username or password.",
           "error"
         );
+
       }
+
     } catch (err) {
-      console.error("Login Error:", err);
+
+      console.error(
+        "Login Error:",
+        err
+      );
+
+      // ==================================================
+      // INVALID LOGIN
+      // ==================================================
 
       if (
         err.response &&
         err.response.status === 401
       ) {
+
         showToast(
-          "Invalid username or password.",
+          err.response.data?.message ||
+            "Invalid store code, username or password.",
           "error"
         );
-      } else if (
+
+      }
+
+      // ==================================================
+      // SERVER ERROR WITH MESSAGE
+      // ==================================================
+
+      else if (
         err.response &&
         err.response.data &&
         err.response.data.message
       ) {
+
         showToast(
           err.response.data.message,
           "error"
         );
-      } else {
+
+      }
+
+      // ==================================================
+      // CONNECTION ERROR
+      // ==================================================
+
+      else {
+
         showToast(
           "Unable to login. Please try again.",
           "error"
         );
+
       }
+
     } finally {
+
       setIsLoading(false);
+
     }
+
   };
 
   // ==================================================
@@ -180,10 +285,13 @@ const Login = ({ onLogin }) => {
   // ==================================================
 
   return (
+
     <div className="min-h-screen bg-white flex overflow-hidden">
 
       <style>{`
+
         @keyframes floatOrb1 {
+
           0%, 100% {
             transform: translate(0, 0) scale(1);
           }
@@ -191,9 +299,11 @@ const Login = ({ onLogin }) => {
           50% {
             transform: translate(30px, 40px) scale(1.08);
           }
+
         }
 
         @keyframes floatOrb2 {
+
           0%, 100% {
             transform: translate(0, 0) scale(1);
           }
@@ -201,9 +311,11 @@ const Login = ({ onLogin }) => {
           50% {
             transform: translate(-25px, -30px) scale(1.05);
           }
+
         }
 
         @keyframes fadeInUp {
+
           from {
             opacity: 0;
             transform: translateY(16px);
@@ -213,9 +325,11 @@ const Login = ({ onLogin }) => {
             opacity: 1;
             transform: translateY(0);
           }
+
         }
 
         @keyframes shine {
+
           from {
             transform: translateX(-120%) skewX(-15deg);
           }
@@ -223,47 +337,87 @@ const Login = ({ onLogin }) => {
           to {
             transform: translateX(220%) skewX(-15deg);
           }
+
         }
 
         .orb-1 {
-          animation: floatOrb1 9s ease-in-out infinite;
+          animation:
+            floatOrb1
+            9s
+            ease-in-out
+            infinite;
         }
 
         .orb-2 {
-          animation: floatOrb2 11s ease-in-out infinite;
+          animation:
+            floatOrb2
+            11s
+            ease-in-out
+            infinite;
         }
 
         .fade-up {
-          animation: fadeInUp 0.6s ease forwards;
+          animation:
+            fadeInUp
+            0.6s
+            ease
+            forwards;
+
           opacity: 0;
         }
 
         .btn-shine::after {
+
           content: "";
+
           position: absolute;
+
           top: 0;
           left: 0;
+
           width: 40%;
           height: 100%;
-          background: linear-gradient(
-            120deg,
-            transparent,
-            rgba(255, 255, 255, 0.35),
-            transparent
-          );
-          transform: translateX(-120%) skewX(-15deg);
+
+          background:
+            linear-gradient(
+              120deg,
+              transparent,
+              rgba(255, 255, 255, 0.35),
+              transparent
+            );
+
+          transform:
+            translateX(-120%)
+            skewX(-15deg);
+
         }
 
         .btn-shine:hover::after {
-          animation: shine 0.9s ease;
+
+          animation:
+            shine
+            0.9s
+            ease;
+
         }
+
       `}</style>
 
       {/* ==================================================
           LEFT BRAND SECTION
       ================================================== */}
 
-      <div className="hidden lg:flex lg:w-1/2 bg-slate-900 text-white relative overflow-hidden">
+      <div
+        className="
+          hidden
+          lg:flex
+          lg:w-1/2
+          bg-slate-900
+          text-white
+          relative
+          overflow-hidden
+        "
+      >
 
         {/* GLOWING ORBS */}
 
@@ -332,6 +486,7 @@ const Login = ({ onLogin }) => {
               animationDelay: "0.05s",
             }}
           >
+
             <div className="flex items-center gap-3">
 
               <div
@@ -347,9 +502,11 @@ const Login = ({ onLogin }) => {
                   shadow-slate-600/30
                 "
               >
+
                 <span className="text-xl">
                   🛒
                 </span>
+
               </div>
 
               <div>
@@ -371,6 +528,7 @@ const Login = ({ onLogin }) => {
               </div>
 
             </div>
+
           </div>
 
           {/* MAIN CONTENT */}
@@ -424,9 +582,11 @@ const Login = ({ onLogin }) => {
                 animationDelay: "0.25s",
               }}
             >
+
               Simple billing.
               <br />
               Smarter retail.
+
             </h2>
 
             <p
@@ -441,10 +601,12 @@ const Login = ({ onLogin }) => {
                 animationDelay: "0.35s",
               }}
             >
+
               Manage billing, cash registers,
               inventory and daily store
               operations from one simple POS
               system.
+
             </p>
 
             {/* FEATURES */}
@@ -462,6 +624,7 @@ const Login = ({ onLogin }) => {
             >
 
               <div>
+
                 <p className="text-2xl font-bold">
                   Fast
                 </p>
@@ -469,11 +632,13 @@ const Login = ({ onLogin }) => {
                 <p className="text-xs text-slate-500 mt-1">
                   Billing
                 </p>
+
               </div>
 
               <div className="w-px bg-slate-700" />
 
               <div>
+
                 <p className="text-2xl font-bold">
                   Secure
                 </p>
@@ -481,11 +646,13 @@ const Login = ({ onLogin }) => {
                 <p className="text-xs text-slate-500 mt-1">
                   Access
                 </p>
+
               </div>
 
               <div className="w-px bg-slate-700" />
 
               <div>
+
                 <p className="text-2xl font-bold">
                   Easy
                 </p>
@@ -493,6 +660,7 @@ const Login = ({ onLogin }) => {
                 <p className="text-xs text-slate-500 mt-1">
                   Management
                 </p>
+
               </div>
 
             </div>
@@ -502,10 +670,15 @@ const Login = ({ onLogin }) => {
           {/* FOOTER */}
 
           <p className="text-xs text-slate-600">
-            © {new Date().getFullYear()} AK SUPER MARKET
+
+            © {new Date().getFullYear()}
+            {" "}
+            AK SUPER MARKET
+
           </p>
 
         </div>
+
       </div>
 
       {/* ==================================================
@@ -558,7 +731,9 @@ const Login = ({ onLogin }) => {
                   justify-center
                 "
               >
+
                 🛒
+
               </div>
 
               <div>
@@ -615,7 +790,105 @@ const Login = ({ onLogin }) => {
             className="space-y-5"
           >
 
-            {/* USERNAME */}
+            {/* ==================================================
+                STORE CODE
+            ================================================== */}
+
+            <div>
+
+              <label
+                className="
+                  block
+                  text-xs
+                  font-semibold
+                  text-slate-600
+                  mb-1.5
+                "
+              >
+                Store Code
+              </label>
+
+              <div className="relative group">
+
+                <div
+                  className="
+                    absolute
+                    left-3.5
+                    top-1/2
+                    -translate-y-1/2
+                    text-slate-400
+                    transition-colors
+                    duration-200
+                    group-focus-within:text-blue-600
+                  "
+                >
+
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-5 h-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                  >
+
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3 7.5A2.5 2.5 0 015.5 5h13A2.5 2.5 0 0121 7.5v9a2.5 2.5 0 01-2.5 2.5h-13A2.5 2.5 0 013 16.5v-9z"
+                    />
+
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M7 9h10M7 13h6"
+                    />
+
+                  </svg>
+
+                </div>
+
+                <input
+                  type="text"
+                  value={storeCode}
+                  onChange={(e) =>
+                    setStoreCode(
+                      e.target.value.toUpperCase()
+                    )
+                  }
+                  placeholder="Enter store code"
+                  autoComplete="organization"
+                  className="
+                    w-full
+                    h-12
+                    pl-11
+                    pr-4
+                    rounded-xl
+                    border
+                    border-slate-200
+                    bg-slate-50
+                    text-slate-800
+                    text-sm
+                    placeholder:text-slate-400
+                    outline-none
+                    transition-all
+                    duration-200
+                    hover:border-slate-300
+                    focus:bg-white
+                    focus:border-blue-500
+                    focus:ring-4
+                    focus:ring-blue-500/10
+                    focus:scale-[1.01]
+                  "
+                />
+
+              </div>
+
+            </div>
+
+            {/* ==================================================
+                USERNAME
+            ================================================== */}
 
             <div>
 
@@ -707,7 +980,9 @@ const Login = ({ onLogin }) => {
 
             </div>
 
-            {/* PASSWORD */}
+            {/* ==================================================
+                PASSWORD
+            ================================================== */}
 
             <div>
 
@@ -825,16 +1100,20 @@ const Login = ({ onLogin }) => {
                     duration-200
                   "
                 >
+
                   {showPassword
                     ? "Hide"
                     : "Show"}
+
                 </button>
 
               </div>
 
             </div>
 
-            {/* SIGN IN */}
+            {/* ==================================================
+                SIGN IN
+            ================================================== */}
 
             <button
               type="submit"
@@ -868,7 +1147,9 @@ const Login = ({ onLogin }) => {
             >
 
               {isLoading ? (
+
                 <>
+
                   <span
                     className="
                       w-4
@@ -882,22 +1163,30 @@ const Login = ({ onLogin }) => {
                   />
 
                   Signing in...
+
                 </>
+
               ) : (
+
                 <>
+
                   Sign In
 
                   <span className="text-base">
                     →
                   </span>
+
                 </>
+
               )}
 
             </button>
 
           </form>
 
-          {/* SECURITY */}
+          {/* ==================================================
+              SECURITY
+          ================================================== */}
 
           <div
             className="
@@ -910,15 +1199,20 @@ const Login = ({ onLogin }) => {
               text-slate-400
             "
           >
+
             <span>🔒</span>
+
             Secure POS Login
+
           </div>
 
         </div>
 
       </div>
 
-      {/* TOAST */}
+      {/* ==================================================
+          TOAST
+      ================================================== */}
 
       <Toast
         message={toast.message}
@@ -927,7 +1221,9 @@ const Login = ({ onLogin }) => {
       />
 
     </div>
+
   );
+
 };
 
 export default Login;
