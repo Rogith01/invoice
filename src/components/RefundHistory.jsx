@@ -4,14 +4,16 @@ import React, {
     useCallback,
 } from "react";
 
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+
 import Toast from "./Toast";
 
+import api from "../api";
 
-const API_URL =
-    "https://invoice-backend-78hd.onrender.com";
 
+// ==========================================
+// REFUND HISTORY
+// ==========================================
 
 const RefundHistory = () => {
 
@@ -87,21 +89,15 @@ const RefundHistory = () => {
                     setLoading(true);
 
 
-                    const token =
-                        sessionStorage.getItem(
-                            "token"
-                        );
-
+                    // ==========================================
+                    // API REQUEST
+                    // JWT TOKEN IS AUTOMATICALLY ATTACHED
+                    // BY api.js INTERCEPTOR
+                    // ==========================================
 
                     const res =
-                        await axios.get(
-                            `${API_URL}/api/refund-history`,
-                            {
-                                headers: {
-                                    Authorization:
-                                        `Bearer ${token}`,
-                                },
-                            }
+                        await api.get(
+                            "/api/refund-history"
                         );
 
 
@@ -691,381 +687,356 @@ const RefundHistory = () => {
                 </div>
 
 
-{/* ==========================================
-    TABLE
-========================================== */}
+                {/* ==========================================
+                    TABLE
+                ========================================== */}
 
-<div className="overflow-x-auto">
+                <div className="overflow-x-auto">
 
-    <table className="w-full min-w-[1100px]">
+                    <table className="w-full min-w-[1100px]">
 
-        <thead>
+                        <thead>
 
-            <tr className="bg-slate-50 border-b border-slate-200">
+                            <tr className="bg-slate-50 border-b border-slate-200">
 
-                <th className="px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
+                                <th className="px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
+                                    Invoice
+                                </th>
 
-                    Invoice
+                                <th className="px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
+                                    Product
+                                </th>
 
-                </th>
+                                <th className="px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
+                                    Original Qty
+                                </th>
 
+                                <th className="px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
+                                    Returned Qty
+                                </th>
 
-                <th className="px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
+                                <th className="px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
+                                    Refund Amount
+                                </th>
 
-                    Product
+                                <th className="px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
+                                    Reason
+                                </th>
 
-                </th>
+                                <th className="px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
+                                    Returned By
+                                </th>
 
+                                <th className="px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
+                                    Date
+                                </th>
 
-                <th className="px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
+                            </tr>
 
-                    Original Qty
+                        </thead>
 
-                </th>
 
+                        <tbody className="divide-y divide-slate-100">
 
-                <th className="px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
 
-                    Returned Qty
+                            {/* ==========================================
+                                LOADING
+                            ========================================== */}
 
-                </th>
+                            {loading ? (
 
+                                <tr>
 
-                <th className="px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
+                                    <td
+                                        colSpan="8"
+                                        className="px-5 py-14 text-center"
+                                    >
 
-                    Refund Amount
+                                        <div className="flex flex-col items-center">
 
-                </th>
+                                            <div className="w-10 h-10 border-4 border-slate-200 border-t-slate-700 rounded-full animate-spin mb-4"></div>
 
 
-                <th className="px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
+                                            <p className="text-sm font-semibold text-slate-700">
 
-                    Reason
+                                                Loading refund history...
 
-                </th>
+                                            </p>
 
 
-                <th className="px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
+                                            <p className="text-xs text-slate-400 mt-1">
 
-                    Returned By
+                                                Please wait while the records are loaded.
 
-                </th>
+                                            </p>
 
+                                        </div>
 
-                <th className="px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
+                                    </td>
 
-                    Date
+                                </tr>
 
-                </th>
+                            )
 
-            </tr>
 
-        </thead>
+                            : filteredRefunds.length > 0 ? (
 
+                                filteredRefunds.map(
+                                    (refund) => (
 
-        <tbody className="divide-y divide-slate-100">
-
-
-            {/* ==========================================
-                LOADING
-            ========================================== */}
-
-            {loading ? (
-
-                <tr>
-
-                    <td
-                        colSpan="8"
-                        className="px-5 py-14 text-center"
-                    >
-
-                        <div className="flex flex-col items-center">
-
-                            <div className="w-10 h-10 border-4 border-slate-200 border-t-slate-700 rounded-full animate-spin mb-4"></div>
-
-
-                            <p className="text-sm font-semibold text-slate-700">
-
-                                Loading refund history...
-
-                            </p>
-
-
-                            <p className="text-xs text-slate-400 mt-1">
-
-                                Please wait while the records are loaded.
-
-                            </p>
-
-                        </div>
-
-                    </td>
-
-                </tr>
-
-            )
-
-
-            : filteredRefunds.length > 0 ? (
-
-                filteredRefunds.map(
-                    (refund) => (
-
-                        <tr
-                            key={refund.id}
-                            className="hover:bg-slate-50/80 transition"
-                        >
-
-
-                            {/* INVOICE */}
-
-                            <td className="px-5 py-4 text-center">
-
-                                <div className="flex items-center justify-center gap-3">
-
-                                    <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
-
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            className="w-4 h-4 text-slate-500"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
+                                        <tr
+                                            key={refund.id}
+                                            className="hover:bg-slate-50/80 transition"
                                         >
 
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M9 14l-4-4 4-4m0 8h6a5 5 0 005-5v-1"
-                                            />
+                                            {/* INVOICE */}
 
-                                        </svg>
+                                            <td className="px-5 py-4 text-center">
 
-                                    </div>
+                                                <div className="flex items-center justify-center gap-3">
 
+                                                    <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
 
-                                    <span className="text-sm font-semibold text-slate-800">
+                                                        <svg
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            className="w-4 h-4 text-slate-500"
+                                                            fill="none"
+                                                            viewBox="0 0 24 24"
+                                                            stroke="currentColor"
+                                                        >
 
-                                        {refund.invoice_number ||
-                                            "—"}
+                                                            <path
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                                strokeWidth={2}
+                                                                d="M9 14l-4-4 4-4m0 8h6a5 5 0 005-5v-1"
+                                                            />
 
-                                    </span>
+                                                        </svg>
 
-                                </div>
+                                                    </div>
 
-                            </td>
 
+                                                    <span className="text-sm font-semibold text-slate-800">
 
-                            {/* PRODUCT */}
+                                                        {refund.invoice_number ||
+                                                            "—"}
 
-                            <td className="px-5 py-4 text-center">
+                                                    </span>
 
-                                <span className="text-sm font-semibold text-slate-800">
+                                                </div>
 
-                                    {refund.product_name ||
-                                        "—"}
+                                            </td>
 
-                                </span>
 
-                            </td>
+                                            {/* PRODUCT */}
 
+                                            <td className="px-5 py-4 text-center">
 
-                            {/* ORIGINAL QTY */}
+                                                <span className="text-sm font-semibold text-slate-800">
 
-                            <td className="px-5 py-4 text-center">
+                                                    {refund.product_name ||
+                                                        "—"}
 
-                                <span className="text-sm font-semibold text-slate-700">
+                                                </span>
 
-                                    {refund.original_qty ??
-                                        "—"}
+                                            </td>
 
-                                </span>
 
-                            </td>
+                                            {/* ORIGINAL QTY */}
 
+                                            <td className="px-5 py-4 text-center">
 
-                            {/* RETURNED QTY */}
+                                                <span className="text-sm font-semibold text-slate-700">
 
-                            <td className="px-5 py-4 text-center">
+                                                    {refund.original_qty ??
+                                                        "—"}
 
-                                <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-orange-50 border border-orange-100 text-orange-600 text-xs font-semibold">
+                                                </span>
 
-                                    {refund.return_qty ??
-                                        "—"}
+                                            </td>
 
-                                </span>
 
-                            </td>
+                                            {/* RETURNED QTY */}
 
+                                            <td className="px-5 py-4 text-center">
 
-                            {/* REFUND AMOUNT */}
+                                                <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-orange-50 border border-orange-100 text-orange-600 text-xs font-semibold">
 
-                            <td className="px-5 py-4 text-center">
+                                                    {refund.return_qty ??
+                                                        "—"}
 
-                                <span className="text-sm font-semibold text-red-500">
+                                                </span>
 
-                                    ₹
-                                    {Number(
-                                        refund.refund_amount ||
-                                            0
-                                    ).toFixed(
-                                        2
-                                    )}
+                                            </td>
 
-                                </span>
 
-                            </td>
+                                            {/* REFUND AMOUNT */}
 
+                                            <td className="px-5 py-4 text-center">
 
-                            {/* REASON */}
+                                                <span className="text-sm font-semibold text-red-500">
 
-                            <td className="px-5 py-4 text-center">
+                                                    ₹
+                                                    {Number(
+                                                        refund.refund_amount ||
+                                                            0
+                                                    ).toFixed(
+                                                        2
+                                                    )}
 
-                                <span className="text-sm text-slate-600">
+                                                </span>
 
-                                    {refund.reason ||
-                                        "—"}
+                                            </td>
 
-                                </span>
 
-                            </td>
+                                            {/* REASON */}
 
+                                            <td className="px-5 py-4 text-center">
 
-                            {/* RETURNED BY */}
+                                                <span className="text-sm text-slate-600">
 
-                            <td className="px-5 py-4 text-center">
+                                                    {refund.reason ||
+                                                        "—"}
 
-                                <div className="flex items-center justify-center gap-2">
+                                                </span>
 
-                                    <div className="w-7 h-7 rounded-md bg-slate-100 flex items-center justify-center">
+                                            </td>
 
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            className="w-3.5 h-3.5 text-slate-500"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                        >
 
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                                            />
+                                            {/* RETURNED BY */}
 
-                                        </svg>
+                                            <td className="px-5 py-4 text-center">
 
-                                    </div>
+                                                <div className="flex items-center justify-center gap-2">
 
+                                                    <div className="w-7 h-7 rounded-md bg-slate-100 flex items-center justify-center">
 
-                                    <span className="text-sm text-slate-600">
+                                                        <svg
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            className="w-3.5 h-3.5 text-slate-500"
+                                                            fill="none"
+                                                            viewBox="0 0 24 24"
+                                                            stroke="currentColor"
+                                                        >
 
-                                        {refund.returned_by ||
-                                            "—"}
+                                                            <path
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                                strokeWidth={2}
+                                                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                                            />
 
-                                    </span>
+                                                        </svg>
 
-                                </div>
+                                                    </div>
 
-                            </td>
 
+                                                    <span className="text-sm text-slate-600">
 
-                            {/* DATE */}
+                                                        {refund.returned_by ||
+                                                            "—"}
 
-                            <td className="px-5 py-4 text-center">
+                                                    </span>
 
-                                <span className="text-sm text-slate-600 whitespace-nowrap">
+                                                </div>
 
-                                    {refund.created_at
-                                        ? new Date(
-                                            refund.created_at
-                                        ).toLocaleString(
-                                            "en-GB"
-                                        )
-                                        : "—"}
+                                            </td>
 
-                                </span>
 
-                            </td>
+                                            {/* DATE */}
 
-                        </tr>
+                                            <td className="px-5 py-4 text-center">
 
-                    )
-                )
+                                                <span className="text-sm text-slate-600 whitespace-nowrap">
 
-            )
+                                                    {refund.created_at
+                                                        ? new Date(
+                                                            refund.created_at
+                                                        ).toLocaleString(
+                                                            "en-GB"
+                                                        )
+                                                        : "—"}
 
+                                                </span>
 
-            : (
+                                            </td>
 
-                /* ==========================================
-                   EMPTY STATE
-                ========================================== */
+                                        </tr>
 
-                <tr>
+                                    )
+                                )
 
-                    <td
-                        colSpan="8"
-                        className="px-5 py-14 text-center"
-                    >
+                            )
 
-                        <div className="flex flex-col items-center">
 
+                            : (
 
-                            <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center mb-3">
+                                /* ==========================================
+                                   EMPTY STATE
+                                ========================================== */
 
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="w-6 h-6 text-slate-400"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
+                                <tr>
 
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M9 14l-4-4 4-4m0 8h6a5 5 0 005-5v-1"
-                                    />
+                                    <td
+                                        colSpan="8"
+                                        className="px-5 py-14 text-center"
+                                    >
 
-                                </svg>
+                                        <div className="flex flex-col items-center">
 
-                            </div>
+                                            <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center mb-3">
 
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    className="w-6 h-6 text-slate-400"
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                    stroke="currentColor"
+                                                >
 
-                            <p className="text-sm font-semibold text-slate-600">
+                                                    <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        strokeWidth={2}
+                                                        d="M9 14l-4-4 4-4m0 8h6a5 5 0 005-5v-1"
+                                                    />
 
-                                {search
-                                    ? `No refund records found for "${search}".`
-                                    : "No refund records found."}
+                                                </svg>
 
-                            </p>
+                                            </div>
 
 
-                            <p className="text-xs text-slate-400 mt-1">
+                                            <p className="text-sm font-semibold text-slate-600">
 
-                                {search
-                                    ? "Try a different search term."
-                                    : "Refund transactions will appear here."}
+                                                {search
+                                                    ? `No refund records found for "${search}".`
+                                                    : "No refund records found."}
 
-                            </p>
+                                            </p>
 
-                        </div>
 
-                    </td>
+                                            <p className="text-xs text-slate-400 mt-1">
 
-                </tr>
+                                                {search
+                                                    ? "Try a different search term."
+                                                    : "Refund transactions will appear here."}
 
-            )}
+                                            </p>
 
-        </tbody>
+                                        </div>
 
-    </table>
+                                    </td>
 
-</div>
+                                </tr>
+
+                            )}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
 
 
                 {/* ==========================================
@@ -1076,51 +1047,49 @@ const RefundHistory = () => {
                     filteredRefunds.length >
                         0 && (
 
-                        <div className="px-5 py-3.5 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
+                    <div className="px-5 py-3.5 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
 
-                            <p className="text-xs text-slate-500">
+                        <p className="text-xs text-slate-500">
 
-                                Showing
+                            Showing
 
-                                <span className="font-semibold text-slate-700">
+                            <span className="font-semibold text-slate-700">
 
-                                    {" "}
-                                    {
-                                        filteredRefunds.length
-                                    }
+                                {" "}
+                                {filteredRefunds.length}
 
-                                </span>
+                            </span>
 
-                                {" "}refund
-                                {filteredRefunds.length !==
-                                1
-                                    ? "s"
-                                    : ""}
+                            {" "}refund
+                            {filteredRefunds.length !==
+                            1
+                                ? "s"
+                                : ""}
 
-                            </p>
+                        </p>
 
 
-                            {search && (
+                        {search && (
 
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        setSearch(
-                                            ""
-                                        )
-                                    }
-                                    className="text-xs font-semibold text-slate-600 hover:text-slate-900 transition"
-                                >
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    setSearch(
+                                        ""
+                                    )
+                                }
+                                className="text-xs font-semibold text-slate-600 hover:text-slate-900 transition"
+                            >
 
-                                    Clear search
+                                Clear search
 
-                                </button>
+                            </button>
 
-                            )}
+                        )}
 
-                        </div>
+                    </div>
 
-                    )}
+                )}
 
             </div>
 

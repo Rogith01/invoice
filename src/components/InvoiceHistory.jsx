@@ -5,7 +5,7 @@ import React, {
     useRef,
 } from "react";
 
-import axios from "axios";
+import api from "../api";
 
 import { useNavigate } from "react-router-dom";
 
@@ -218,66 +218,52 @@ const InvoiceHistory = () => {
 
     };
 
+const fetchInvoices =
+    useCallback(
+        async () => {
 
-    // ==========================================
-    // FETCH INVOICES
-    // ==========================================
+            try {
 
-    const fetchInvoices =
-        useCallback(
-            async () => {
+                const res = await api.get(
+                    "/api/invoices"
+                );
 
-                try {
+                if (
+                    res.data.success
+                ) {
 
-const token = sessionStorage.getItem("token");
-
-const res = await axios.get(
-    `${API_URL}/api/invoices`,
-    {
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
-    }
-);
-
-
-                    if (
-                        res.data.success
-                    ) {
-
-                        setInvoices(
-                            res.data.invoices || []
-                        );
-
-                    }
-
-                    else {
-
-                        showToast(
-                            res.data.message ||
-                                "Failed to load invoice history.",
-                            "error"
-                        );
-
-                    }
+                    setInvoices(
+                        res.data.invoices || []
+                    );
 
                 }
 
-                catch (err) {
-
-                    console.log(err);
-
+                else {
 
                     showToast(
-                        "Failed to load invoice history.",
+                        res.data.message ||
+                            "Failed to load invoice history.",
                         "error"
                     );
 
                 }
 
-            },
-            []
-        );
+            }
+
+            catch (err) {
+
+                console.log(err);
+
+                showToast(
+                    "Failed to load invoice history.",
+                    "error"
+                );
+
+            }
+
+        },
+        []
+    );
 
 
     // ==========================================
@@ -325,100 +311,88 @@ const res = await axios.get(
     // DELETE INVOICE
     // ==========================================
 
-    const handleDelete = async () => {
+   const handleDelete = async () => {
 
-        const {
-            id,
-        } = deleteConfirm;
-
-
-        if (!id) {
-
-            return;
-
-        }
+    const {
+        id,
+    } = deleteConfirm;
 
 
-        try {
+    if (!id) {
 
-            const token =
-                sessionStorage.getItem(
-                    "token"
-                );
+        return;
 
-
-            await axios.delete(
-                `${API_URL}/api/invoices/${id}`,
-                {
-                    headers: {
-                        Authorization:
-                            `Bearer ${token}`,
-                    },
-                }
-            );
+    }
 
 
-            setDeleteConfirm({
-                show: false,
-                id: null,
-            });
+    try {
 
+        await api.delete(
+            `/api/invoices/${id}`
+        );
+
+
+        setDeleteConfirm({
+            show: false,
+            id: null,
+        });
+
+
+        showToast(
+            "Invoice deleted successfully.",
+            "success"
+        );
+
+
+        await fetchInvoices();
+
+    }
+
+    catch (err) {
+
+        console.log(err);
+
+
+        setDeleteConfirm({
+            show: false,
+            id: null,
+        });
+
+
+        if (
+            err.response?.status === 401
+        ) {
 
             showToast(
-                "Invoice deleted successfully.",
-                "success"
+                "Please login again.",
+                "warning"
             );
 
+        }
 
-            await fetchInvoices();
+        else if (
+            err.response?.status === 403
+        ) {
+
+            showToast(
+                "Only Admin can delete invoices.",
+                "error"
+            );
 
         }
 
-        catch (err) {
+        else {
 
-            console.log(err);
-
-
-            setDeleteConfirm({
-                show: false,
-                id: null,
-            });
-
-
-            if (
-                err.response?.status === 401
-            ) {
-
-                showToast(
-                    "Please login again.",
-                    "warning"
-                );
-
-            }
-
-            else if (
-                err.response?.status === 403
-            ) {
-
-                showToast(
-                    "Only Admin can delete invoices.",
-                    "error"
-                );
-
-            }
-
-            else {
-
-                showToast(
-                    "Failed to delete invoice.",
-                    "error"
-                );
-
-            }
+            showToast(
+                "Failed to delete invoice.",
+                "error"
+            );
 
         }
 
-    };
+    }
+
+};
 
 
     // ==========================================

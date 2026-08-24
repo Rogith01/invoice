@@ -3,8 +3,9 @@ import React, {
     useState
 } from "react";
 
-import axios from "axios";
+import api from "../api";
 import { jsPDF } from "jspdf";
+
 
 const Reports = () => {
 
@@ -63,20 +64,12 @@ const Reports = () => {
             setLoading(true);
             setError("");
 
-            const token =
-                sessionStorage.getItem("token");
-
-            const res = await axios.get(
-                "https://invoice-backend-78hd.onrender.com/api/reports",
+            const res = await api.get(
+                "/api/reports",
                 {
                     params: {
                         fromDate,
                         toDate
-                    },
-
-                    headers: {
-                        Authorization:
-                            `Bearer ${token}`
                     }
                 }
             );
@@ -93,6 +86,7 @@ const Reports = () => {
                     res.data.message ||
                     "Failed to generate report."
                 );
+
             }
 
         } catch (err) {
@@ -116,6 +110,7 @@ const Reports = () => {
                     err.response?.data?.message ||
                     "Failed to generate report."
                 );
+
             }
 
         } finally {
@@ -1508,120 +1503,120 @@ const Reports = () => {
                                 </thead>
 
 
-<tbody className="divide-y divide-slate-100">
+                                <tbody className="divide-y divide-slate-100">
 
-    {report.dailySales?.length > 0 ? (
+                                    {report.dailySales?.length > 0 ? (
 
-        report.dailySales.map(
-            (day) => (
+                                        report.dailySales.map(
+                                            (day) => (
 
-                <tr
-                    key={day.saleDate}
-                    className="hover:bg-slate-50/80 transition"
-                >
+                                                <tr
+                                                    key={day.saleDate}
+                                                    className="hover:bg-slate-50/80 transition"
+                                                >
 
-                    {/* ================================
-                        DATE
-                    ================================= */}
+                                                    {/* ================================
+                                                        DATE
+                                                    ================================= */}
 
-                    <td className="px-5 py-4 text-center">
+                                                    <td className="px-5 py-4 text-center">
 
-                        <div className="flex items-center justify-center gap-3">
+                                                        <div className="flex items-center justify-center gap-3">
 
-                            <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
+                                                            <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
 
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="w-4 h-4 text-slate-500"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
+                                                                <svg
+                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                    className="w-4 h-4 text-slate-500"
+                                                                    fill="none"
+                                                                    viewBox="0 0 24 24"
+                                                                    stroke="currentColor"
+                                                                >
 
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M8 7V3m8 4V3m-9 8h10M5 5h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z"
-                                    />
+                                                                    <path
+                                                                        strokeLinecap="round"
+                                                                        strokeLinejoin="round"
+                                                                        strokeWidth={2}
+                                                                        d="M8 7V3m8 4V3m-9 8h10M5 5h14a2 2 0 012 2v12a2 2 0 01-2-2V7a2 2 0 012-2z"
+                                                                    />
 
-                                </svg>
+                                                                </svg>
 
-                            </div>
-
-
-                            <span className="text-sm font-semibold text-slate-800">
-
-                                {formatDate(
-                                    day.saleDate
-                                )}
-
-                            </span>
-
-                        </div>
-
-                    </td>
+                                                            </div>
 
 
-                    {/* ================================
-                        ORDERS
-                    ================================= */}
+                                                            <span className="text-sm font-semibold text-slate-800">
 
-                    <td className="px-5 py-4 text-center">
+                                                                {formatDate(
+                                                                    day.saleDate
+                                                                )}
 
-                        <div className="flex items-center justify-center">
+                                                            </span>
 
-                            <span className="inline-flex items-center justify-center min-w-8 px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-semibold">
+                                                        </div>
 
-                                {day.orders}
-
-                            </span>
-
-                        </div>
-
-                    </td>
+                                                    </td>
 
 
-                    {/* ================================
-                        SALES
-                    ================================= */}
+                                                    {/* ================================
+                                                        ORDERS
+                                                    ================================= */}
 
-                    <td className="px-5 py-4 text-center">
+                                                    <td className="px-5 py-4 text-center">
 
-                        <span className="text-sm font-semibold text-slate-800">
+                                                        <div className="flex items-center justify-center">
 
-                            {money(
-                                day.sales
-                            )}
+                                                            <span className="inline-flex items-center justify-center min-w-8 px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-semibold">
 
-                        </span>
+                                                                {day.orders}
 
-                    </td>
+                                                            </span>
 
-                </tr>
+                                                        </div>
 
-            )
-        )
+                                                    </td>
 
-    ) : (
 
-        <EmptyState
-            colSpan="3"
-            message="No sales found for this period."
-            description="Try selecting a different date range."
-            icon={
-                <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 3v18h18M7 16l4-4 3 3 5-6"
-                />
-            }
-        />
+                                                    {/* ================================
+                                                        SALES
+                                                    ================================= */}
 
-    )}
+                                                    <td className="px-5 py-4 text-center">
 
-</tbody>
+                                                        <span className="text-sm font-semibold text-slate-800">
+
+                                                            {money(
+                                                                day.sales
+                                                            )}
+
+                                                        </span>
+
+                                                    </td>
+
+                                                </tr>
+
+                                            )
+                                        )
+
+                                    ) : (
+
+                                        <EmptyState
+                                            colSpan="3"
+                                            message="No sales found for this period."
+                                            description="Try selecting a different date range."
+                                            icon={
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M3 3v18h18M7 16l4-4 3 3 5-6"
+                                                />
+                                            }
+                                        />
+
+                                    )}
+
+                                </tbody>
 
                             </table>
 
@@ -1720,113 +1715,118 @@ const Reports = () => {
                                 </thead>
 
 
-                               <tbody className="divide-y divide-slate-100">
+                                <tbody className="divide-y divide-slate-100">
 
-    {report.products?.length > 0 ? (
+                                    {report.products?.length > 0 ? (
 
-        report.products.map((product, index) => (
+                                        report.products.map((product, index) => (
 
-            <tr
-                key={product.productName}
-                className="hover:bg-slate-50/80 transition"
-            >
+                                            <tr
+                                                key={product.productName}
+                                                className="hover:bg-slate-50/80 transition"
+                                            >
 
-                {/* NUMBER */}
-                <td className="px-5 py-4 text-center">
+                                                {/* NUMBER */}
 
-                    <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-slate-100 text-slate-600 text-xs font-bold">
+                                                <td className="px-5 py-4 text-center">
 
-                        {index + 1}
+                                                    <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-slate-100 text-slate-600 text-xs font-bold">
 
-                    </span>
+                                                        {index + 1}
 
-                </td>
+                                                    </span>
 
-
-                {/* PRODUCT */}
-                <td className="px-5 py-4 text-center">
-
-                    <div className="flex items-center justify-center gap-3">
-
-                        <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
-
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="w-4 h-4 text-slate-500"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M20 7l-8-4-8 4m16 0v10l-8 4-8-4V7m16 0l-8 4m-8-4l8 4m0 0v10"
-                                />
-
-                            </svg>
-
-                        </div>
+                                                </td>
 
 
-                        <span className="text-sm font-semibold text-slate-800">
+                                                {/* PRODUCT */}
 
-                            {product.productName}
+                                                <td className="px-5 py-4 text-center">
 
-                        </span>
+                                                    <div className="flex items-center justify-center gap-3">
 
-                    </div>
+                                                        <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
 
-                </td>
+                                                            <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                className="w-4 h-4 text-slate-500"
+                                                                fill="none"
+                                                                viewBox="0 0 24 24"
+                                                                stroke="currentColor"
+                                                            >
+
+                                                                <path
+                                                                    strokeLinecap="round"
+                                                                    strokeLinejoin="round"
+                                                                    strokeWidth={2}
+                                                                    d="M20 7l-8-4-8 4m16 0v10l-8 4-8-4V7m16 0l-8 4m-8-4l8 4m0 0v10"
+                                                                />
+
+                                                            </svg>
+
+                                                        </div>
 
 
-                {/* QUANTITY */}
-                <td className="px-5 py-4 text-center">
+                                                        <span className="text-sm font-semibold text-slate-800">
 
-                    <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-semibold">
+                                                            {product.productName}
 
-                        {product.quantitySold}
+                                                        </span>
 
-                    </span>
+                                                    </div>
 
-                </td>
+                                                </td>
 
 
-                {/* SALES */}
-                <td className="px-5 py-4 text-center">
+                                                {/* QUANTITY */}
 
-                    <span className="text-sm font-semibold text-slate-800">
+                                                <td className="px-5 py-4 text-center">
 
-                        {money(product.sales)}
+                                                    <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-semibold">
 
-                    </span>
+                                                        {product.quantitySold}
 
-                </td>
+                                                    </span>
 
-            </tr>
+                                                </td>
 
-        ))
 
-    ) : (
+                                                {/* SALES */}
 
-        <EmptyState
-            colSpan="4"
-            message="No products sold during this period."
-            description="Product sales will appear here once available."
-            icon={
-                <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M20 7l-8-4-8 4m16 0v10l-8 4-8-4V7m16 0l-8 4m-8-4l8 4m0 0v10"
-                />
-            }
-        />
+                                                <td className="px-5 py-4 text-center">
 
-    )}
+                                                    <span className="text-sm font-semibold text-slate-800">
 
-</tbody>
+                                                        {money(product.sales)}
+
+                                                    </span>
+
+                                                </td>
+
+                                            </tr>
+
+                                        ))
+
+                                    ) : (
+
+                                        <EmptyState
+                                            colSpan="4"
+                                            message="No products sold during this period."
+                                            description="Product sales will appear here once available."
+                                            icon={
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M20 7l-8-4-8 4m16 0v10l-8 4-8-4V7m16 0l-8 4m-8-4l8 4m0 0v10"
+                                                />
+                                            }
+                                        />
+
+                                    )}
+
+                                </tbody>
+
                             </table>
 
                         </div>
@@ -1918,104 +1918,108 @@ const Reports = () => {
                                 </thead>
 
 
-                              <tbody className="divide-y divide-slate-100">
+                                <tbody className="divide-y divide-slate-100">
 
-    {report.cashiers?.length > 0 ? (
+                                    {report.cashiers?.length > 0 ? (
 
-        report.cashiers.map((cashier) => (
+                                        report.cashiers.map((cashier) => (
 
-            <tr
-                key={cashier.cashierName}
-                className="hover:bg-slate-50/80 transition"
-            >
+                                            <tr
+                                                key={cashier.cashierName}
+                                                className="hover:bg-slate-50/80 transition"
+                                            >
 
-                {/* CASHIER */}
-                <td className="px-5 py-4 text-center">
+                                                {/* CASHIER */}
 
-                    <div className="flex items-center justify-center gap-3">
+                                                <td className="px-5 py-4 text-center">
 
-                        <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
+                                                    <div className="flex items-center justify-center gap-3">
 
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="w-4 h-4 text-slate-500"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
+                                                        <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
 
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                                />
+                                                            <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                className="w-4 h-4 text-slate-500"
+                                                                fill="none"
+                                                                viewBox="0 0 24 24"
+                                                                stroke="currentColor"
+                                                            >
 
-                            </svg>
+                                                                <path
+                                                                    strokeLinecap="round"
+                                                                    strokeLinejoin="round"
+                                                                    strokeWidth={2}
+                                                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                                                />
 
-                        </div>
+                                                            </svg>
 
-                        <span className="text-sm font-semibold text-slate-800">
-
-                            {cashier.cashierName || "Unknown"}
-
-                        </span>
-
-                    </div>
-
-                </td>
+                                                        </div>
 
 
-                {/* ORDERS */}
-                <td className="px-5 py-4 text-center">
+                                                        <span className="text-sm font-semibold text-slate-800">
 
-                    <div className="flex items-center justify-center">
+                                                            {cashier.cashierName || "Unknown"}
 
-                        <span className="inline-flex items-center justify-center min-w-8 px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-semibold">
+                                                        </span>
 
-                            {cashier.orders}
+                                                    </div>
 
-                        </span>
-
-                    </div>
-
-                </td>
+                                                </td>
 
 
-                {/* SALES */}
-                <td className="px-5 py-4 text-center">
+                                                {/* ORDERS */}
 
-                    <span className="text-sm font-semibold text-slate-800">
+                                                <td className="px-5 py-4 text-center">
 
-                        {money(cashier.sales)}
+                                                    <div className="flex items-center justify-center">
 
-                    </span>
+                                                        <span className="inline-flex items-center justify-center min-w-8 px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-semibold">
 
-                </td>
+                                                            {cashier.orders}
 
-            </tr>
+                                                        </span>
 
-        ))
+                                                    </div>
 
-    ) : (
+                                                </td>
 
-        <EmptyState
-            colSpan="3"
-            message="No cashier sales found."
-            description="Cashier performance will appear here once sales are available."
-            icon={
-                <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                />
-            }
-        />
 
-    )}
+                                                {/* SALES */}
 
-</tbody>
+                                                <td className="px-5 py-4 text-center">
+
+                                                    <span className="text-sm font-semibold text-slate-800">
+
+                                                        {money(cashier.sales)}
+
+                                                    </span>
+
+                                                </td>
+
+                                            </tr>
+
+                                        ))
+
+                                    ) : (
+
+                                        <EmptyState
+                                            colSpan="3"
+                                            message="No cashier sales found."
+                                            description="Cashier performance will appear here once sales are available."
+                                            icon={
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656-.126-1.283-.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                                                />
+                                            }
+                                        />
+
+                                    )}
+
+                                </tbody>
 
                             </table>
 
@@ -2032,5 +2036,6 @@ const Reports = () => {
     );
 
 };
+
 
 export default Reports;

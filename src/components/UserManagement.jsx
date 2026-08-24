@@ -5,7 +5,6 @@ import React, {
     useState,
 } from "react";
 
-import axios from "axios";
 import Toast from "./Toast";
 
 const API_URL =
@@ -168,20 +167,22 @@ const UserManagement = () => {
 
         try {
 
-            const res = await axios.get(
+            const response = await fetch(
                 `${API_URL}/api/users`
             );
 
-            if (res.data.success) {
+            const data = await response.json();
+
+            if (data.success) {
 
                 setUsers(
-                    res.data.users || []
+                    data.users || []
                 );
 
             } else {
 
                 showToast(
-                    res.data.message ||
+                    data.message ||
                         "Failed to load users.",
                     "error"
                 );
@@ -290,12 +291,16 @@ const UserManagement = () => {
 
         try {
 
-            const res =
-                await axios.delete(
-                    `${API_URL}/api/users/${id}`
-                );
+            const response = await fetch(
+                `${API_URL}/api/users/${id}`,
+                {
+                    method: "DELETE",
+                }
+            );
 
-            if (res.data.success) {
+            const data = await response.json();
+
+            if (data.success) {
 
                 await fetchUsers();
 
@@ -319,7 +324,7 @@ const UserManagement = () => {
             } else {
 
                 showToast(
-                    res.data.message ||
+                    data.message ||
                         "Failed to delete user.",
                     "error"
                 );
@@ -334,8 +339,7 @@ const UserManagement = () => {
             );
 
             showToast(
-                err.response?.data?.message ||
-                    "Failed to delete user.",
+                "Failed to delete user.",
                 "error"
             );
 
@@ -408,14 +412,26 @@ const UserManagement = () => {
 
                 }
 
-                const res =
-                    await axios.put(
+                const response =
+                    await fetch(
                         `${API_URL}/api/users/${editingId}`,
-                        updateData
+                        {
+                            method: "PUT",
+                            headers: {
+                                "Content-Type":
+                                    "application/json",
+                            },
+                            body: JSON.stringify(
+                                updateData
+                            ),
+                        }
                     );
 
+                const data =
+                    await response.json();
+
                 if (
-                    res.data.success
+                    data.success
                 ) {
 
                     await fetchUsers();
@@ -430,7 +446,7 @@ const UserManagement = () => {
                 } else {
 
                     showToast(
-                        res.data.message ||
+                        data.message ||
                             "Failed to update user.",
                         "error"
                     );
@@ -445,8 +461,7 @@ const UserManagement = () => {
                 );
 
                 showToast(
-                    err.response?.data?.message ||
-                        "Failed to update user.",
+                    "Failed to update user.",
                     "error"
                 );
 
@@ -462,19 +477,29 @@ const UserManagement = () => {
 
         try {
 
-            const res =
-                await axios.post(
+            const response =
+                await fetch(
                     `${API_URL}/api/users`,
                     {
-                        username:
-                            trimmedUsername,
-                        password,
-                        role,
+                        method: "POST",
+                        headers: {
+                            "Content-Type":
+                                "application/json",
+                        },
+                        body: JSON.stringify({
+                            username:
+                                trimmedUsername,
+                            password,
+                            role,
+                        }),
                     }
                 );
 
+            const data =
+                await response.json();
+
             if (
-                res.data.success
+                data.success
             ) {
 
                 await fetchUsers();
@@ -489,7 +514,7 @@ const UserManagement = () => {
             } else {
 
                 showToast(
-                    res.data.message ||
+                    data.message ||
                         "Failed to add user.",
                     "error"
                 );
@@ -504,8 +529,7 @@ const UserManagement = () => {
             );
 
             showToast(
-                err.response?.data?.message ||
-                    "Failed to add user.",
+                "Failed to add user.",
                 "error"
             );
 
@@ -582,15 +606,11 @@ const UserManagement = () => {
                     <div>
 
                         <h1 className="text-2xl font-bold text-slate-800">
-
                             User Management
-
                         </h1>
 
                         <p className="text-sm text-slate-500 mt-0.5">
-
                             Manage supermarket administrators and cashiers
-
                         </p>
 
                     </div>
@@ -660,19 +680,15 @@ const UserManagement = () => {
                         <div>
 
                             <h2 className="text-base font-semibold text-slate-800">
-
                                 {editingId
                                     ? "Edit User"
                                     : "Add New User"}
-
                             </h2>
 
                             <p className="text-xs text-slate-500 mt-1">
-
                                 {editingId
                                     ? "Update the selected user's details"
                                     : "Create a new supermarket user"}
-
                             </p>
 
                         </div>
@@ -694,9 +710,7 @@ const UserManagement = () => {
                         <div>
 
                             <label className="block text-xs font-semibold text-slate-600 mb-1.5">
-
                                 Username
-
                             </label>
 
                             <input
@@ -723,9 +737,7 @@ const UserManagement = () => {
                         <div>
 
                             <label className="block text-xs font-semibold text-slate-600 mb-1.5">
-
                                 Password
-
                             </label>
 
                             <input
@@ -756,9 +768,7 @@ const UserManagement = () => {
                         <div>
 
                             <label className="block text-xs font-semibold text-slate-600 mb-1.5">
-
                                 Role
-
                             </label>
 
                             <select
@@ -855,9 +865,7 @@ const UserManagement = () => {
                                     }}
                                     className="h-10 px-4 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition"
                                 >
-
                                     Cancel
-
                                 </button>
 
                             )}
@@ -890,9 +898,7 @@ const UserManagement = () => {
                             </svg>
 
                             <p className="text-xs text-slate-500">
-
                                 Leave the password blank if you don't want to change the existing password.
-
                             </p>
 
                         </div>
@@ -918,21 +924,15 @@ const UserManagement = () => {
                                 <div>
 
                                     <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-
                                         Total Users
-
                                     </p>
 
                                     <p className="text-2xl font-bold text-slate-800 mt-1">
-
                                         {totalUsers}
-
                                     </p>
 
                                     <p className="text-xs text-slate-400 mt-1">
-
                                         Registered system users
-
                                     </p>
 
                                 </div>
@@ -971,21 +971,15 @@ const UserManagement = () => {
                                 <div>
 
                                     <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-
                                         Administrators
-
                                     </p>
 
                                     <p className="text-2xl font-bold text-emerald-600 mt-1">
-
                                         {adminUsers}
-
                                     </p>
 
                                     <p className="text-xs text-slate-400 mt-1">
-
                                         Users with admin access
-
                                     </p>
 
                                 </div>
@@ -1024,21 +1018,15 @@ const UserManagement = () => {
                                 <div>
 
                                     <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-
                                         Cashiers
-
                                     </p>
 
                                     <p className="text-2xl font-bold text-amber-600 mt-1">
-
                                         {cashierUsers}
-
                                     </p>
 
                                     <p className="text-xs text-slate-400 mt-1">
-
                                         Users assigned to billing
-
                                     </p>
 
                                 </div>
@@ -1081,15 +1069,11 @@ const UserManagement = () => {
                     <div>
 
                         <h2 className="text-base font-semibold text-slate-800">
-
                             User Overview
-
                         </h2>
 
                         <p className="text-xs text-slate-500 mt-1">
-
                             View and manage registered supermarket users
-
                         </p>
 
                     </div>
@@ -1109,27 +1093,19 @@ const UserManagement = () => {
                             <tr className="bg-slate-50 border-b border-slate-200">
 
                                 <th className="px-4 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500 w-16">
-
                                     #
-
                                 </th>
 
                                 <th className="px-5 py-3.5 text-left text-[11px] uppercase tracking-wide font-bold text-slate-500">
-
                                     User
-
                                 </th>
 
                                 <th className="px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
-
                                     Role
-
                                 </th>
 
                                 <th className="px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
-
                                     Actions
-
                                 </th>
 
                             </tr>
@@ -1171,15 +1147,11 @@ const UserManagement = () => {
                                             </div>
 
                                             <p className="text-sm font-semibold text-slate-600">
-
                                                 No users found.
-
                                             </p>
 
                                             <p className="text-xs text-slate-400 mt-1">
-
                                                 Create your first user above.
-
                                             </p>
 
                                         </div>
@@ -1206,9 +1178,7 @@ const UserManagement = () => {
                                             <td className="px-4 py-4 text-center">
 
                                                 <span className="text-xs font-medium text-slate-400">
-
                                                     {index + 1}
-
                                                 </span>
 
                                             </td>
@@ -1222,12 +1192,7 @@ const UserManagement = () => {
                                                     <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
 
                                                         <span className="text-sm font-bold text-slate-600 uppercase">
-
-                                                            {user.username
-                                                                ?.charAt(
-                                                                    0
-                                                                )}
-
+                                                            {user.username?.charAt(0)}
                                                         </span>
 
                                                     </div>
@@ -1235,20 +1200,11 @@ const UserManagement = () => {
                                                     <div>
 
                                                         <p className="text-sm font-semibold text-slate-800">
-
-                                                            {
-                                                                user.username
-                                                            }
-
+                                                            {user.username}
                                                         </p>
 
                                                         <p className="text-xs text-slate-400 mt-0.5">
-
-                                                            User ID:{" "}
-                                                            {
-                                                                user.id
-                                                            }
-
+                                                            User ID: {user.id}
                                                         </p>
 
                                                     </div>
@@ -1261,8 +1217,7 @@ const UserManagement = () => {
 
                                             <td className="px-5 py-4 text-center">
 
-                                                {user.role ===
-                                                "Admin" ? (
+                                                {user.role === "Admin" ? (
 
                                                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-semibold">
 
@@ -1297,9 +1252,7 @@ const UserManagement = () => {
                                                     <button
                                                         type="button"
                                                         onClick={() =>
-                                                            editUser(
-                                                                user
-                                                            )
+                                                            editUser(user)
                                                         }
                                                         className="inline-flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg bg-slate-100 hover:bg-slate-800 text-slate-600 hover:text-white text-xs font-semibold transition"
                                                         title="Edit User"
@@ -1393,10 +1346,8 @@ const UserManagement = () => {
                             Showing
 
                             <span className="font-semibold text-slate-700">
-
                                 {" "}
                                 {users.length}
-
                             </span>
 
                             {" "}user
@@ -1452,15 +1403,11 @@ const UserManagement = () => {
                                 <div>
 
                                     <h2 className="text-sm font-bold text-slate-800">
-
                                         Delete User
-
                                     </h2>
 
                                     <p className="text-xs text-slate-500 mt-0.5">
-
                                         Confirm user deletion
-
                                     </p>
 
                                 </div>
@@ -1473,9 +1420,7 @@ const UserManagement = () => {
                                 className="w-9 h-9 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 text-xl transition"
                                 title="Close"
                             >
-
                                 ×
-
                             </button>
 
                         </div>
@@ -1489,11 +1434,8 @@ const UserManagement = () => {
                                 Are you sure you want to delete{" "}
 
                                 <span className="font-semibold text-slate-800">
-
                                     "{deleteConfirm.username}"
-
                                 </span>
-
                                 ?
 
                             </p>
@@ -1518,9 +1460,7 @@ const UserManagement = () => {
                                 </svg>
 
                                 <p className="text-xs text-red-600">
-
                                     This action cannot be undone.
-
                                 </p>
 
                             </div>
@@ -1536,9 +1476,7 @@ const UserManagement = () => {
                                 onClick={cancelDelete}
                                 className="h-10 px-4 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition"
                             >
-
                                 Cancel
-
                             </button>
 
                             <button
