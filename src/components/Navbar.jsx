@@ -111,7 +111,7 @@ const Navbar = ({ onLogout }) => {
                 return "Users";
 
             default:
-                return "AK Super Market";
+                 return user?.storeName || "SUPER MARKET";
         }
 
     };
@@ -234,7 +234,7 @@ const Navbar = ({ onLogout }) => {
                                         truncate
                                     "
                                 >
-                                    AK SUPER MARKET
+                                    {user?.storeName || "SUPER MARKET"}
                                 </h1>
 
                                 <p
@@ -491,7 +491,7 @@ const Navbar = ({ onLogout }) => {
                                     leading-tight
                                 "
                             >
-                                AK SUPER MARKET
+                                {user?.storeName || "SUPER MARKET"}
                             </h1>
 
                             <p

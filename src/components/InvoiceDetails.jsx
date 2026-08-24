@@ -1004,11 +1004,11 @@ const InvoiceDetails = () => {
 
                     {/* STORE NAME */}
 
-                    <h1 className="text-center text-xl font-bold tracking-wide text-gray-900 mb-3">
+<h1 className="text-center text-xl font-bold tracking-wide text-gray-900 mb-3">
 
-                        AK SUPER MARKET
+    {localStorage.getItem("store_name") || "Supermarket"}
 
-                    </h1>
+</h1>
 
 
                     <hr className="border-gray-300 mb-4" />

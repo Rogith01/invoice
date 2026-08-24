@@ -272,7 +272,7 @@ const InvoiceModal = ({
 
                                     <h1 className="text-center text-lg font-bold text-gray-900">
 
-                                        AK SUPER MARKET
+                                       {localStorage.getItem("store_name") || "Supermarket"}
 
                                         <br />
 

@@ -11,6 +11,15 @@ import api from "../api";
 
 const Customers = () => {
 
+
+    // ==========================================
+    // STORE
+    // ==========================================
+
+    const storeName =
+        localStorage.getItem("store_name") ||
+        "Supermarket";
+
     // ==========================================
     // CUSTOMERS
     // ==========================================
@@ -284,7 +293,7 @@ const Customers = () => {
 
 
             doc.text(
-                "AK SUPER MARKET",
+                storeName,
                 105,
                 y,
                 {
@@ -901,7 +910,7 @@ const Customers = () => {
 
 
                 doc.text(
-                    `AK SUPER MARKET - Customer Report | Page ${i} of ${pageCount}`,
+                    `${storeName} - Customer Report | Page ${i} of ${pageCount}`,
                     105,
                     290,
                     {

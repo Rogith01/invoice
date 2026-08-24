@@ -9,6 +9,12 @@ import { jsPDF } from "jspdf";
 
 const Reports = () => {
 
+        const user = JSON.parse(
+        sessionStorage.getItem("user")
+    );
+
+    const storeName = user?.storeName || "";
+
     const [fromDate, setFromDate] = useState("");
     const [toDate, setToDate] = useState("");
 
@@ -186,7 +192,7 @@ const Reports = () => {
         );
 
         doc.text(
-            "AK SUPER MARKET",
+            storeName,
             105,
             y,
             {
@@ -770,7 +776,7 @@ const Reports = () => {
             );
 
             doc.text(
-                `AK SUPER MARKET - Report | Page ${i} of ${pageCount}`,
+                `${storeName} - Report | Page ${i} of ${pageCount}`,
                 105,
                 290,
                 {
