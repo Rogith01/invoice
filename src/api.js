@@ -18,12 +18,20 @@ const request = async (
         ...(options.headers || {}),
     };
 
+    // ======================================
+    // AUTHORIZATION
+    // ======================================
+
     if (token) {
 
         headers.Authorization =
             `Bearer ${token}`;
 
     }
+
+    // ======================================
+    // SEND REQUEST
+    // ======================================
 
     const response =
         await fetch(
@@ -33,6 +41,10 @@ const request = async (
                 headers,
             }
         );
+
+    // ======================================
+    // READ RESPONSE
+    // ======================================
 
     let data = {};
 
@@ -45,6 +57,10 @@ const request = async (
         data = {};
 
     }
+
+    // ======================================
+    // HANDLE ERROR
+    // ======================================
 
     if (!response.ok) {
 
@@ -63,6 +79,10 @@ const request = async (
 
     }
 
+    // ======================================
+    // RETURN RESPONSE
+    // ======================================
+
     return {
         data,
         status: response.status,
@@ -71,19 +91,55 @@ const request = async (
 
 };
 
+
 // ==========================================
-// GET
+// API METHODS
 // ==========================================
 
 const api = {
 
-    get: (endpoint) =>
-        request(
-            endpoint,
+    // ======================================
+    // GET
+    // ======================================
+
+    get: (
+        endpoint,
+        options = {}
+    ) => {
+
+        let url = endpoint;
+
+        // ----------------------------------
+        // QUERY PARAMETERS
+        // ----------------------------------
+
+        if (options.params) {
+
+            const queryParams =
+                new URLSearchParams(
+                    options.params
+                ).toString();
+
+            if (queryParams) {
+
+                url += `?${queryParams}`;
+
+            }
+
+        }
+
+        return request(
+            url,
             {
                 method: "GET",
+
+                headers:
+                    options.headers || {},
             }
-        ),
+        );
+
+    },
+
 
     // ======================================
     // POST
@@ -92,14 +148,20 @@ const api = {
     post: (
         endpoint,
         body
-    ) =>
-        request(
+    ) => {
+
+        return request(
             endpoint,
             {
                 method: "POST",
-                body: JSON.stringify(body),
+
+                body:
+                    JSON.stringify(body),
             }
-        ),
+        );
+
+    },
+
 
     // ======================================
     // PUT
@@ -108,14 +170,20 @@ const api = {
     put: (
         endpoint,
         body
-    ) =>
-        request(
+    ) => {
+
+        return request(
             endpoint,
             {
                 method: "PUT",
-                body: JSON.stringify(body),
+
+                body:
+                    JSON.stringify(body),
             }
-        ),
+        );
+
+    },
+
 
     // ======================================
     // PATCH
@@ -124,27 +192,43 @@ const api = {
     patch: (
         endpoint,
         body
-    ) =>
-        request(
+    ) => {
+
+        return request(
             endpoint,
             {
                 method: "PATCH",
-                body: JSON.stringify(body),
+
+                body:
+                    JSON.stringify(body),
             }
-        ),
+        );
+
+    },
+
 
     // ======================================
     // DELETE
     // ======================================
 
-    delete: (endpoint) =>
-        request(
+    delete: (
+        endpoint
+    ) => {
+
+        return request(
             endpoint,
             {
                 method: "DELETE",
             }
-        ),
+        );
+
+    },
 
 };
+
+
+// ==========================================
+// EXPORT
+// ==========================================
 
 export default api;
