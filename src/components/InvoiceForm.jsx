@@ -498,53 +498,34 @@ const fetchProducts = useCallback(async () => {
 
 const fetchInvoiceNumber = useCallback(async () => {
 
-try {
+    try {
 
-    const response =
-        await api.post(
-            "/api/invoices",
-            invoiceData
+        const response =
+            await api.get(
+                "/api/next-invoice-number"
+            );
+
+        if (response.data.success) {
+
+            setInvoiceNumber(
+                response.data.invoiceNumber
+            );
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Error fetching invoice number:",
+            error
         );
 
-    setRedeemedAmount(
-        invoiceLoyaltyDiscount
-    );
+        showToast(
+            "Failed to get invoice number.",
+            "error"
+        );
 
-    setReviewTotal(
-        invoiceTotal
-    );
-
-    setInvoiceNumber(
-        response.data.invoiceNumber
-    );
-
-    await fetchProducts();
-
-    await fetchCustomer(
-        phoneNumber
-    );
-
-    setIsOpen(true);
-
-    showToast(
-        `Invoice ${response.data.invoiceNumber} saved successfully!`,
-        "success"
-    );
-
-} catch (error) {
-
-    console.error(
-        "Error saving invoice:",
-        error
-    );
-
-    showToast(
-        error.response?.data?.message ||
-            "Failed to save invoice.",
-        "error"
-    );
-
-}
+    }
 
 }, [showToast]);
 // ==========================================
@@ -1631,13 +1612,13 @@ useEffect(() => {
 
         };
 
-        try {
+try {
 
-            const response =
-                await axios.post(
-                    "https://invoice-backend-78hd.onrender.com/api/invoices",
-                    invoiceData
-                );
+    const response =
+        await api.post(
+            "/api/invoices",
+            invoiceData
+        );
 
             setRedeemedAmount(
                 invoiceLoyaltyDiscount

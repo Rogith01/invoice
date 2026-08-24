@@ -1,37 +1,150 @@
-import axios from "axios";
-
 const API_URL =
-  "https://invoice-backend-78hd.onrender.com";
-
-const api = axios.create({
-  baseURL: API_URL,
-});
+    "https://invoice-backend-78hd.onrender.com";
 
 // ==========================================
-// ATTACH JWT TOKEN TO EVERY REQUEST
+// API REQUEST HELPER
 // ==========================================
 
-api.interceptors.request.use(
-  (config) => {
+const request = async (
+    endpoint,
+    options = {}
+) => {
 
     const token =
-      sessionStorage.getItem("token");
+        sessionStorage.getItem("token");
+
+    const headers = {
+        "Content-Type": "application/json",
+        ...(options.headers || {}),
+    };
 
     if (token) {
 
-      config.headers.Authorization =
-        `Bearer ${token}`;
+        headers.Authorization =
+            `Bearer ${token}`;
 
     }
 
-    return config;
+    const response =
+        await fetch(
+            `${API_URL}${endpoint}`,
+            {
+                ...options,
+                headers,
+            }
+        );
 
-  },
-  (error) => {
+    let data = {};
 
-    return Promise.reject(error);
+    try {
 
-  }
-);
+        data = await response.json();
+
+    } catch (error) {
+
+        data = {};
+
+    }
+
+    if (!response.ok) {
+
+        const error =
+            new Error(
+                data.message ||
+                "API request failed."
+            );
+
+        error.response = {
+            status: response.status,
+            data,
+        };
+
+        throw error;
+
+    }
+
+    return {
+        data,
+        status: response.status,
+        ok: response.ok,
+    };
+
+};
+
+// ==========================================
+// GET
+// ==========================================
+
+const api = {
+
+    get: (endpoint) =>
+        request(
+            endpoint,
+            {
+                method: "GET",
+            }
+        ),
+
+    // ======================================
+    // POST
+    // ======================================
+
+    post: (
+        endpoint,
+        body
+    ) =>
+        request(
+            endpoint,
+            {
+                method: "POST",
+                body: JSON.stringify(body),
+            }
+        ),
+
+    // ======================================
+    // PUT
+    // ======================================
+
+    put: (
+        endpoint,
+        body
+    ) =>
+        request(
+            endpoint,
+            {
+                method: "PUT",
+                body: JSON.stringify(body),
+            }
+        ),
+
+    // ======================================
+    // PATCH
+    // ======================================
+
+    patch: (
+        endpoint,
+        body
+    ) =>
+        request(
+            endpoint,
+            {
+                method: "PATCH",
+                body: JSON.stringify(body),
+            }
+        ),
+
+    // ======================================
+    // DELETE
+    // ======================================
+
+    delete: (endpoint) =>
+        request(
+            endpoint,
+            {
+                method: "DELETE",
+            }
+        ),
+
+};
 
 export default api;
