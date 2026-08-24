@@ -4183,7 +4183,69 @@ app.post(
         );
 
     }
-);// ======================================================
+);
+// ======================================================
+// GET STORE INFORMATION BY STORE CODE
+// ======================================================
+
+app.get("/api/store/:storeCode", (req, res) => {
+
+    const { storeCode } = req.params;
+
+    if (!storeCode || !storeCode.trim()) {
+
+        return res.status(400).json({
+            success: false,
+            message: "Store code is required"
+        });
+
+    }
+
+    masterDb.query(
+        `
+        SELECT
+            store_code,
+            store_name
+        FROM stores
+        WHERE store_code = ?
+        LIMIT 1
+        `,
+        [storeCode.trim().toUpperCase()],
+        (err, rows) => {
+
+            if (err) {
+
+                console.error(
+                    "Store Lookup Error:",
+                    err
+                );
+
+                return res.status(500).json({
+                    success: false,
+                    message: "Failed to find store."
+                });
+
+            }
+
+            if (!rows || rows.length === 0) {
+
+                return res.status(404).json({
+                    success: false,
+                    message: "Store not found."
+                });
+
+            }
+
+            return res.json({
+                success: true,
+                store: rows[0]
+            });
+
+        }
+    );
+
+});
+// ======================================================
 // LOGIN
 // ======================================================
 

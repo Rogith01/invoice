@@ -8,6 +8,9 @@ import React, {
 import axios from "axios";
 import Toast from "./Toast";
 
+const API_URL =
+  "https://invoice-backend-78hd.onrender.com";
+
 const Login = ({ onLogin }) => {
 
   // ==================================================
@@ -15,20 +18,33 @@ const Login = ({ onLogin }) => {
   // ==================================================
 
   const [storeCode, setStoreCode] = useState("");
+  const [storeName, setStoreName] = useState("");
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const [showPassword, setShowPassword] =
+    useState(false);
+
+  const [isLoading, setIsLoading] =
+    useState(false);
+
+  const [storeLoading, setStoreLoading] =
+    useState(false);
+
+  const [mounted, setMounted] =
+    useState(false);
 
   const [toast, setToast] = useState({
     message: "",
     type: "success",
   });
 
-  const successSoundRef = useRef(null);
-  const errorSoundRef = useRef(null);
+  const successSoundRef =
+    useRef(null);
+
+  const errorSoundRef =
+    useRef(null);
 
   // ==================================================
   // MOUNT ANIMATION
@@ -37,11 +53,15 @@ const Login = ({ onLogin }) => {
   useEffect(() => {
 
     const timer = setTimeout(() => {
+
       setMounted(true);
+
     }, 50);
 
     return () => {
+
       clearTimeout(timer);
+
     };
 
   }, []);
@@ -59,11 +79,13 @@ const Login = ({ onLogin }) => {
       new Audio("/error-tone.mp3");
 
     successSoundRef.current.volume = 1;
+
     errorSoundRef.current.volume = 1;
 
     return () => {
 
       successSoundRef.current = null;
+
       errorSoundRef.current = null;
 
     };
@@ -75,7 +97,10 @@ const Login = ({ onLogin }) => {
   // ==================================================
 
   const showToast = useCallback(
-    (message, type = "success") => {
+    (
+      message,
+      type = "success"
+    ) => {
 
       if (type === "success") {
 
@@ -122,6 +147,85 @@ const Login = ({ onLogin }) => {
   }, []);
 
   // ==================================================
+  // FIND STORE BY STORE CODE
+  // ==================================================
+
+  const findStore = async (code) => {
+
+    const trimmedCode =
+      code.trim();
+
+    if (!trimmedCode) {
+
+      setStoreName("");
+
+      return;
+
+    }
+
+    try {
+
+      setStoreLoading(true);
+
+      const res =
+        await axios.get(
+          `${API_URL}/api/store/${encodeURIComponent(
+            trimmedCode
+          )}`
+        );
+
+      if (
+        res.data &&
+        res.data.success &&
+        res.data.store
+      ) {
+
+        setStoreName(
+          res.data.store.store_name
+        );
+
+      } else {
+
+        setStoreName("");
+
+      }
+
+    } catch (error) {
+
+      console.error(
+        "Store Lookup Error:",
+        error
+      );
+
+      setStoreName("");
+
+    } finally {
+
+      setStoreLoading(false);
+
+    }
+
+  };
+
+  // ==================================================
+  // STORE CODE CHANGE
+  // ==================================================
+
+  const handleStoreCodeChange = (e) => {
+
+    const value =
+      e.target.value.toUpperCase();
+
+    setStoreCode(value);
+
+    // Clear old store name
+    // when user changes code
+
+    setStoreName("");
+
+  };
+
+  // ==================================================
   // LOGIN
   // ==================================================
 
@@ -145,6 +249,7 @@ const Login = ({ onLogin }) => {
       );
 
       return;
+
     }
 
     try {
@@ -155,14 +260,19 @@ const Login = ({ onLogin }) => {
       // LOGIN API
       // ==================================================
 
-      const res = await axios.post(
-        "https://invoice-backend-78hd.onrender.com/api/login",
-        {
-          storeCode: storeCode.trim(),
-          username: username.trim(),
-          password,
-        }
-      );
+      const res =
+        await axios.post(
+          `${API_URL}/api/login`,
+          {
+            storeCode:
+              storeCode.trim(),
+
+            username:
+              username.trim(),
+
+            password,
+          }
+        );
 
       // ==================================================
       // LOGIN SUCCESS
@@ -181,7 +291,9 @@ const Login = ({ onLogin }) => {
 
         sessionStorage.setItem(
           "user",
-          JSON.stringify(res.data.user)
+          JSON.stringify(
+            res.data.user
+          )
         );
 
         // ==================================================
@@ -199,14 +311,33 @@ const Login = ({ onLogin }) => {
 
         sessionStorage.setItem(
           "store",
-          JSON.stringify(res.data.store)
+          JSON.stringify(
+            res.data.store
+          )
         );
+
+        // ==================================================
+        // SAVE STORE NAME
+        // ==================================================
+
+        if (
+          res.data.store &&
+          res.data.store.store_name
+        ) {
+
+          setStoreName(
+            res.data.store.store_name
+          );
+
+        }
 
         // ==================================================
         // CONTINUE LOGIN
         // ==================================================
 
-        onLogin(res.data.user);
+        onLogin(
+          res.data.user
+        );
 
       } else {
 
@@ -243,7 +374,7 @@ const Login = ({ onLogin }) => {
       }
 
       // ==================================================
-      // SERVER ERROR WITH MESSAGE
+      // SERVER ERROR
       // ==================================================
 
       else if (
@@ -462,7 +593,8 @@ const Login = ({ onLogin }) => {
           style={{
             backgroundImage:
               "linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)",
-            backgroundSize: "40px 40px",
+            backgroundSize:
+              "40px 40px",
           }}
         />
 
@@ -478,12 +610,15 @@ const Login = ({ onLogin }) => {
           "
         >
 
-          {/* BRAND */}
+          {/* ==================================================
+              BRAND
+          ================================================== */}
 
           <div
             className="fade-up"
             style={{
-              animationDelay: "0.05s",
+              animationDelay:
+                "0.05s",
             }}
           >
 
@@ -518,7 +653,10 @@ const Login = ({ onLogin }) => {
                     tracking-wide
                   "
                 >
-                  AK SUPER MARKET
+
+                  {storeName ||
+                    "POS SYSTEM"}
+
                 </h1>
 
                 <p className="text-xs text-slate-400">
@@ -531,7 +669,9 @@ const Login = ({ onLogin }) => {
 
           </div>
 
-          {/* MAIN CONTENT */}
+          {/* ==================================================
+              MAIN CONTENT
+          ================================================== */}
 
           <div className="max-w-lg">
 
@@ -544,7 +684,8 @@ const Login = ({ onLogin }) => {
                 fade-up
               "
               style={{
-                animationDelay: "0.15s",
+                animationDelay:
+                  "0.15s",
               }}
             >
 
@@ -565,7 +706,9 @@ const Login = ({ onLogin }) => {
                   font-medium
                 "
               >
+
                 System Online
+
               </span>
 
             </div>
@@ -579,7 +722,8 @@ const Login = ({ onLogin }) => {
                 fade-up
               "
               style={{
-                animationDelay: "0.25s",
+                animationDelay:
+                  "0.25s",
               }}
             >
 
@@ -598,7 +742,8 @@ const Login = ({ onLogin }) => {
                 fade-up
               "
               style={{
-                animationDelay: "0.35s",
+                animationDelay:
+                  "0.35s",
               }}
             >
 
@@ -619,7 +764,8 @@ const Login = ({ onLogin }) => {
                 fade-up
               "
               style={{
-                animationDelay: "0.45s",
+                animationDelay:
+                  "0.45s",
               }}
             >
 
@@ -673,7 +819,8 @@ const Login = ({ onLogin }) => {
 
             © {new Date().getFullYear()}
             {" "}
-            AK SUPER MARKET
+            {storeName ||
+              "POS SYSTEM"}
 
           </p>
 
@@ -706,14 +853,19 @@ const Login = ({ onLogin }) => {
             ease-out
           "
           style={{
-            opacity: mounted ? 1 : 0,
-            transform: mounted
-              ? "translateY(0)"
-              : "translateY(16px)",
+            opacity:
+              mounted ? 1 : 0,
+
+            transform:
+              mounted
+                ? "translateY(0)"
+                : "translateY(16px)",
           }}
         >
 
-          {/* MOBILE BRAND */}
+          {/* ==================================================
+              MOBILE BRAND
+          ================================================== */}
 
           <div className="lg:hidden mb-10">
 
@@ -744,7 +896,10 @@ const Login = ({ onLogin }) => {
                     text-slate-800
                   "
                 >
-                  AK SUPER MARKET
+
+                  {storeName ||
+                    "POS SYSTEM"}
+
                 </h1>
 
                 <p className="text-xs text-slate-400">
@@ -757,7 +912,9 @@ const Login = ({ onLogin }) => {
 
           </div>
 
-          {/* LOGIN HEADER */}
+          {/* ==================================================
+              LOGIN HEADER
+          ================================================== */}
 
           <div className="mb-8">
 
@@ -768,7 +925,9 @@ const Login = ({ onLogin }) => {
                 text-slate-900
               "
             >
+
               Welcome back
+
             </h2>
 
             <p
@@ -778,12 +937,16 @@ const Login = ({ onLogin }) => {
                 mt-2
               "
             >
+
               Sign in to access your POS dashboard.
+
             </p>
 
           </div>
 
-          {/* LOGIN FORM */}
+          {/* ==================================================
+              LOGIN FORM
+          ================================================== */}
 
           <form
             onSubmit={loginHandler}
@@ -805,7 +968,9 @@ const Login = ({ onLogin }) => {
                   mb-1.5
                 "
               >
+
                 Store Code
+
               </label>
 
               <div className="relative group">
@@ -851,9 +1016,12 @@ const Login = ({ onLogin }) => {
                 <input
                   type="text"
                   value={storeCode}
-                  onChange={(e) =>
-                    setStoreCode(
-                      e.target.value.toUpperCase()
+                  onChange={
+                    handleStoreCodeChange
+                  }
+                  onBlur={() =>
+                    findStore(
+                      storeCode
                     )
                   }
                   placeholder="Enter store code"
@@ -884,6 +1052,57 @@ const Login = ({ onLogin }) => {
 
               </div>
 
+              {/* ==================================================
+                  STORE NAME
+              ================================================== */}
+
+              {storeLoading && (
+
+                <p className="mt-2 text-xs text-slate-400">
+
+                  Checking store...
+
+                </p>
+
+              )}
+
+              {!storeLoading &&
+                storeName && (
+
+                  <div
+                    className="
+                      mt-2
+                      flex
+                      items-center
+                      gap-2
+                    "
+                  >
+
+                    <span
+                      className="
+                        w-1.5
+                        h-1.5
+                        rounded-full
+                        bg-emerald-500
+                      "
+                    />
+
+                    <span
+                      className="
+                        text-xs
+                        font-semibold
+                        text-emerald-600
+                      "
+                    >
+
+                      {storeName}
+
+                    </span>
+
+                  </div>
+
+                )}
+
             </div>
 
             {/* ==================================================
@@ -901,7 +1120,9 @@ const Login = ({ onLogin }) => {
                   mb-1.5
                 "
               >
+
                 Username
+
               </label>
 
               <div className="relative group">
@@ -948,7 +1169,9 @@ const Login = ({ onLogin }) => {
                   type="text"
                   value={username}
                   onChange={(e) =>
-                    setUsername(e.target.value)
+                    setUsername(
+                      e.target.value
+                    )
                   }
                   placeholder="Enter username"
                   autoComplete="username"
@@ -995,7 +1218,9 @@ const Login = ({ onLogin }) => {
                   mb-1.5
                 "
               >
+
                 Password
+
               </label>
 
               <div className="relative group">
@@ -1048,7 +1273,9 @@ const Login = ({ onLogin }) => {
                   }
                   value={password}
                   onChange={(e) =>
-                    setPassword(e.target.value)
+                    setPassword(
+                      e.target.value
+                    )
                   }
                   placeholder="Enter password"
                   autoComplete="current-password"
@@ -1080,7 +1307,8 @@ const Login = ({ onLogin }) => {
                   type="button"
                   onClick={() =>
                     setShowPassword(
-                      (prev) => !prev
+                      (prev) =>
+                        !prev
                     )
                   }
                   className="
