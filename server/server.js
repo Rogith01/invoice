@@ -5276,7 +5276,7 @@ app.get(
 
         masterDb.query(
             sql,
-            ["STORE001"],
+            ["001"],
             (err, rows) => {
 
                 if (err) {
