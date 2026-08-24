@@ -16,7 +16,7 @@ app.use(cors());
 app.use(express.json());
 
 // ======================================================
-// JWT AUTHENTICATION MIDDLEWARE
+// JWT AUTHENTICATION + STORE DATABASE MIDDLEWARE
 // ======================================================
 
 const authenticateToken = (req, res, next) => {
@@ -45,13 +45,36 @@ const authenticateToken = (req, res, next) => {
                 });
             }
 
+            // ==================================================
+            // STORE INFORMATION FROM JWT
+            // ==================================================
+
+            if (!user.databaseName) {
+                return res.status(403).json({
+                    success: false,
+                    message: "Store database not found in token"
+                });
+            }
+
+            // ==================================================
+            // GET THE CORRECT STORE DATABASE
+            // ==================================================
+
+            const storeDb =
+                getDatabase(user.databaseName);
+
+            // ==================================================
+            // ATTACH USER + DATABASE TO REQUEST
+            // ==================================================
+
             req.user = user;
+
+            req.storeDb = storeDb;
 
             next();
         }
     );
 };
-
 // ======================================================
 // GET NEXT INVOICE NUMBER
 // ======================================================
@@ -2089,51 +2112,62 @@ app.get(
             }
         );
     }
-);
-// ======================================================
+);// ======================================================
 // GET ALL INVOICES
 // ======================================================
 
-app.get("/api/invoices", (req, res) => {
+app.get(
+    "/api/invoices",
+    authenticateToken,
+    (req, res) => {
 
-    const sql = `
-        SELECT
-            invoices.id,
-            invoices.invoice_number,
-            invoices.invoice_date,
-            invoices.invoice_time,
-            invoices.customer_name,
-            invoices.cashier_name,
-            customers.phone_number,
-            invoices.total,
-            invoices.payment_Method
-        FROM invoices
-        LEFT JOIN customers
-            ON invoices.customer_id = customers.id
-        ORDER BY invoices.id DESC
-    `;
+        const db = getDatabase(
+            req.user.database_name
+        );
 
-    db.query(sql, (err, rows) => {
+        const sql = `
+            SELECT
+                invoices.id,
+                invoices.invoice_number,
+                invoices.invoice_date,
+                invoices.invoice_time,
+                invoices.customer_name,
+                invoices.cashier_name,
+                customers.phone_number,
+                invoices.total,
+                invoices.payment_Method
+            FROM invoices
+            LEFT JOIN customers
+                ON invoices.customer_id = customers.id
+            ORDER BY invoices.id DESC
+        `;
 
-        if (err) {
+        storeDb.query(
+            sql,
+            (err, rows) => {
 
-            console.error(
-                "Invoice History Error:",
-                err
-            );
+                if (err) {
 
-            return res.status(500).json({
-                success: false,
-                message: err.message
-            });
-        }
+                    console.error(
+                        "Invoice History Error:",
+                        err
+                    );
 
-        res.json({
-            success: true,
-            invoices: rows
-        });
-    });
-});
+                    return res.status(500).json({
+                        success: false,
+                        message: err.message
+                    });
+                }
+
+                res.json({
+                    success: true,
+                    invoices: rows
+                });
+            }
+        );
+    }
+);
+
 
 // ======================================================
 // GET SINGLE INVOICE
@@ -2141,10 +2175,18 @@ app.get("/api/invoices", (req, res) => {
 
 app.get(
     "/api/invoices/:id",
+    authenticateToken,
     (req, res) => {
 
-        const invoiceId =
-            req.params.id;
+        const db = getDatabase(
+            req.user.databaseName
+        );
+
+        // your existing code...
+
+        // ==================================================
+        // GET INVOICE
+        // ==================================================
 
         const invoiceSql = `
             SELECT
@@ -2156,12 +2198,17 @@ app.get(
             WHERE invoices.id = ?
         `;
 
-        db.query(
+        storeDb.query(
             invoiceSql,
             [invoiceId],
             (err, invoiceRows) => {
 
                 if (err) {
+
+                    console.error(
+                        "Single Invoice Error:",
+                        err
+                    );
 
                     return res.status(500).json({
                         success: false,
@@ -2172,9 +2219,14 @@ app.get(
                 if (invoiceRows.length === 0) {
 
                     return res.json({
-                        success: false
+                        success: false,
+                        message: "Invoice not found"
                     });
                 }
+
+                // ==================================================
+                // GET INVOICE ITEMS
+                // ==================================================
 
                 const itemSql = `
                     SELECT
@@ -2208,12 +2260,17 @@ app.get(
                     WHERE ii.invoice_id = ?
                 `;
 
-                db.query(
+                storeDb.query(
                     itemSql,
                     [invoiceId],
                     (err, itemRows) => {
 
                         if (err) {
+
+                            console.error(
+                                "Invoice Items Error:",
+                                err
+                            );
 
                             return res.status(500).json({
                                 success: false,

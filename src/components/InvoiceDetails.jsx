@@ -172,11 +172,16 @@ const showToast = (
     const fetchInvoice = useCallback(async () => {
 
         try {
+const token = sessionStorage.getItem("token");
 
-            const res = await axios.get(
-                `https://invoice-backend-78hd.onrender.com/api/invoices/${id}`
-            );
-
+const res = await axios.get(
+    `https://invoice-backend-78hd.onrender.com/api/invoices/${id}`,
+    {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    }
+);
 
             if (res.data.success) {
 

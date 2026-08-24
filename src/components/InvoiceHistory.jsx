@@ -229,10 +229,16 @@ const InvoiceHistory = () => {
 
                 try {
 
-                    const res =
-                        await axios.get(
-                            `${API_URL}/api/invoices`
-                        );
+const token = sessionStorage.getItem("token");
+
+const res = await axios.get(
+    `${API_URL}/api/invoices`,
+    {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    }
+);
 
 
                     if (
