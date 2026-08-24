@@ -3,7 +3,7 @@ import React, {
     useState,
 } from "react";
 
-import axios from "axios";
+import api from "../api";
 
 import {
     LineChart,
@@ -16,10 +16,6 @@ import {
     BarChart,
     Bar,
 } from "recharts";
-
-
-const API_URL =
-    "https://invoice-backend-78hd.onrender.com";
 
 
 const Dashboard = () => {
@@ -76,8 +72,8 @@ const Dashboard = () => {
         try {
 
             const res =
-                await axios.get(
-                    `${API_URL}/api/dashboard`
+                await api.get(
+                    "/api/dashboard"
                 );
 
 
@@ -114,8 +110,8 @@ const Dashboard = () => {
         try {
 
             const res =
-                await axios.get(
-                    `${API_URL}/api/dashboard/daily-sales`
+                await api.get(
+                    "/api/dashboard/daily-sales"
                 );
 
 

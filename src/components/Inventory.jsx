@@ -5,12 +5,11 @@ import React, {
     useRef,
 } from "react";
 
-import axios from "axios";
+import api from "../api";
 import Toast from "./Toast";
 
 
-const API_URL =
-    "https://invoice-backend-78hd.onrender.com";
+
 
 
 const Inventory = () => {
@@ -246,10 +245,12 @@ const Inventory = () => {
 
                 try {
 
-                    const res =
-                        await axios.get(
-                            `${API_URL}/api/products`
-                        );
+// FETCH PRODUCTS
+
+const res =
+    await api.get(
+        "/api/products"
+    );
 
 
                     if (
@@ -303,18 +304,10 @@ const Inventory = () => {
                 setHistoryLoading(true);
 
 
-                const res =
-                    await axios.get(
-                        `${API_URL}/api/stock-movements`,
-                        {
-                            headers: {
-                                Authorization:
-                                    `Bearer ${sessionStorage.getItem(
-                                        "token"
-                                    )}`,
-                            },
-                        }
-                    );
+const res =
+    await api.get(
+        "/api/stock-movements"
+    );
 
 
                 if (
@@ -523,22 +516,12 @@ const Inventory = () => {
                 );
 
 
-                const res =
-                    await axios.put(
-                        `${API_URL}/api/products/${restockProduct.id}/restock`,
-                        {
-                            quantity:
-                                quantity,
-                        },
-                        {
-                            headers: {
-                                Authorization:
-                                    `Bearer ${sessionStorage.getItem(
-                                        "token"
-                                    )}`,
-                            },
-                        }
-                    );
+const res = await api.put(
+    `/api/products/${restockProduct.id}/restock`,
+    {
+        quantity: quantity,
+    }
+);
 
 
                 if (
@@ -722,25 +705,13 @@ const Inventory = () => {
                 );
 
 
-                const res =
-                    await axios.put(
-                        `${API_URL}/api/products/${adjustmentProduct.id}/adjust-stock`,
-                        {
-                            quantity:
-                                quantity,
-
-                            reason:
-                                adjustmentReason.trim(),
-                        },
-                        {
-                            headers: {
-                                Authorization:
-                                    `Bearer ${sessionStorage.getItem(
-                                        "token"
-                                    )}`,
-                            },
-                        }
-                    );
+const res = await api.put(
+    `/api/products/${adjustmentProduct.id}/adjust-stock`,
+    {
+        quantity: quantity,
+        reason: adjustmentReason.trim(),
+    }
+);
 
 
                 if (
