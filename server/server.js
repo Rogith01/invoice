@@ -3,6 +3,7 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const cors = require("cors");
 const db = require("./db");
+const masterDb = require("./masterDb");
 
 const app = express();
 
