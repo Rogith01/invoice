@@ -4,13 +4,9 @@ import React, {
     useState,
 } from "react";
 
-import axios from "axios";
 import { jsPDF } from "jspdf";
 import Toast from "./Toast";
-
-
-const API_URL =
-    "https://invoice-backend-78hd.onrender.com";
+import api from "../api";
 
 
 const Customers = () => {
@@ -99,16 +95,8 @@ const Customers = () => {
                     setLoading(true);
 
                     const res =
-                        await axios.get(
-                            `${API_URL}/api/customers`,
-                            {
-                                headers: {
-                                    Authorization:
-                                        `Bearer ${sessionStorage.getItem(
-                                            "token"
-                                        )}`,
-                                },
-                            }
+                        await api.get(
+                            "/api/customers"
                         );
 
 
@@ -181,16 +169,8 @@ const Customers = () => {
 
 
                 const res =
-                    await axios.get(
-                        `${API_URL}/api/customers/${customer.id}/purchases`,
-                        {
-                            headers: {
-                                Authorization:
-                                    `Bearer ${sessionStorage.getItem(
-                                        "token"
-                                    )}`,
-                            },
-                        }
+                    await api.get(
+                        `/api/customers/${customer.id}/purchases`
                     );
 
 
@@ -1038,11 +1018,6 @@ const Customers = () => {
 
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
-
-            {/* ==========================================
-                TOAST
-            ========================================== */}
-
             <Toast
                 message={toast.message}
                 type={toast.type}
@@ -1050,9 +1025,7 @@ const Customers = () => {
             />
 
 
-            {/* ==========================================
-                PAGE HEADER
-            ========================================== */}
+            {/* PAGE HEADER */}
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
 
@@ -1083,16 +1056,11 @@ const Customers = () => {
                     <div>
 
                         <h1 className="text-2xl font-bold text-slate-800">
-
                             Customers
-
                         </h1>
 
-
                         <p className="text-sm text-slate-500 mt-0.5">
-
                             Manage customers and their purchase history
-
                         </p>
 
                     </div>
@@ -1102,16 +1070,12 @@ const Customers = () => {
             </div>
 
 
-            {/* ==========================================
-                MAIN CARD
-            ========================================== */}
+            {/* MAIN CARD */}
 
             <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
 
 
-                {/* ==========================================
-                    SEARCH HEADER
-                ========================================== */}
+                {/* SEARCH HEADER */}
 
                 <div className="px-5 sm:px-6 py-5 border-b border-slate-200">
 
@@ -1120,16 +1084,11 @@ const Customers = () => {
                         <div>
 
                             <h2 className="text-base font-semibold text-slate-800">
-
                                 Customer Overview
-
                             </h2>
 
-
                             <p className="text-xs text-slate-500 mt-1">
-
                                 View customers, loyalty points and purchase activity
-
                             </p>
 
                         </div>
@@ -1173,16 +1132,12 @@ const Customers = () => {
                                 <button
                                     type="button"
                                     onClick={() =>
-                                        setSearchTerm(
-                                            ""
-                                        )
+                                        setSearchTerm("")
                                     }
                                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 text-lg transition"
                                     title="Clear Search"
                                 >
-
                                     ×
-
                                 </button>
 
                             )}
@@ -1194,9 +1149,7 @@ const Customers = () => {
                 </div>
 
 
-                {/* ==========================================
-                    SUMMARY CARDS
-                ========================================== */}
+                {/* SUMMARY CARDS */}
 
                 {!loading && (
 
@@ -1205,8 +1158,6 @@ const Customers = () => {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
 
 
-                            {/* TOTAL CUSTOMERS */}
-
                             <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
 
                                 <div className="flex items-center justify-between">
@@ -1214,27 +1165,18 @@ const Customers = () => {
                                     <div>
 
                                         <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-
                                             Total Customers
-
                                         </p>
-
 
                                         <p className="text-2xl font-bold text-slate-800 mt-1">
-
                                             {totalCustomers}
-
                                         </p>
 
-
                                         <p className="text-xs text-slate-400 mt-1">
-
                                             Customers registered
-
                                         </p>
 
                                     </div>
-
 
                                     <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">
 
@@ -1262,8 +1204,6 @@ const Customers = () => {
                             </div>
 
 
-                            {/* ACTIVE CUSTOMERS */}
-
                             <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
 
                                 <div className="flex items-center justify-between">
@@ -1271,27 +1211,18 @@ const Customers = () => {
                                     <div>
 
                                         <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-
                                             Active Customers
-
                                         </p>
-
 
                                         <p className="text-2xl font-bold text-emerald-600 mt-1">
-
                                             {customersWithOrders}
-
                                         </p>
 
-
                                         <p className="text-xs text-slate-400 mt-1">
-
                                             Customers with purchases
-
                                         </p>
 
                                     </div>
-
 
                                     <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
 
@@ -1319,8 +1250,6 @@ const Customers = () => {
                             </div>
 
 
-                            {/* LOYALTY POINTS */}
-
                             <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
 
                                 <div className="flex items-center justify-between">
@@ -1328,27 +1257,18 @@ const Customers = () => {
                                     <div>
 
                                         <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-
                                             Loyalty Points
-
                                         </p>
-
 
                                         <p className="text-2xl font-bold text-amber-600 mt-1">
-
                                             {totalLoyaltyPoints}
-
                                         </p>
 
-
                                         <p className="text-xs text-slate-400 mt-1">
-
                                             Total points available
-
                                         </p>
 
                                     </div>
-
 
                                     <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
 
@@ -1382,9 +1302,7 @@ const Customers = () => {
                 )}
 
 
-                {/* ==========================================
-                    TABLE
-                ========================================== */}
+                {/* TABLE */}
 
                 {loading ? (
 
@@ -1394,18 +1312,12 @@ const Customers = () => {
 
                             <div className="w-10 h-10 border-2 border-slate-200 border-t-slate-800 rounded-full animate-spin mb-4"></div>
 
-
                             <p className="text-sm font-semibold text-slate-600">
-
                                 Loading customers...
-
                             </p>
 
-
                             <p className="text-xs text-slate-400 mt-1">
-
                                 Please wait while customer data is loaded.
-
                             </p>
 
                         </div>
@@ -1423,58 +1335,35 @@ const Customers = () => {
                                 <tr className="bg-slate-50 border-b border-slate-200">
 
                                     <th className="px-4 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500 w-16">
-
                                         #
-
                                     </th>
 
-
                                     <th className="px-5 py-3.5 text-left text-[11px] uppercase tracking-wide font-bold text-slate-500">
-
                                         Customer
-
                                     </th>
-
 
                                     <th className="px-5 py-3.5 text-left text-[11px] uppercase tracking-wide font-bold text-slate-500">
-
                                         Phone
-
                                     </th>
 
-
                                     <th className="px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
-
                                         Loyalty Points
-
                                     </th>
 
-
                                     <th className="px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
-
                                         Orders
-
                                     </th>
 
-
                                     <th className="px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
-
                                         Total Spent
-
                                     </th>
 
-
                                     <th className="px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
-
                                         Last Purchase
-
                                     </th>
 
-
                                     <th className="px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
-
                                         Action
-
                                     </th>
 
                                 </tr>
@@ -1484,8 +1373,7 @@ const Customers = () => {
 
                             <tbody className="divide-y divide-slate-100">
 
-                                {filteredCustomers.length >
-                                0 ? (
+                                {filteredCustomers.length > 0 ? (
 
                                     filteredCustomers.map(
                                         (
@@ -1494,29 +1382,18 @@ const Customers = () => {
                                         ) => (
 
                                             <tr
-                                                key={
-                                                    customer.id
-                                                }
+                                                key={customer.id}
                                                 className="hover:bg-slate-50/80 transition"
                                             >
-
-                                                {/* NUMBER */}
 
                                                 <td className="px-4 py-4 text-center">
 
                                                     <span className="text-xs font-medium text-slate-400">
-
-                                                        {
-                                                            index +
-                                                            1
-                                                        }
-
+                                                        {index + 1}
                                                     </span>
 
                                                 </td>
 
-
-                                                {/* CUSTOMER */}
 
                                                 <td className="px-5 py-4">
 
@@ -1545,11 +1422,7 @@ const Customers = () => {
 
 
                                                         <span className="text-sm font-semibold text-slate-800">
-
-                                                            {
-                                                                customer.customer_name
-                                                            }
-
+                                                            {customer.customer_name}
                                                         </span>
 
                                                     </div>
@@ -1557,22 +1430,14 @@ const Customers = () => {
                                                 </td>
 
 
-                                                {/* PHONE */}
-
                                                 <td className="px-5 py-4">
 
                                                     <span className="text-sm text-slate-600">
-
-                                                        {
-                                                            customer.phone_number
-                                                        }
-
+                                                        {customer.phone_number}
                                                     </span>
 
                                                 </td>
 
-
-                                                {/* LOYALTY */}
 
                                                 <td className="px-5 py-4 text-center">
 
@@ -1580,33 +1445,21 @@ const Customers = () => {
 
                                                         <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
 
-                                                        {
-                                                            customer.loyalty_points ||
-                                                            0
-                                                        }
+                                                        {customer.loyalty_points || 0}
 
                                                     </span>
 
                                                 </td>
 
-
-                                                {/* ORDERS */}
 
                                                 <td className="px-5 py-4 text-center">
 
                                                     <span className="text-sm font-semibold text-slate-800">
-
-                                                        {
-                                                            customer.total_orders ||
-                                                            0
-                                                        }
-
+                                                        {customer.total_orders || 0}
                                                     </span>
 
                                                 </td>
 
-
-                                                {/* TOTAL */}
 
                                                 <td className="px-5 py-4 text-center">
 
@@ -1614,18 +1467,13 @@ const Customers = () => {
 
                                                         ₹
                                                         {Number(
-                                                            customer.total_spent ||
-                                                                0
-                                                        ).toFixed(
-                                                            2
-                                                        )}
+                                                            customer.total_spent || 0
+                                                        ).toFixed(2)}
 
                                                     </span>
 
                                                 </td>
 
-
-                                                {/* LAST PURCHASE */}
 
                                                 <td className="px-5 py-4 text-center">
 
@@ -1643,8 +1491,6 @@ const Customers = () => {
 
                                                 </td>
 
-
-                                                {/* ACTION */}
 
                                                 <td className="px-5 py-4 text-center">
 
@@ -1753,13 +1599,10 @@ const Customers = () => {
                 )}
 
 
-                {/* ==========================================
-                    FOOTER
-                ========================================== */}
+                {/* FOOTER */}
 
                 {!loading &&
-                    filteredCustomers.length >
-                        0 && (
+                    filteredCustomers.length > 0 && (
 
                         <div className="px-5 py-3.5 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
 
@@ -1768,17 +1611,12 @@ const Customers = () => {
                                 Showing
 
                                 <span className="font-semibold text-slate-700">
-
                                     {" "}
-                                    {
-                                        filteredCustomers.length
-                                    }
-
+                                    {filteredCustomers.length}
                                 </span>
 
                                 {" "}customer
-                                {filteredCustomers.length !==
-                                1
+                                {filteredCustomers.length !== 1
                                     ? "s"
                                     : ""}
 
@@ -1790,15 +1628,11 @@ const Customers = () => {
                                 <button
                                     type="button"
                                     onClick={() =>
-                                        setSearchTerm(
-                                            ""
-                                        )
+                                        setSearchTerm("")
                                     }
                                     className="text-xs font-semibold text-slate-600 hover:text-slate-900 transition"
                                 >
-
                                     Clear search
-
                                 </button>
 
                             )}
@@ -1810,9 +1644,7 @@ const Customers = () => {
             </div>
 
 
-            {/* =================================================
-                CUSTOMER HISTORY MODAL
-            ================================================= */}
+            {/* CUSTOMER HISTORY MODAL */}
 
             {showHistory && (
 
@@ -1852,9 +1684,7 @@ const Customers = () => {
                                 <div>
 
                                     <h2 className="text-sm font-bold text-slate-800">
-
                                         Customer Purchase History
-
                                     </h2>
 
 
@@ -1862,15 +1692,9 @@ const Customers = () => {
 
                                         <p className="text-xs text-slate-500 mt-0.5">
 
-                                            {
-                                                selectedCustomer.customer_name
-                                            }
-
+                                            {selectedCustomer.customer_name}
                                             {" • "}
-
-                                            {
-                                                selectedCustomer.phone_number
-                                            }
+                                            {selectedCustomer.phone_number}
 
                                         </p>
 
@@ -1885,9 +1709,7 @@ const Customers = () => {
 
                                 <button
                                     type="button"
-                                    onClick={
-                                        downloadCustomerPDF
-                                    }
+                                    onClick={downloadCustomerPDF}
                                     className="inline-flex items-center gap-1.5 h-9 px-3 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-semibold transition shadow-sm"
                                 >
 
@@ -1915,15 +1737,11 @@ const Customers = () => {
 
                                 <button
                                     type="button"
-                                    onClick={
-                                        closeHistory
-                                    }
+                                    onClick={closeHistory}
                                     className="w-9 h-9 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 text-xl transition"
                                     title="Close"
                                 >
-
                                     ×
-
                                 </button>
 
                             </div>
@@ -1939,91 +1757,53 @@ const Customers = () => {
 
                                 <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
 
-
-                                    {/* CUSTOMER */}
-
                                     <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
 
                                         <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-
                                             Customer
-
                                         </p>
 
-
                                         <p className="text-base font-bold text-slate-800 mt-1">
-
-                                            {
-                                                selectedCustomer.customer_name
-                                            }
-
+                                            {selectedCustomer.customer_name}
                                         </p>
 
                                     </div>
 
 
-                                    {/* PHONE */}
-
                                     <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
 
                                         <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-
                                             Phone
-
                                         </p>
 
-
                                         <p className="text-base font-bold text-slate-800 mt-1">
-
-                                            {
-                                                selectedCustomer.phone_number
-                                            }
-
+                                            {selectedCustomer.phone_number}
                                         </p>
 
                                     </div>
 
 
-                                    {/* LOYALTY */}
-
                                     <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
 
                                         <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-
                                             Loyalty Points
-
                                         </p>
-
 
                                         <p className="text-lg font-bold text-amber-600 mt-1">
-
-                                            {
-                                                selectedCustomer.loyalty_points ||
-                                                0
-                                            }
-
+                                            {selectedCustomer.loyalty_points || 0}
                                         </p>
 
                                     </div>
 
 
-                                    {/* ORDERS */}
-
                                     <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
 
                                         <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-
                                             Total Orders
-
                                         </p>
 
-
                                         <p className="text-lg font-bold text-slate-800 mt-1">
-
-                                            {
-                                                purchaseHistory.length
-                                            }
-
+                                            {purchaseHistory.length}
                                         </p>
 
                                     </div>
@@ -2045,17 +1825,13 @@ const Customers = () => {
 
                                     <div className="w-10 h-10 border-2 border-slate-200 border-t-slate-800 rounded-full animate-spin mx-auto mb-4"></div>
 
-
                                     <p className="text-sm font-semibold text-slate-600">
-
                                         Loading purchase history...
-
                                     </p>
 
                                 </div>
 
-                            ) : purchaseHistory.length ===
-                              0 ? (
+                            ) : purchaseHistory.length === 0 ? (
 
                                 <div className="py-14 text-center">
 
@@ -2080,18 +1856,12 @@ const Customers = () => {
 
                                     </div>
 
-
                                     <p className="text-sm font-semibold text-slate-600">
-
                                         No purchases found for this customer.
-
                                     </p>
 
-
                                     <p className="text-xs text-slate-400 mt-1">
-
                                         Purchase activity will appear here.
-
                                     </p>
 
                                 </div>
@@ -2101,27 +1871,22 @@ const Customers = () => {
                                 <div className="space-y-4">
 
                                     {purchaseHistory.map(
-                                        (
-                                            purchase
-                                        ) => {
+                                        (purchase) => {
 
                                             const hasRefund =
                                                 purchase.returns &&
-                                                purchase.returns.length >
-                                                    0;
+                                                purchase.returns.length > 0;
 
 
                                             const totalRefund =
                                                 Number(
-                                                    purchase.totalRefund ||
-                                                        0
+                                                    purchase.totalRefund || 0
                                                 );
 
 
                                             const originalTotal =
                                                 Number(
-                                                    purchase.total ||
-                                                        0
+                                                    purchase.total || 0
                                                 );
 
 
@@ -2136,12 +1901,9 @@ const Customers = () => {
                                             return (
 
                                                 <div
-                                                    key={
-                                                        purchase.id
-                                                    }
+                                                    key={purchase.id}
                                                     className="border border-slate-200 rounded-xl overflow-hidden"
                                                 >
-
 
                                                     {/* INVOICE HEADER */}
 
@@ -2174,13 +1936,8 @@ const Customers = () => {
 
                                                                     </div>
 
-
                                                                     <p className="text-sm font-bold text-slate-800">
-
-                                                                        {
-                                                                            purchase.invoice_number
-                                                                        }
-
+                                                                        {purchase.invoice_number}
                                                                     </p>
 
                                                                 </div>
@@ -2213,10 +1970,7 @@ const Customers = () => {
 
                                                                 {" • "}
 
-                                                                {
-                                                                    purchase.invoice_time ||
-                                                                    "-"
-                                                                }
+                                                                {purchase.invoice_time || "-"}
 
                                                             </p>
 
@@ -2225,10 +1979,7 @@ const Customers = () => {
 
                                                                 Cashier:{" "}
 
-                                                                {
-                                                                    purchase.cashier_name ||
-                                                                    "-"
-                                                                }
+                                                                {purchase.cashier_name || "-"}
 
                                                             </p>
 
@@ -2238,9 +1989,7 @@ const Customers = () => {
                                                         <div className="text-left md:text-right">
 
                                                             <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">
-
                                                                 Original Total
-
                                                             </p>
 
 
@@ -2253,9 +2002,7 @@ const Customers = () => {
                                                             >
 
                                                                 ₹
-                                                                {originalTotal.toFixed(
-                                                                    2
-                                                                )}
+                                                                {originalTotal.toFixed(2)}
 
                                                             </p>
 
@@ -2267,9 +2014,7 @@ const Customers = () => {
                                                                     <p className="text-xs text-red-600 font-semibold mt-1">
 
                                                                         Refunded: -₹
-                                                                        {totalRefund.toFixed(
-                                                                            2
-                                                                        )}
+                                                                        {totalRefund.toFixed(2)}
 
                                                                     </p>
 
@@ -2277,9 +2022,7 @@ const Customers = () => {
                                                                     <p className="text-sm text-emerald-600 font-bold mt-1">
 
                                                                         Net Paid: ₹
-                                                                        {netPaid.toFixed(
-                                                                            2
-                                                                        )}
+                                                                        {netPaid.toFixed(2)}
 
                                                                     </p>
 
@@ -2290,11 +2033,9 @@ const Customers = () => {
 
                                                             <p className="text-xs text-slate-500 mt-1">
 
-                                                                {
-                                                                    purchase.payment_Method ||
+                                                                {purchase.payment_Method ||
                                                                     purchase.payment_method ||
-                                                                    "-"
-                                                                }
+                                                                    "-"}
 
                                                             </p>
 
@@ -2314,30 +2055,19 @@ const Customers = () => {
                                                                 <tr className="bg-slate-50 border-b border-slate-200">
 
                                                                     <th className="px-4 py-3 text-left text-[11px] uppercase tracking-wide font-bold text-slate-500">
-
                                                                         Product
-
                                                                     </th>
 
-
                                                                     <th className="px-4 py-3 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
-
                                                                         Qty
-
                                                                     </th>
 
-
                                                                     <th className="px-4 py-3 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
-
                                                                         Price
-
                                                                     </th>
 
-
                                                                     <th className="px-4 py-3 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
-
                                                                         Amount
-
                                                                     </th>
 
                                                                 </tr>
@@ -2356,7 +2086,7 @@ const Customers = () => {
                                                                         const returnedQty =
                                                                             purchase.returns
                                                                                 ?.filter(
-                                                                                    returnItem =>
+                                                                                    (returnItem) =>
                                                                                         Number(
                                                                                             returnItem.product_id
                                                                                         ) ===
@@ -2406,21 +2136,14 @@ const Customers = () => {
                                                                                 <td className="px-4 py-3">
 
                                                                                     <span className="text-sm font-semibold text-slate-800">
-
-                                                                                        {
-                                                                                            item.item_name
-                                                                                        }
-
+                                                                                        {item.item_name}
                                                                                     </span>
 
 
-                                                                                    {returnedQty >
-                                                                                        0 && (
+                                                                                    {returnedQty > 0 && (
 
                                                                                         <p className="text-xs text-red-600 font-semibold mt-1">
-
                                                                                             {returnedQty} returned
-
                                                                                         </p>
 
                                                                                     )}
@@ -2431,27 +2154,18 @@ const Customers = () => {
                                                                                 <td className="px-4 py-3 text-center">
 
                                                                                     <span className="text-sm text-slate-700">
-
-                                                                                        {
-                                                                                            originalQty
-                                                                                        }
-
+                                                                                        {originalQty}
                                                                                     </span>
 
 
-                                                                                    {returnedQty >
-                                                                                        0 && (
+                                                                                    {returnedQty > 0 && (
 
                                                                                         <p className="text-xs text-slate-400 mt-1">
 
                                                                                             Remaining:{" "}
 
                                                                                             <span className="font-semibold text-slate-600">
-
-                                                                                                {
-                                                                                                    remainingQty
-                                                                                                }
-
+                                                                                                {remainingQty}
                                                                                             </span>
 
                                                                                         </p>
@@ -2465,11 +2179,8 @@ const Customers = () => {
 
                                                                                     ₹
                                                                                     {Number(
-                                                                                        item.price ||
-                                                                                            0
-                                                                                    ).toFixed(
-                                                                                        2
-                                                                                    )}
+                                                                                        item.price || 0
+                                                                                    ).toFixed(2)}
 
                                                                                 </td>
 
@@ -2480,11 +2191,8 @@ const Customers = () => {
 
                                                                                         ₹
                                                                                         {Number(
-                                                                                            item.amount ||
-                                                                                                0
-                                                                                        ).toFixed(
-                                                                                            2
-                                                                                        )}
+                                                                                            item.amount || 0
+                                                                                        ).toFixed(2)}
 
                                                                                     </span>
 
@@ -2515,16 +2223,11 @@ const Customers = () => {
                                                                 <div>
 
                                                                     <h3 className="text-sm font-bold text-red-700">
-
                                                                         Refund / Return Details
-
                                                                     </h3>
 
-
                                                                     <p className="text-xs text-red-500 mt-0.5">
-
                                                                         Returned items and refund information
-
                                                                     </p>
 
                                                                 </div>
@@ -2532,10 +2235,8 @@ const Customers = () => {
 
                                                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white border border-red-100 text-red-700 text-xs font-semibold">
 
-                                                                    {
-                                                                        purchase.refundStatus ||
-                                                                        "REFUNDED"
-                                                                    }
+                                                                    {purchase.refundStatus ||
+                                                                        "REFUNDED"}
 
                                                                 </span>
 
@@ -2561,11 +2262,7 @@ const Customers = () => {
                                                                                 <div>
 
                                                                                     <p className="text-sm font-semibold text-slate-800">
-
-                                                                                        {
-                                                                                            returnItem.product_name
-                                                                                        }
-
+                                                                                        {returnItem.product_name}
                                                                                     </p>
 
 
@@ -2574,11 +2271,7 @@ const Customers = () => {
                                                                                         Returned Qty:{" "}
 
                                                                                         <span className="font-semibold text-red-600">
-
-                                                                                            {
-                                                                                                returnItem.return_qty
-                                                                                            }
-
+                                                                                            {returnItem.return_qty}
                                                                                         </span>
 
 
@@ -2589,9 +2282,7 @@ const Customers = () => {
                                                                                         {Number(
                                                                                             returnItem.refund_amount ||
                                                                                                 0
-                                                                                        ).toFixed(
-                                                                                            2
-                                                                                        )}
+                                                                                        ).toFixed(2)}
 
                                                                                     </p>
 
@@ -2602,9 +2293,7 @@ const Customers = () => {
 
                                                                                             Reason:{" "}
 
-                                                                                            {
-                                                                                                returnItem.reason
-                                                                                            }
+                                                                                            {returnItem.reason}
 
                                                                                         </p>
 
@@ -2629,19 +2318,11 @@ const Customers = () => {
                                                                                 <div className="text-left md:text-right">
 
                                                                                     <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">
-
                                                                                         Returned By
-
                                                                                     </p>
 
-
                                                                                     <p className="text-sm font-semibold text-slate-700 mt-1">
-
-                                                                                        {
-                                                                                            returnItem.returned_by ||
-                                                                                            "-"
-                                                                                        }
-
+                                                                                        {returnItem.returned_by || "-"}
                                                                                     </p>
 
                                                                                 </div>
@@ -2671,21 +2352,15 @@ const Customers = () => {
                                                                 <div className="flex justify-between text-sm">
 
                                                                     <span className="text-slate-500">
-
                                                                         Subtotal
-
                                                                     </span>
-
 
                                                                     <span className="font-medium text-slate-700">
 
                                                                         ₹
                                                                         {Number(
-                                                                            purchase.subtotal ||
-                                                                                0
-                                                                        ).toFixed(
-                                                                            2
-                                                                        )}
+                                                                            purchase.subtotal || 0
+                                                                        ).toFixed(2)}
 
                                                                     </span>
 
@@ -2695,21 +2370,15 @@ const Customers = () => {
                                                                 <div className="flex justify-between text-sm">
 
                                                                     <span className="text-slate-500">
-
                                                                         Discount
-
                                                                     </span>
-
 
                                                                     <span className="font-medium text-slate-700">
 
                                                                         ₹
                                                                         {Number(
-                                                                            purchase.discount ||
-                                                                                0
-                                                                        ).toFixed(
-                                                                            2
-                                                                        )}
+                                                                            purchase.discount || 0
+                                                                        ).toFixed(2)}
 
                                                                     </span>
 
@@ -2719,21 +2388,15 @@ const Customers = () => {
                                                                 <div className="flex justify-between text-sm">
 
                                                                     <span className="text-slate-500">
-
                                                                         Loyalty Discount
-
                                                                     </span>
-
 
                                                                     <span className="font-medium text-slate-700">
 
                                                                         ₹
                                                                         {Number(
-                                                                            purchase.loyalty_discount ||
-                                                                                0
-                                                                        ).toFixed(
-                                                                            2
-                                                                        )}
+                                                                            purchase.loyalty_discount || 0
+                                                                        ).toFixed(2)}
 
                                                                     </span>
 
@@ -2743,21 +2406,15 @@ const Customers = () => {
                                                                 <div className="flex justify-between text-sm">
 
                                                                     <span className="text-slate-500">
-
                                                                         Tax
-
                                                                     </span>
-
 
                                                                     <span className="font-medium text-slate-700">
 
                                                                         ₹
                                                                         {Number(
-                                                                            purchase.tax ||
-                                                                                0
-                                                                        ).toFixed(
-                                                                            2
-                                                                        )}
+                                                                            purchase.tax || 0
+                                                                        ).toFixed(2)}
 
                                                                     </span>
 
@@ -2767,18 +2424,13 @@ const Customers = () => {
                                                                 <div className="border-t border-slate-200 pt-2 flex justify-between">
 
                                                                     <span className="text-sm font-bold text-slate-800">
-
                                                                         Original Total
-
                                                                     </span>
-
 
                                                                     <span className="text-base font-bold text-slate-800">
 
                                                                         ₹
-                                                                        {originalTotal.toFixed(
-                                                                            2
-                                                                        )}
+                                                                        {originalTotal.toFixed(2)}
 
                                                                     </span>
 
@@ -2792,18 +2444,13 @@ const Customers = () => {
                                                                         <div className="flex justify-between text-sm">
 
                                                                             <span className="font-semibold text-red-600">
-
                                                                                 Refunded
-
                                                                             </span>
-
 
                                                                             <span className="font-semibold text-red-600">
 
                                                                                 - ₹
-                                                                                {totalRefund.toFixed(
-                                                                                    2
-                                                                                )}
+                                                                                {totalRefund.toFixed(2)}
 
                                                                             </span>
 
@@ -2813,18 +2460,13 @@ const Customers = () => {
                                                                         <div className="border-t border-slate-200 pt-2 flex justify-between">
 
                                                                             <span className="text-sm font-bold text-slate-800">
-
                                                                                 Net Paid
-
                                                                             </span>
-
 
                                                                             <span className="text-base font-bold text-emerald-600">
 
                                                                                 ₹
-                                                                                {netPaid.toFixed(
-                                                                                    2
-                                                                                )}
+                                                                                {netPaid.toFixed(2)}
 
                                                                             </span>
 
@@ -2865,15 +2507,12 @@ const Customers = () => {
                                 <span className="font-semibold text-slate-700">
 
                                     {" "}
-                                    {
-                                        purchaseHistory.length
-                                    }
+                                    {purchaseHistory.length}
 
                                 </span>
 
                                 {" "}purchase
-                                {purchaseHistory.length !==
-                                1
+                                {purchaseHistory.length !== 1
                                     ? "s"
                                     : ""}
 
@@ -2882,14 +2521,10 @@ const Customers = () => {
 
                             <button
                                 type="button"
-                                onClick={
-                                    closeHistory
-                                }
+                                onClick={closeHistory}
                                 className="h-10 px-4 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-lg text-sm font-semibold transition"
                             >
-
                                 Close
-
                             </button>
 
                         </div>

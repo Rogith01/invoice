@@ -4,13 +4,14 @@ import React, {
     useCallback
 } from "react";
 
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+import api from "../api";
 
-const API_URL =
-    "https://invoice-backend-78hd.onrender.com";
 
+// ==================================================
+// CASH REGISTER HISTORY
+// ==================================================
 
 const CashRegisterHistory = () => {
 
@@ -43,18 +44,8 @@ const CashRegisterHistory = () => {
             setError("");
 
 
-            const token =
-                sessionStorage.getItem("token");
-
-
-            const response = await axios.get(
-                `${API_URL}/api/cash-register/history`,
-                {
-                    headers: {
-                        Authorization:
-                            `Bearer ${token}`
-                    }
-                }
+            const response = await api.get(
+                "/api/cash-register/history"
             );
 
 
@@ -560,9 +551,7 @@ const CashRegisterHistory = () => {
 
                             <table className="w-full min-w-[1100px] table-fixed">
 
-                                {/* ==================================================
-                                    TABLE HEADER
-                                ================================================== */}
+                                {/* TABLE HEADER */}
 
                                 <thead>
 
@@ -605,9 +594,7 @@ const CashRegisterHistory = () => {
                                 </thead>
 
 
-                                {/* ==================================================
-                                    TABLE BODY
-                                ================================================== */}
+                                {/* TABLE BODY */}
 
                                 <tbody className="divide-y divide-slate-100">
 
