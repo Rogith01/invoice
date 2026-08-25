@@ -4244,8 +4244,7 @@ app.get("/api/store/:storeCode", (req, res) => {
         }
     );
 
-});
-// ======================================================
+});// ======================================================
 // LOGIN
 // ======================================================
 
@@ -4294,6 +4293,8 @@ app.post(
                 id,
                 store_code,
                 store_name,
+                address,
+                gstin,
                 database_name
             FROM stores
             WHERE store_code = ?
@@ -4444,6 +4445,12 @@ app.post(
                                     storeName:
                                         store.store_name,
 
+                                    storeAddress:
+                                        store.address,
+
+                                    storeGstin:
+                                        store.gstin,
+
                                     databaseName:
                                         store.database_name
                                 },
@@ -4466,7 +4473,6 @@ app.post(
                                 true,
 
                             token:
-
                                 token,
 
                             store: {
@@ -4478,7 +4484,13 @@ app.post(
                                     store.store_code,
 
                                 storeName:
-                                    store.store_name
+                                    store.store_name,
+
+                                address:
+                                    store.address,
+
+                                gstin:
+                                    store.gstin
 
                             },
 

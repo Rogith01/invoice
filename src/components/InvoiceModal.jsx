@@ -272,17 +272,45 @@ const InvoiceModal = ({
                                     }}
                                 >
 
-                                    {/* ========================================== */}
-                                    {/* STORE NAME */}
-                                    {/* ========================================== */}
+{/* ========================================== */}
+{/* STORE DETAILS */}
+{/* ========================================== */}
 
-                                    <h1 className="text-center text-lg font-bold text-gray-900">
+<div className="text-center text-gray-900">
 
-                                       {store?.storeName || "Supermarket"}
+    {/* STORE NAME */}
 
-                                        <br />
+    <h1 className="text-lg font-bold">
 
-                                    </h1>
+        {store?.storeName || "Supermarket"}
+
+    </h1>
+
+    {/* ADDRESS */}
+
+    {store?.address && (
+
+        <p className="mt-1 text-[11px] leading-4">
+
+            {store.address}
+
+        </p>
+
+    )}
+
+    {/* GSTIN */}
+
+    {store?.gstin && (
+
+        <p className="mt-1 text-[11px] font-semibold">
+
+            GSTIN: {store.gstin}
+
+        </p>
+
+    )}
+
+</div>
 
                                     {/* ========================================== */}
                                     {/* INVOICE INFO */}
