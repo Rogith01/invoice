@@ -9,13 +9,18 @@ import { jsPDF } from "jspdf";
 
 const Reports = () => {
 
-        const user = JSON.parse(
-        sessionStorage.getItem("user")
-    );
+const user = JSON.parse(
+    sessionStorage.getItem("user") || "{}"
+);
 
-    const storeName =
+const storeName =
     user?.storeName ||
     user?.store_name ||
+    user?.store ||
+    user?.name ||
+    sessionStorage.getItem("storeName") ||
+    sessionStorage.getItem("store_name") ||
+    localStorage.getItem("storeName") ||
     localStorage.getItem("store_name") ||
     "Supermarket";
 
