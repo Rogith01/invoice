@@ -13,7 +13,11 @@ const Reports = () => {
         sessionStorage.getItem("user")
     );
 
-    const storeName = user?.storeName || "";
+    const storeName =
+    user?.storeName ||
+    user?.store_name ||
+    localStorage.getItem("store_name") ||
+    "Supermarket";
 
     const [fromDate, setFromDate] = useState("");
     const [toDate, setToDate] = useState("");
