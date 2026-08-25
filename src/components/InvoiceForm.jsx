@@ -227,7 +227,7 @@ const InvoiceForm = () => {
 
             const savedBills =
                 localStorage.getItem(
-                    "ak_held_bills"
+                    "held_bills"
                 );
 
             return savedBills
@@ -347,7 +347,7 @@ const InvoiceForm = () => {
         try {
 
             localStorage.setItem(
-                "ak_held_bills",
+                "held_bills",
                 JSON.stringify(heldBills)
             );
 

@@ -935,7 +935,7 @@ const storeName =
 
 
             doc.save(
-                `AK_Super_Market_${customerName}_Purchase_History.pdf`
+                `${customerName}_Purchase_History.pdf`
             );
 
         };

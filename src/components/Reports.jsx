@@ -9,21 +9,31 @@ import { jsPDF } from "jspdf";
 
 const Reports = () => {
 
-const user = JSON.parse(
-    sessionStorage.getItem("user") || "{}"
-);
+    // ======================================================
+    // LOGGED-IN USER
+    // ======================================================
 
-const storeName =
-    user?.storeName ||
-    user?.store_name ||
-    user?.store ||
-    user?.name ||
-    sessionStorage.getItem("storeName") ||
-    sessionStorage.getItem("store_name") ||
-    localStorage.getItem("storeName") ||
-    localStorage.getItem("store_name") ||
-    "Supermarket";
+    const user = JSON.parse(
+        sessionStorage.getItem("user") || "{}"
+    );
 
+
+    // ======================================================
+    // LOGGED-IN STORE
+    // ======================================================
+
+    const store = JSON.parse(
+        sessionStorage.getItem("store") || "{}"
+    );
+
+
+    // ======================================================
+    // STORE NAME
+    // SAME LOGIC AS NAVBAR
+    // ======================================================
+
+    const storeName =
+        store?.storeName || "POS SYSTEM";
     const [fromDate, setFromDate] = useState("");
     const [toDate, setToDate] = useState("");
 
@@ -801,7 +811,7 @@ const storeName =
         // ==================================================
 
         doc.save(
-            `AK_Super_Market_Report_${fromDate}_to_${toDate}.pdf`
+            `Super_Market_Report_${fromDate}_to_${toDate}.pdf`
         );
 
     };
