@@ -1008,13 +1008,47 @@ const store = JSON.parse(
                 >
 
 
-                    {/* STORE NAME */}
+{/* ==================================================
+    STORE DETAILS
+================================================== */}
 
-<h1 className="text-center text-xl font-bold tracking-wide text-gray-900 mb-3">
+<div className="text-center text-gray-900 mb-3">
 
-    {store?.storeName || "Supermarket"}
+    {/* STORE NAME */}
 
-</h1>
+    <h1 className="text-xl font-bold tracking-wide">
+
+        {store?.storeName || "Supermarket"}
+
+    </h1>
+
+
+    {/* ADDRESS */}
+
+    {store?.address && (
+
+        <p className="mt-1 text-[12px] leading-4">
+
+            {store.address}
+
+        </p>
+
+    )}
+
+
+    {/* GSTIN */}
+
+    {store?.gstin && (
+
+        <p className="mt-1 text-[12px] font-semibold">
+
+            GSTIN: {store.gstin}
+
+        </p>
+
+    )}
+
+</div>
 
 
                     <hr className="border-gray-300 mb-4" />
