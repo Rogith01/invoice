@@ -589,7 +589,7 @@ const InvoiceModal = ({
 
 {/* TOTAL PRODUCTS & QUANTITY */}
 
-<div className="w-full text-right text-[10px] text-gray-400 mt-1">
+<div className="w-full text-left text-[10px] text-gray-400 mt-1">
 
     Total Products:{" "}
     {items.filter(

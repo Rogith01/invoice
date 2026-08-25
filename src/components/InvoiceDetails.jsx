@@ -1354,24 +1354,44 @@ const store = JSON.parse(
                         </div>
 
 
-                        <div className="flex w-full justify-between border-t border-black/10 py-2 text-[17px] font-bold">
+                     <div className="flex w-full justify-between border-t border-black/10 py-2 text-[17px] font-bold">
 
-                            <span>
-                                Grand Total:
-                            </span>
+    <span>
+        Grand Total:
+    </span>
+
+    <span className="text-[18px]">
+
+        Rs:
+        {Number(
+            invoice.total
+        ).toFixed(2)}
+
+    </span>
+
+</div>
 
 
-                            <span className="text-[18px]">
+{/* TOTAL PRODUCTS & QUANTITY */}
 
-                                Rs:
-                                {Number(
-                                    invoice.total
-                                ).toFixed(2)}
+<div className="w-full text-left text-[10px] text-gray-400 mt-1">
 
-                            </span>
+    Total Products:{" "}
+    {items.length}
 
-                        </div>
+    {"  |  "}
 
+    Total Quantity:{" "}
+    {items.reduce(
+        (total, item) =>
+            total +
+            Math.floor(
+                Number(item.qty || 0)
+            ),
+        0
+    )}
+
+</div>
                     </div>
 
 
