@@ -572,25 +572,43 @@ const InvoiceModal = ({
 
                                             {/* GRAND TOTAL */}
 
-                                            <div className="flex w-full justify-between border-t border-black/10 py-2 text-[17px] font-bold">
+<div className="flex w-full justify-between border-t border-black/10 py-2 text-[17px] font-bold">
 
-                                                <span>
-                                                    Grand Total:
-                                                </span>
+    <span>
+        Grand Total:
+    </span>
 
-                                                <span className="text-[18px]">
+    <span className="text-[18px]">
+        Rs:
+        {Number(
+            invoiceInfo.total || 0
+        ).toFixed(2)}
+    </span>
 
-                                                    Rs:
-                                                    {Number(
-                                                        invoiceInfo.total ||
-                                                            0
-                                                    ).toFixed(
-                                                        2
-                                                    )}
+</div>
 
-                                                </span>
+{/* TOTAL PRODUCTS & QUANTITY */}
 
-                                            </div>
+<div className="w-full text-right text-[10px] text-gray-400 mt-1">
+
+    Total Products:{" "}
+    {items.filter(
+        (item) => item.name
+    ).length}
+
+    {"  |  "}
+
+    Total Quantity:{" "}
+    {items.reduce(
+        (total, item) =>
+            total +
+            Math.floor(
+                Number(item.qty || 0)
+            ),
+        0
+    )}
+
+</div>
 
                                         </div>
 
