@@ -2830,7 +2830,22 @@ return (
 
         {showCustomerSuggestions && (
 
-            <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden">
+            <div
+                className="
+                    absolute
+                    z-50
+                    left-0
+                    right-0
+                    mt-1
+                    bg-white
+                    border
+                    border-slate-200
+                    rounded-lg
+                    shadow-lg
+                    overflow-y-auto
+                    max-h-48
+                "
+            >
 
                 {customerSuggestions.map(
                     (customer, index) => (
