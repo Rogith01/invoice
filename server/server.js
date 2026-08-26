@@ -206,6 +206,59 @@ app.get(
     }
 );
 // ======================================================
+// SEARCH CUSTOMERS BY PHONE
+// ======================================================
+
+app.get(
+    "/api/customers/search/:phone",
+    authenticateToken,
+    (req, res) => {
+
+        const storeDb =
+            req.storeDb;
+
+        const phone =
+            req.params.phone;
+
+        const sql = `
+            SELECT
+                id,
+                customer_name,
+                phone_number,
+                loyalty_points
+            FROM customers
+            WHERE phone_number LIKE ?
+            ORDER BY phone_number ASC
+            LIMIT 10
+        `;
+
+        storeDb.query(
+            sql,
+            [`${phone}%`],
+            (err, rows) => {
+
+                if (err) {
+
+                    console.error(
+                        "Customer Search Error:",
+                        err
+                    );
+
+                    return res.status(500).json({
+                        success: false,
+                        message: err.message
+                    });
+                }
+
+                return res.json({
+                    success: true,
+                    customers: rows
+                });
+            }
+        );
+    }
+);
+// ======================================================
 // GET CUSTOMER PURCHASE HISTORY
 // ======================================================
 

@@ -52,6 +52,12 @@ const InvoiceForm = () => {
     const [phoneNumber, setPhoneNumber] =
         useState("");
 
+    const [customerSuggestions, setCustomerSuggestions] =
+    useState([]);
+
+    const [showCustomerSuggestions, setShowCustomerSuggestions] =
+    useState(false);
+
     // ==========================================
     // LOYALTY STATES
     // ==========================================
@@ -440,6 +446,50 @@ const fetchCustomer = async (phone) => {
 
     }
 
+};
+// ==========================================
+// SEARCH CUSTOMER PHONE SUGGESTIONS
+// ==========================================
+
+const searchCustomers = async (phone) => {
+
+    if (phone.length < 2) {
+
+        setCustomerSuggestions([]);
+
+        setShowCustomerSuggestions(false);
+
+        return;
+    }
+
+    try {
+
+        const res = await api.get(
+            `/api/customers/search/${phone}`
+        );
+
+        if (res.data.success) {
+
+            setCustomerSuggestions(
+                res.data.customers || []
+            );
+
+            setShowCustomerSuggestions(
+                res.data.customers.length > 0
+            );
+        }
+
+    } catch (err) {
+
+        console.log(
+            "Customer Search Error:",
+            err
+        );
+
+        setCustomerSuggestions([]);
+
+        setShowCustomerSuggestions(false);
+    }
 };
 // ==========================================
 // FETCH PRODUCTS
@@ -2608,35 +2658,127 @@ return (
                                         Phone Number
                                     </label>
 
-                                    <input
-                                        type="text"
-                                        id="phoneNumber"
-                                        maxLength={10}
-                                        value={phoneNumber}
-                                        placeholder="10 digit number"
-                                        onChange={(e) => {
+<div className="relative">
 
-                                            const value =
-                                                e.target.value.replace(
-                                                    /\D/g,
-                                                    ""
-                                                );
+    <input
+        type="text"
+        id="phoneNumber"
+        maxLength={10}
+        value={phoneNumber}
+        placeholder="10 digit number"
+        onChange={(e) => {
 
-                                            setPhoneNumber(value);
+            const value =
+                e.target.value.replace(
+                    /\D/g,
+                    ""
+                );
 
-                                            if (
-                                                value.length === 10
-                                            ) {
+            setPhoneNumber(value);
 
-                                                fetchCustomer(
-                                                    value
-                                                );
+            searchCustomers(value);
 
-                                            }
+            if (
+                value.length === 10
+            ) {
 
-                                        }}
-                                        className="w-full h-10 border border-slate-200 rounded-lg px-3 text-sm outline-none bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
-                                    />
+                fetchCustomer(value);
+
+            } else {
+
+                setCustomerName("");
+
+                setLoyaltyPoints(0);
+
+                setAvailablePoints(0);
+
+                setRedeemPoints(false);
+
+            }
+
+        }}
+        onBlur={() => {
+
+            setTimeout(() => {
+
+                setShowCustomerSuggestions(false);
+
+            }, 200);
+
+        }}
+        className="w-full h-10 border border-slate-200 rounded-lg px-3 text-sm outline-none bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+    />
+
+
+    {showCustomerSuggestions && (
+
+        <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden">
+
+            {customerSuggestions.map(
+                (customer) => (
+
+                    <button
+                        key={customer.id}
+                        type="button"
+                        onClick={() => {
+
+                            setPhoneNumber(
+                                customer.phone_number
+                            );
+
+                            setCustomerName(
+                                customer.customer_name
+                            );
+
+                            setLoyaltyPoints(
+                                Number(
+                                    customer.loyalty_points || 0
+                                )
+                            );
+
+                            setAvailablePoints(
+                                Number(
+                                    customer.loyalty_points || 0
+                                )
+                            );
+
+                            setRedeemPoints(false);
+
+                            setShowCustomerSuggestions(false);
+
+                            setCustomerSuggestions([]);
+
+                            showToast(
+                                `Customer "${customer.customer_name}" selected.`,
+                                "success"
+                            );
+
+                        }}
+                        className="w-full text-left px-3 py-2.5 hover:bg-slate-50 border-b border-slate-100 last:border-b-0 transition"
+                    >
+
+                        <div className="text-sm font-medium text-slate-800">
+
+                            {customer.phone_number}
+
+                        </div>
+
+                        <div className="text-xs text-slate-500 mt-0.5">
+
+                            {customer.customer_name}
+
+                        </div>
+
+                    </button>
+
+                )
+            )}
+
+        </div>
+
+    )}
+
+</div>
 
                                 </div>
 
