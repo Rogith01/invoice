@@ -61,6 +61,8 @@ const InvoiceForm = () => {
     const [selectedCustomerIndex, setSelectedCustomerIndex] =
     useState(-1);
 
+    const customerSuggestionRefs = useRef([]);
+
     // ==========================================
     // LOYALTY STATES
     // ==========================================
@@ -2728,9 +2730,7 @@ return (
 
                 searchCustomers(value);
 
-                if (
-                    value.length === 10
-                ) {
+                if (value.length === 10) {
 
                     fetchCustomer(value);
 
@@ -2761,13 +2761,28 @@ return (
 
                     e.preventDefault();
 
-                    setSelectedCustomerIndex(
-                        (prev) =>
+                    setSelectedCustomerIndex((prev) => {
+
+                        const nextIndex =
                             prev <
                             customerSuggestions.length - 1
                                 ? prev + 1
-                                : 0
-                    );
+                                : 0;
+
+                        setTimeout(() => {
+
+                            customerSuggestionRefs.current[
+                                nextIndex
+                            ]?.scrollIntoView({
+                                behavior: "smooth",
+                                block: "nearest",
+                            });
+
+                        }, 0);
+
+                        return nextIndex;
+
+                    });
 
                 }
 
@@ -2775,12 +2790,27 @@ return (
 
                     e.preventDefault();
 
-                    setSelectedCustomerIndex(
-                        (prev) =>
+                    setSelectedCustomerIndex((prev) => {
+
+                        const nextIndex =
                             prev > 0
                                 ? prev - 1
-                                : customerSuggestions.length - 1
-                    );
+                                : customerSuggestions.length - 1;
+
+                        setTimeout(() => {
+
+                            customerSuggestionRefs.current[
+                                nextIndex
+                            ]?.scrollIntoView({
+                                behavior: "smooth",
+                                block: "nearest",
+                            });
+
+                        }, 0);
+
+                        return nextIndex;
+
+                    });
 
                 }
 
@@ -2853,6 +2883,12 @@ return (
                         <button
                             key={customer.id}
                             type="button"
+
+                            ref={(el) => {
+                                customerSuggestionRefs.current[
+                                    index
+                                ] = el;
+                            }}
 
                             onMouseDown={(e) => {
 
