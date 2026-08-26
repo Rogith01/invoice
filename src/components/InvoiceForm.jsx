@@ -58,6 +58,9 @@ const InvoiceForm = () => {
     const [showCustomerSuggestions, setShowCustomerSuggestions] =
     useState(false);
 
+    const [selectedCustomerIndex, setSelectedCustomerIndex] =
+    useState(-1);
+
     // ==========================================
     // LOYALTY STATES
     // ==========================================
@@ -490,6 +493,50 @@ const searchCustomers = async (phone) => {
 
         setShowCustomerSuggestions(false);
     }
+};
+// ==========================================
+// SELECT CUSTOMER SUGGESTION
+// ==========================================
+
+const selectCustomerSuggestion = (customer) => {
+
+    if (!customer) {
+        return;
+    }
+
+    const phone =
+        String(customer.phone_number || "");
+
+    setPhoneNumber(phone);
+
+    setCustomerName(
+        customer.customer_name || ""
+    );
+
+    setLoyaltyPoints(
+        Number(
+            customer.loyalty_points || 0
+        )
+    );
+
+    setAvailablePoints(
+        Number(
+            customer.loyalty_points || 0
+        )
+    );
+
+    setRedeemPoints(false);
+
+    setCustomerSuggestions([]);
+
+    setShowCustomerSuggestions(false);
+
+    setSelectedCustomerIndex(-1);
+
+    showToast(
+        `Customer "${customer.customer_name}" selected.`,
+        "success"
+    );
 };
 // ==========================================
 // FETCH PRODUCTS
@@ -2649,138 +2696,190 @@ return (
                                 </div>
 
 
-                                <div>
+<div>
 
-                                    <label
-                                        htmlFor="phoneNumber"
-                                        className="block text-[11px] font-semibold text-slate-600 mb-1.5"
-                                    >
-                                        Phone Number
-                                    </label>
+    <label
+        htmlFor="phoneNumber"
+        className="block text-[11px] font-semibold text-slate-600 mb-1.5"
+    >
+        Phone Number
+    </label>
 
-<div className="relative">
+    <div className="relative">
 
-    <input
-        type="text"
-        id="phoneNumber"
-        maxLength={10}
-        value={phoneNumber}
-        placeholder="10 digit number"
-        onChange={(e) => {
+        <input
+            type="text"
+            id="phoneNumber"
+            maxLength={10}
+            value={phoneNumber}
+            placeholder="10 digit number"
 
-            const value =
-                e.target.value.replace(
-                    /\D/g,
-                    ""
-                );
+            onChange={(e) => {
 
-            setPhoneNumber(value);
+                const value =
+                    e.target.value.replace(
+                        /\D/g,
+                        ""
+                    );
 
-            searchCustomers(value);
+                setPhoneNumber(value);
 
-            if (
-                value.length === 10
-            ) {
+                setSelectedCustomerIndex(-1);
 
-                fetchCustomer(value);
+                searchCustomers(value);
 
-            } else {
+                if (
+                    value.length === 10
+                ) {
 
-                setCustomerName("");
+                    fetchCustomer(value);
 
-                setLoyaltyPoints(0);
+                } else {
 
-                setAvailablePoints(0);
+                    setCustomerName("");
 
-                setRedeemPoints(false);
+                    setLoyaltyPoints(0);
 
-            }
+                    setAvailablePoints(0);
 
-        }}
-        onBlur={() => {
+                    setRedeemPoints(false);
 
-            setTimeout(() => {
+                }
 
-                setShowCustomerSuggestions(false);
+            }}
 
-            }, 200);
+            onKeyDown={(e) => {
 
-        }}
-        className="w-full h-10 border border-slate-200 rounded-lg px-3 text-sm outline-none bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
-    />
+                if (
+                    !showCustomerSuggestions ||
+                    customerSuggestions.length === 0
+                ) {
+                    return;
+                }
+
+                if (e.key === "ArrowDown") {
+
+                    e.preventDefault();
+
+                    setSelectedCustomerIndex(
+                        (prev) =>
+                            prev <
+                            customerSuggestions.length - 1
+                                ? prev + 1
+                                : 0
+                    );
+
+                }
+
+                else if (e.key === "ArrowUp") {
+
+                    e.preventDefault();
+
+                    setSelectedCustomerIndex(
+                        (prev) =>
+                            prev > 0
+                                ? prev - 1
+                                : customerSuggestions.length - 1
+                    );
+
+                }
+
+                else if (e.key === "Enter") {
+
+                    e.preventDefault();
+
+                    if (
+                        selectedCustomerIndex >= 0
+                    ) {
+
+                        selectCustomerSuggestion(
+                            customerSuggestions[
+                                selectedCustomerIndex
+                            ]
+                        );
+
+                    }
+
+                }
+
+                else if (e.key === "Escape") {
+
+                    e.preventDefault();
+
+                    setShowCustomerSuggestions(false);
+
+                    setSelectedCustomerIndex(-1);
+
+                }
+
+            }}
+
+            onBlur={() => {
+
+                setTimeout(() => {
+
+                    setShowCustomerSuggestions(false);
+
+                }, 200);
+
+            }}
+
+            className="w-full h-10 border border-slate-200 rounded-lg px-3 text-sm outline-none bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+        />
 
 
-    {showCustomerSuggestions && (
+        {showCustomerSuggestions && (
 
-        <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden">
+            <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden">
 
-            {customerSuggestions.map(
-                (customer) => (
+                {customerSuggestions.map(
+                    (customer, index) => (
 
-                    <button
-                        key={customer.id}
-                        type="button"
-                        onClick={() => {
+                        <button
+                            key={customer.id}
+                            type="button"
 
-                            setPhoneNumber(
-                                customer.phone_number
-                            );
+                            onMouseDown={(e) => {
 
-                            setCustomerName(
-                                customer.customer_name
-                            );
+                                e.preventDefault();
 
-                            setLoyaltyPoints(
-                                Number(
-                                    customer.loyalty_points || 0
-                                )
-                            );
+                                selectCustomerSuggestion(
+                                    customer
+                                );
 
-                            setAvailablePoints(
-                                Number(
-                                    customer.loyalty_points || 0
-                                )
-                            );
+                            }}
 
-                            setRedeemPoints(false);
+                            className={`w-full text-left px-3 py-2.5 border-b border-slate-100 last:border-b-0 transition ${
+                                selectedCustomerIndex === index
+                                    ? "bg-blue-50"
+                                    : "hover:bg-slate-50"
+                            }`}
+                        >
 
-                            setShowCustomerSuggestions(false);
+                            <div className="text-sm font-medium text-slate-800">
 
-                            setCustomerSuggestions([]);
+                                {customer.phone_number}
 
-                            showToast(
-                                `Customer "${customer.customer_name}" selected.`,
-                                "success"
-                            );
+                            </div>
 
-                        }}
-                        className="w-full text-left px-3 py-2.5 hover:bg-slate-50 border-b border-slate-100 last:border-b-0 transition"
-                    >
+                            <div className="text-xs text-slate-500 mt-0.5">
 
-                        <div className="text-sm font-medium text-slate-800">
+                                {customer.customer_name}
 
-                            {customer.phone_number}
+                            </div>
 
-                        </div>
+                        </button>
 
-                        <div className="text-xs text-slate-500 mt-0.5">
+                    )
+                )}
 
-                            {customer.customer_name}
+            </div>
 
-                        </div>
+        )}
 
-                    </button>
-
-                )
-            )}
-
-        </div>
-
-    )}
+    </div>
 
 </div>
-
-                                </div>
 
 
                                 <div>
