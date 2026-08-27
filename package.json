@@ -72,14 +72,16 @@
   "build": {
     "extends": null,
     "appId": "com.ak.supermarketpos",
-   "productName": "BILLNEX",
+   "productName": "BILLQORA",
+   "icon": "assets/bill.ico",
     "files": [
       "build/**/*",
       "electron/**/*",
       "package.json"
     ],
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "icon": "assets/bill.ico"
     },
     "nsis": {
       "oneClick": false,
