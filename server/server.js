@@ -2965,14 +2965,15 @@ app.post(
 
         const checkCustomer = () => {
 
-            const checkCustomerSql = `
-                SELECT
-                    id,
-                    loyalty_points
-                FROM customers
-                WHERE phone_number = ?
-                LIMIT 1
-            `;
+const checkCustomerSql = `
+    SELECT
+        id,
+        loyalty_points,
+        loyalty_balance
+    FROM customers
+    WHERE phone_number = ?
+    LIMIT 1
+`;
 
             storeDb.query(
                 checkCustomerSql,
@@ -2998,18 +2999,24 @@ app.post(
                         rows.length > 0
                     ) {
 
-                        const customerId =
-                            rows[0].id;
+const customerId =
+    rows[0].id;
 
-                        const loyaltyPoints =
-                            Number(
-                                rows[0].loyalty_points
-                            ) || 0;
+const loyaltyPoints =
+    Number(
+        rows[0].loyalty_points
+    ) || 0;
 
-                        saveInvoice(
-                            customerId,
-                            loyaltyPoints
-                        );
+const loyaltyBalance =
+    Number(
+        rows[0].loyalty_balance
+    ) || 0;
+
+saveInvoice(
+    customerId,
+    loyaltyPoints,
+    loyaltyBalance
+);
 
                     } else {
 
@@ -3056,6 +3063,7 @@ app.post(
 
                                 saveInvoice(
                                     customerId,
+                                    0,
                                     0
                                 );
 
@@ -3069,29 +3077,137 @@ app.post(
 
         };
 
+// ======================================================
+// SAVE INVOICE
+// ======================================================
 
-        // ======================================================
-        // SAVE INVOICE
-        // ======================================================
+function saveInvoice(
+    customerId,
+    loyaltyPoints,
+    loyaltyBalance
+) {
 
-        function saveInvoice(
-            customerId,
-            loyaltyPoints
-        ) {
+    const getLastInvoice = `
+        SELECT
+            invoice_number
+        FROM invoices
+        ORDER BY id DESC
+        LIMIT 1
+    `;
 
-            const getLastInvoice = `
-                SELECT
-                    invoice_number
-                FROM invoices
-                ORDER BY id DESC
-                LIMIT 1
+    storeDb.query(
+        getLastInvoice,
+        (err, rows) => {
+
+            if (err) {
+
+                return res.status(500).json({
+                    success: false,
+                    message:
+                        err.message
+                });
+
+            }
+
+            let invoiceNumber =
+                "INV-0001";
+
+            if (
+                rows.length > 0
+            ) {
+
+                const lastInvoice =
+                    rows[0].invoice_number;
+
+                const lastNumber =
+                    parseInt(
+                        lastInvoice.replace(
+                            "INV-",
+                            ""
+                        )
+                    ) || 0;
+
+                invoiceNumber =
+                    "INV-" +
+                    String(
+                        lastNumber + 1
+                    ).padStart(
+                        4,
+                        "0"
+                    );
+
+            }
+
+
+            // ======================================================
+            // INSERT INVOICE
+            // ======================================================
+
+            const invoiceSql = `
+                INSERT INTO invoices
+                (
+                    invoice_number,
+                    invoice_date,
+                    invoice_time,
+                    customer_id,
+                    cashier_name,
+                    customer_name,
+                    subtotal,
+                    discount,
+                    loyalty_discount,
+                    tax,
+                    total,
+                    payment_Method
+                )
+                VALUES
+                (
+                    ?,
+                    CURDATE(),
+                    TIME(
+                        CONVERT_TZ(
+                            NOW(),
+                            '+00:00',
+                            '+05:30'
+                        )
+                    ),
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?
+                )
             `;
 
             storeDb.query(
-                getLastInvoice,
-                (err, rows) => {
+                invoiceSql,
+                [
+                    invoiceNumber,
+                    customerId,
+                    cashierName,
+                    customerName,
+                    subtotal,
+                    discountRate,
+
+                    redeemPoints
+                        ? loyaltyPoints
+                        : 0,
+
+                    taxRate,
+                    total,
+                    paymentMethod
+                ],
+                (err, result) => {
 
                     if (err) {
+
+                        console.error(
+                            "Invoice Insert Error:",
+                            err
+                        );
 
                         return res.status(500).json({
                             success: false,
@@ -3101,166 +3217,224 @@ app.post(
 
                     }
 
-                    let invoiceNumber =
-                        "INV-0001";
+                    const invoiceId =
+                        result.insertId;
 
-                    if (
-                        rows.length > 0
-                    ) {
-
-                        const lastInvoice =
-                            rows[0].invoice_number;
-
-                        const lastNumber =
-                            parseInt(
-                                lastInvoice.replace(
-                                    "INV-",
-                                    ""
-                                )
-                            ) || 0;
-
-                        invoiceNumber =
-                            "INV-" +
-                            String(
-                                lastNumber + 1
-                            ).padStart(
-                                4,
-                                "0"
-                            );
-
-                    }
+                    let completed = 0;
 
 
                     // ======================================================
-                    // INSERT INVOICE
+                    // UPDATE LOYALTY POINTS
                     // ======================================================
 
-                    const invoiceSql = `
-                        INSERT INTO invoices
-                        (
-                            invoice_number,
-                            invoice_date,
-                            invoice_time,
-                            customer_id,
-                            cashier_name,
-                            customer_name,
-                            subtotal,
-                            discount,
-                            loyalty_discount,
-                            tax,
-                            total,
-                            payment_Method
-                        )
-                        VALUES
-                        (
-                            ?,
-                            CURDATE(),
-                            TIME(
-                                CONVERT_TZ(
-                                    NOW(),
-                                    '+00:00',
-                                    '+05:30'
-                                )
-                            ),
-                            ?,
-                            ?,
-                            ?,
-                            ?,
-                            ?,
-                            ?,
-                            ?,
-                            ?,
-                            ?
-                        )
-                    `;
+                    const updateLoyaltyPoints =
+                        () => {
 
-                    storeDb.query(
-                        invoiceSql,
-                        [
-                            invoiceNumber,
-                            customerId,
-                            cashierName,
-                            customerName,
-                            subtotal,
-                            discountRate,
+                            // ======================================================
+                            // CURRENT CUSTOMER LOYALTY DATA
+                            // ======================================================
 
-                            redeemPoints
-                                ? loyaltyPoints
-                                : 0,
+                            const currentBalance =
+                                Number(loyaltyBalance) || 0;
 
-                            taxRate,
-                            total,
-                            paymentMethod
-                        ],
-                        (err, result) => {
+                            const currentPoints =
+                                Number(loyaltyPoints) || 0;
 
-                            if (err) {
 
-                                console.error(
-                                    "Invoice Insert Error:",
-                                    err
+                            // ======================================================
+                            // ADD CURRENT PURCHASE TO PREVIOUS BALANCE
+                            // ======================================================
+
+                            const purchaseAmount =
+                                Number(total) || 0;
+
+                            const combinedAmount =
+                                currentBalance +
+                                purchaseAmount;
+
+
+                            // ======================================================
+                            // ₹100 = 1 LOYALTY POINT
+                            // ======================================================
+
+                            const earnedPoints =
+                                Math.floor(
+                                    combinedAmount /
+                                    100
                                 );
 
-                                return res.status(500).json({
-                                    success: false,
-                                    message:
-                                        err.message
-                                });
 
-                            }
+                            // ======================================================
+                            // REMAINING AMOUNT FOR NEXT POINT
+                            // ======================================================
 
-                            const invoiceId =
-                                result.insertId;
-
-                            let completed = 0;
+                            const newLoyaltyBalance =
+                                combinedAmount %
+                                100;
 
 
                             // ======================================================
-                            // UPDATE LOYALTY POINTS
+                            // HANDLE POINT REDEMPTION
                             // ======================================================
 
-                            const updateLoyaltyPoints =
-                                () => {
+                            const redeemedPoints =
+                                redeemPoints
+                                    ? currentPoints
+                                    : 0;
 
-                                    const redeemedPoints =
-                                        redeemPoints
-                                            ? loyaltyPoints
-                                            : 0;
 
-                                    const earnedPoints =
-                                        Math.floor(
-                                            Number(total) /
-                                            100
+                            // ======================================================
+                            // FINAL AVAILABLE POINTS
+                            // ======================================================
+
+                            const finalPoints =
+                                Math.max(
+                                    0,
+                                    currentPoints -
+                                    redeemedPoints +
+                                    earnedPoints
+                                );
+
+
+                            // ======================================================
+                            // UPDATE CUSTOMER LOYALTY
+                            // ======================================================
+
+                            const updatePointsSql = `
+                                UPDATE customers
+                                SET
+                                    loyalty_points = ?,
+                                    loyalty_balance = ?
+                                WHERE id = ?
+                            `;
+
+                            storeDb.query(
+                                updatePointsSql,
+                                [
+                                    finalPoints,
+                                    newLoyaltyBalance,
+                                    customerId
+                                ],
+                                (err) => {
+
+                                    if (err) {
+
+                                        console.error(
+                                            "Loyalty Points Error:",
+                                            err
                                         );
 
-                                    const finalPoints =
-                                        Math.max(
-                                            0,
-                                            loyaltyPoints -
-                                            redeemedPoints +
-                                            earnedPoints
+                                        return res.status(500).json({
+                                            success: false,
+                                            message:
+                                                err.message
+                                        });
+
+                                    }
+
+
+                                    // ======================================================
+                                    // SUCCESS RESPONSE
+                                    // ======================================================
+
+                                    return res.json({
+                                        success: true,
+
+                                        message:
+                                            "Invoice Saved Successfully",
+
+                                        invoiceNumber,
+
+                                        earnedPoints,
+
+                                        redeemedPoints,
+
+                                        finalPoints,
+
+                                        loyaltyBalance:
+                                            newLoyaltyBalance
+                                    });
+
+                                }
+                            );
+
+                        };
+
+
+                    // ======================================================
+                    // INSERT ITEMS + DEDUCT STOCK
+                    // ======================================================
+
+                    validItems.forEach(
+                        item => {
+
+                            const itemSql = `
+                                INSERT INTO invoice_items
+                                (
+                                    invoice_id,
+                                    item_name,
+                                    qty,
+                                    price,
+                                    amount
+                                )
+                                VALUES
+                                (
+                                    ?,
+                                    ?,
+                                    ?,
+                                    ?,
+                                    ?
+                                )
+                            `;
+
+                            storeDb.query(
+                                itemSql,
+                                [
+                                    invoiceId,
+                                    item.name,
+                                    item.qty,
+                                    item.price,
+                                    Number(item.qty) *
+                                    Number(item.price)
+                                ],
+                                (err) => {
+
+                                    if (err) {
+
+                                        console.error(
+                                            "Invoice Item Error:",
+                                            err
                                         );
 
-                                    const updatePointsSql = `
-                                        UPDATE customers
-                                        SET loyalty_points = ?
-                                        WHERE id = ?
+                                        return res.status(500).json({
+                                            success: false,
+                                            message:
+                                                err.message
+                                        });
+
+                                    }
+
+
+                                    // ======================================================
+                                    // GET STOCK BEFORE UPDATE
+                                    // ======================================================
+
+                                    const stockBeforeSql = `
+                                        SELECT
+                                            id,
+                                            product_name,
+                                            stock_quantity
+                                        FROM products
+                                        WHERE product_name = ?
+                                        LIMIT 1
                                     `;
 
                                     storeDb.query(
-                                        updatePointsSql,
-                                        [
-                                            finalPoints,
-                                            customerId
-                                        ],
-                                        (err) => {
+                                        stockBeforeSql,
+                                        [item.name],
+                                        (err, stockRows) => {
 
                                             if (err) {
-
-                                                console.error(
-                                                    "Loyalty Points Error:",
-                                                    err
-                                                );
 
                                                 return res.status(500).json({
                                                     success: false,
@@ -3270,101 +3444,60 @@ app.post(
 
                                             }
 
-                                            return res.json({
-                                                success: true,
+                                            if (
+                                                stockRows.length === 0
+                                            ) {
 
-                                                message:
-                                                    "Invoice Saved Successfully",
-
-                                                invoiceNumber,
-
-                                                earnedPoints,
-
-                                                redeemedPoints,
-
-                                                finalPoints
-                                            });
-
-                                        }
-                                    );
-
-                                };
-
-
-                            // ======================================================
-                            // INSERT ITEMS + DEDUCT STOCK
-                            // ======================================================
-
-                            validItems.forEach(
-                                item => {
-
-                                    const itemSql = `
-                                        INSERT INTO invoice_items
-                                        (
-                                            invoice_id,
-                                            item_name,
-                                            qty,
-                                            price,
-                                            amount
-                                        )
-                                        VALUES
-                                        (
-                                            ?,
-                                            ?,
-                                            ?,
-                                            ?,
-                                            ?
-                                        )
-                                    `;
-
-                                    storeDb.query(
-                                        itemSql,
-                                        [
-                                            invoiceId,
-                                            item.name,
-                                            item.qty,
-                                            item.price,
-                                            Number(item.qty) *
-                                            Number(item.price)
-                                        ],
-                                        (err) => {
-
-                                            if (err) {
-
-                                                console.error(
-                                                    "Invoice Item Error:",
-                                                    err
-                                                );
-
-                                                return res.status(500).json({
+                                                return res.status(404).json({
                                                     success: false,
                                                     message:
-                                                        err.message
+                                                        `${item.name} not found`
                                                 });
 
                                             }
 
+                                            const product =
+                                                stockRows[0];
+
+                                            const stockBefore =
+                                                Number(
+                                                    product.stock_quantity
+                                                ) || 0;
+
+                                            const quantity =
+                                                Number(
+                                                    item.qty
+                                                );
+
+                                            const stockAfter =
+                                                stockBefore -
+                                                quantity;
+
 
                                             // ======================================================
-                                            // GET STOCK BEFORE UPDATE
+                                            // DEDUCT STOCK
                                             // ======================================================
 
-                                            const stockBeforeSql = `
-                                                SELECT
-                                                    id,
-                                                    product_name,
-                                                    stock_quantity
-                                                FROM products
-                                                WHERE product_name = ?
-                                                LIMIT 1
+                                            const updateStockSql = `
+                                                UPDATE products
+                                                SET stock_quantity = ?
+                                                WHERE id = ?
                                             `;
 
                                             storeDb.query(
-                                                stockBeforeSql,
-                                                [item.name],
-                                                (err, stockRows) => {
+                                                updateStockSql,
+                                                [
+                                                    stockAfter,
+                                                    product.id
+                                                ],
+                                                (err) => {
 
                                                     if (err) {
+
+                                                        console.error(
+                                                            "Stock Update Error:",
+                                                            err
+                                                        );
 
                                                         return res.status(500).json({
                                                             success: false,
@@ -3374,58 +3507,55 @@ app.post(
 
                                                     }
 
-                                                    if (
-                                                        stockRows.length === 0
-                                                    ) {
-
-                                                        return res.status(404).json({
-                                                            success: false,
-                                                            message:
-                                                                `${item.name} not found`
-                                                        });
-
-                                                    }
-
-                                                    const product =
-                                                        stockRows[0];
-
-                                                    const stockBefore =
-                                                        Number(
-                                                            product.stock_quantity
-                                                        ) || 0;
-
-                                                    const quantity =
-                                                        Number(
-                                                            item.qty
-                                                        );
-
-                                                    const stockAfter =
-                                                        stockBefore -
-                                                        quantity;
-
 
                                                     // ======================================================
-                                                    // DEDUCT STOCK
+                                                    // STOCK MOVEMENT
                                                     // ======================================================
 
-                                                    const updateStockSql = `
-                                                        UPDATE products
-                                                        SET stock_quantity = ?
-                                                        WHERE id = ?
+                                                    const stockMovementSql = `
+                                                        INSERT INTO stock_movements
+                                                        (
+                                                            product_id,
+                                                            product_name,
+                                                            movement_type,
+                                                            quantity,
+                                                            stock_before,
+                                                            stock_after,
+                                                            reference_type,
+                                                            reference_id,
+                                                            performed_by
+                                                        )
+                                                        VALUES
+                                                        (
+                                                            ?,
+                                                            ?,
+                                                            'STOCK_OUT',
+                                                            ?,
+                                                            ?,
+                                                            ?,
+                                                            'SALE',
+                                                            ?,
+                                                            ?
+                                                        )
                                                     `;
 
                                                     storeDb.query(
-                                                        updateStockSql,
+                                                        stockMovementSql,
                                                         [
+                                                            product.id,
+                                                            product.product_name,
+                                                            quantity,
+                                                            stockBefore,
                                                             stockAfter,
-                                                            product.id
+                                                            invoiceId,
+                                                            cashierName
                                                         ],
                                                         (err) => {
 
                                                             if (err) {
 
                                                                 console.error(
-                                                                    "Stock Update Error:",
+                                                                    "Stock Movement Error:",
                                                                     err
                                                                 );
 
@@ -3437,79 +3567,16 @@ app.post(
 
                                                             }
 
+                                                            completed++;
 
-                                                            // ======================================================
-                                                            // STOCK MOVEMENT
-                                                            // ======================================================
+                                                            if (
+                                                                completed ===
+                                                                validItems.length
+                                                            ) {
 
-                                                            const stockMovementSql = `
-                                                                INSERT INTO stock_movements
-                                                                (
-                                                                    product_id,
-                                                                    product_name,
-                                                                    movement_type,
-                                                                    quantity,
-                                                                    stock_before,
-                                                                    stock_after,
-                                                                    reference_type,
-                                                                    reference_id,
-                                                                    performed_by
-                                                                )
-                                                                VALUES
-                                                                (
-                                                                    ?,
-                                                                    ?,
-                                                                    'STOCK_OUT',
-                                                                    ?,
-                                                                    ?,
-                                                                    ?,
-                                                                    'SALE',
-                                                                    ?,
-                                                                    ?
-                                                                )
-                                                            `;
+                                                                updateLoyaltyPoints();
 
-                                                            storeDb.query(
-                                                                stockMovementSql,
-                                                                [
-                                                                    product.id,
-                                                                    product.product_name,
-                                                                    quantity,
-                                                                    stockBefore,
-                                                                    stockAfter,
-                                                                    invoiceId,
-                                                                    cashierName
-                                                                ],
-                                                                (err) => {
-
-                                                                    if (err) {
-
-                                                                        console.error(
-                                                                            "Stock Movement Error:",
-                                                                            err
-                                                                        );
-
-                                                                        return res.status(500).json({
-                                                                            success: false,
-                                                                            message:
-                                                                                err.message
-                                                                        });
-
-                                                                    }
-
-                                                                    completed++;
-
-                                                                    if (
-                                                                        completed ===
-                                                                        validItems.length
-                                                                    ) {
-
-                                                                        updateLoyaltyPoints();
-
-                                                                    }
-
-                                                                }
-                                                            );
+                                                            }
 
                                                         }
                                                     );
@@ -3530,7 +3597,9 @@ app.post(
             );
 
         }
+    );
 
+}
 
         // ======================================================
         // START PROCESS
