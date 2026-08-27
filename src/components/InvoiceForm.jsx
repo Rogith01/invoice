@@ -2549,64 +2549,78 @@ return (
 
             </div>
 
+{/* ==================================================
+    QUICK ACTION BAR
+================================================== */}
 
-            {/* ==================================================
-                QUICK ACTION BAR
-            ================================================== */}
+<div className="bg-white border border-slate-200 rounded-xl px-3 py-2.5 mb-5 flex flex-wrap items-center gap-2">
 
-            <div className="bg-white border border-slate-200 rounded-xl px-3 py-2.5 mb-5 flex flex-wrap items-center gap-2">
+    <span className="text-xs font-semibold text-slate-500 mr-1">
+        Quick Actions
+    </span>
 
-                <span className="text-xs font-semibold text-slate-500 mr-1">
-                    Quick Actions
-                </span>
+    <button
+        type="button"
+        onClick={holdBillHandler}
+        className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100 text-xs font-semibold transition"
+    >
+        <span>⏸</span>
+        Hold Bill
+    </button>
 
-                <button
-                    type="button"
-                    onClick={holdBillHandler}
-                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100 text-xs font-semibold transition"
-                >
-                    <span>⏸</span>
-                    Hold Bill
-                </button>
+    <button
+        type="button"
+        onClick={() =>
+            setShowHeldBills(true)
+        }
+        className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 text-xs font-semibold transition"
+    >
+        <span>▶</span>
 
-                <button
-                    type="button"
-                    onClick={() =>
-                        setShowHeldBills(true)
-                    }
-                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 text-xs font-semibold transition"
-                >
-                    <span>▶</span>
-                    Resume Bill
+        Resume Bill
 
-                    {heldBills.length > 0 && (
-                        <span className="bg-purple-600 text-white text-[10px] min-w-[18px] h-[18px] rounded-full flex items-center justify-center">
-                            {heldBills.length}
-                        </span>
-                    )}
+        {heldBills.length > 0 && (
+            <span className="bg-purple-600 text-white text-[10px] min-w-[18px] h-[18px] rounded-full flex items-center justify-center">
+                {heldBills.length}
+            </span>
+        )}
 
-                </button>
+    </button>
 
-                <div className="hidden md:block h-5 w-px bg-slate-200 mx-1" />
+    {/* Separator after Resume Bill */}
 
-                <span className="text-[11px] text-slate-400">
-                    F2 Scan
-                </span>
+    <div className="hidden md:block h-5 w-px bg-slate-200 mx-1" />
 
-                <span className="text-[11px] text-slate-400">
-                    F3 Quantity
-                </span>
 
-                <span className="text-[11px] text-slate-400">
-                    F4 Payment
-                </span>
+    {/* Keyboard Shortcuts */}
 
-                <span className="text-[11px] text-slate-400">
-                    F5 Review
-                </span>
+    <div className="hidden md:flex items-center gap-2">
 
-            </div>
+        <span className="text-[11px] text-slate-400">
+            F2 Scan
+        </span>
 
+        <div className="h-5 w-px bg-slate-200" />
+
+        <span className="text-[11px] text-slate-400">
+            F3 Quantity
+        </span>
+
+        <div className="h-5 w-px bg-slate-200" />
+
+        <span className="text-[11px] text-slate-400">
+            F4 Payment
+        </span>
+
+        <div className="h-5 w-px bg-slate-200" />
+
+        <span className="text-[11px] text-slate-400">
+            F5 Review
+        </span>
+
+    </div>
+
+</div>
 
             {/* ==================================================
                 MAIN POS LAYOUT
