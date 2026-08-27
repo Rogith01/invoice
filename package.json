@@ -2,6 +2,9 @@
   "name": "invoice-generator",
   "version": "0.1.0",
   "private": true,
+  "homepage": ".",
+  "main": "electron/main.js",
+
   "dependencies": {
     "@headlessui/react": "^1.5.0",
     "@testing-library/jest-dom": "^5.16.2",
@@ -9,6 +12,7 @@
     "@testing-library/user-event": "^13.5.0",
     "@zxing/browser": "^0.2.1",
     "axios": "^1.18.1",
+    "express": "^5.2.1",
     "html-to-image": "^1.9.0",
     "jsonwebtoken": "^9.0.3",
     "jspdf": "^2.5.1",
@@ -24,18 +28,23 @@
     "uid": "^2.0.0",
     "web-vitals": "^2.1.4"
   },
+
   "scripts": {
     "start": "react-scripts start",
-    "build": "CI=false react-scripts build",
+    "electron": "electron electron/main.js",
+    "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "dist": "npm run build && electron-builder"
   },
+
   "eslintConfig": {
     "extends": [
       "react-app",
       "react-app/jest"
     ]
   },
+
   "browserslist": {
     "production": [
       ">0.2%",
@@ -48,12 +57,35 @@
       "last 1 safari version"
     ]
   },
+
   "devDependencies": {
     "@tailwindcss/forms": "^0.4.0",
     "autoprefixer": "^10.4.2",
+    "electron": "^41.7.1",
+    "electron-builder": "^24.13.3",
     "postcss": "^8.4.7",
     "prettier": "^2.5.1",
     "prettier-plugin-tailwindcss": "^0.1.8",
     "tailwindcss": "^3.0.23"
+  },
+
+  "build": {
+    "extends": null,
+    "appId": "com.ak.supermarketpos",
+   "productName": "BILLNEX",
+    "files": [
+      "build/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
   }
 }

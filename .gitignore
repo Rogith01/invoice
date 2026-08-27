@@ -27,3 +27,6 @@ server/node_modules
 # Ignore environment files
 .env
 server/.env
+
+# Ignore Electron build output
+/dist
