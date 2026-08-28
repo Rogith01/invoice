@@ -646,22 +646,22 @@ const Login = ({ onLogin }) => {
 
               <div>
 
-                <h1
-                  className="
-                    text-lg
-                    font-bold
-                    tracking-wide
-                  "
-                >
+<h1
+  className="
+    text-lg
+    font-bold
+    tracking-wide
+  "
+>
+  {storeName || "POS SYSTEM"}
+</h1>
 
-                  {storeName ||
-                    "POS SYSTEM"}
-
-                </h1>
-
-                <p className="text-xs text-slate-400">
-                  Point of Sale System
-                </p>
+<p className="text-xs text-slate-400">
+  Powered by{" "}
+  <span className="font-semibold text-slate-300">
+    BILLQORA
+  </span>
+</p>
 
               </div>
 
@@ -902,9 +902,12 @@ const Login = ({ onLogin }) => {
 
                 </h1>
 
-                <p className="text-xs text-slate-400">
-                  Point of Sale System
-                </p>
+<p className="text-xs text-slate-400">
+  Powered by{" "}
+  <span className="font-semibold text-slate-300">
+    BILLQORA
+  </span>
+</p>
 
               </div>
 
