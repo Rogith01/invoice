@@ -102,7 +102,45 @@ function checkForUpdates() {
         "Checking for BILLQORA updates..."
     );
 
-    autoUpdater.checkForUpdatesAndNotify();
+    autoUpdater.on("checking-for-update", () => {
+    console.log("Checking for BILLQORA update...");
+});
+
+autoUpdater.on("update-available", (info) => {
+    console.log(
+        "BILLQORA update available:",
+        info.version
+    );
+});
+
+autoUpdater.on("update-not-available", (info) => {
+    console.log(
+        "BILLQORA is up to date:",
+        info.version
+    );
+});
+
+autoUpdater.on("error", (error) => {
+    console.error(
+        "BILLQORA AUTO UPDATE ERROR:",
+        error
+    );
+});
+
+autoUpdater.on("download-progress", (progress) => {
+    console.log(
+        `Downloading update: ${Math.round(progress.percent)}%`
+    );
+});
+
+autoUpdater.on("update-downloaded", (info) => {
+    console.log(
+        "BILLQORA update downloaded:",
+        info.version
+    );
+});
+
+autoUpdater.checkForUpdatesAndNotify();
 }
 
 
