@@ -747,10 +747,8 @@ const Login = ({ onLogin }) => {
               }}
             >
 
-              Manage billing, cash registers,
-              inventory and daily store
-              operations from one simple POS
-              system.
+Manage your entire store with BILLQORA — billing, cash registers, inventory, and daily operations, all in one powerful POS system.
+
 
             </p>
 
