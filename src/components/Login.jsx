@@ -905,7 +905,7 @@ const Login = ({ onLogin }) => {
 <p className="text-xs text-slate-400">
   Powered by{" "}
   <span className="font-semibold text-slate-300">
-    BILLQORA
+    BILLQORA-ROGITH
   </span>
 </p>
 
