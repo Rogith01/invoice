@@ -1,3 +1,4 @@
+
 import React, {
   useState,
   useCallback,
@@ -22,6 +23,12 @@ const Login = ({ onLogin }) => {
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+
+  // ==================================================
+  // LOGIN ROLE
+  // ==================================================
+
+  const [role, setRole] = useState("cashier");
 
   const [showPassword, setShowPassword] =
     useState(false);
@@ -53,15 +60,11 @@ const Login = ({ onLogin }) => {
   useEffect(() => {
 
     const timer = setTimeout(() => {
-
       setMounted(true);
-
     }, 50);
 
     return () => {
-
       clearTimeout(timer);
-
     };
 
   }, []);
@@ -79,13 +82,11 @@ const Login = ({ onLogin }) => {
       new Audio("/error-tone.mp3");
 
     successSoundRef.current.volume = 1;
-
     errorSoundRef.current.volume = 1;
 
     return () => {
 
       successSoundRef.current = null;
-
       errorSoundRef.current = null;
 
     };
@@ -147,7 +148,7 @@ const Login = ({ onLogin }) => {
   }, []);
 
   // ==================================================
-  // FIND STORE BY STORE CODE
+  // FIND STORE
   // ==================================================
 
   const findStore = async (code) => {
@@ -218,9 +219,6 @@ const Login = ({ onLogin }) => {
 
     setStoreCode(value);
 
-    // Clear old store name
-    // when user changes code
-
     setStoreName("");
 
   };
@@ -240,11 +238,12 @@ const Login = ({ onLogin }) => {
     if (
       !storeCode.trim() ||
       !username.trim() ||
-      !password.trim()
+      !password.trim() ||
+      !role
     ) {
 
       showToast(
-        "Please enter store code, username and password.",
+        "Please enter store code, username, password and select a role.",
         "warning"
       );
 
@@ -257,7 +256,7 @@ const Login = ({ onLogin }) => {
       setIsLoading(true);
 
       // ==================================================
-      // LOGIN API
+      // LOGIN REQUEST
       // ==================================================
 
       const res =
@@ -271,11 +270,13 @@ const Login = ({ onLogin }) => {
               username.trim(),
 
             password,
+
+            role,
           }
         );
 
       // ==================================================
-      // LOGIN SUCCESS
+      // SUCCESS
       // ==================================================
 
       if (res.data.success) {
@@ -297,7 +298,7 @@ const Login = ({ onLogin }) => {
         );
 
         // ==================================================
-        // SAVE JWT TOKEN
+        // SAVE TOKEN
         // ==================================================
 
         sessionStorage.setItem(
@@ -306,7 +307,7 @@ const Login = ({ onLogin }) => {
         );
 
         // ==================================================
-        // SAVE STORE INFORMATION
+        // SAVE STORE
         // ==================================================
 
         sessionStorage.setItem(
@@ -332,7 +333,7 @@ const Login = ({ onLogin }) => {
         }
 
         // ==================================================
-        // CONTINUE LOGIN
+        // CONTINUE
         // ==================================================
 
         onLogin(
@@ -343,7 +344,7 @@ const Login = ({ onLogin }) => {
 
         showToast(
           res.data.message ||
-            "Invalid store code, username or password.",
+            `Invalid ${role} username or password.`,
           "error"
         );
 
@@ -367,7 +368,7 @@ const Login = ({ onLogin }) => {
 
         showToast(
           err.response.data?.message ||
-            "Invalid store code, username or password.",
+            `Invalid ${role} username or password.`,
           "error"
         );
 
@@ -417,7 +418,7 @@ const Login = ({ onLogin }) => {
 
   return (
 
-    <div className="min-h-screen bg-white flex overflow-hidden">
+    <div className="min-h-screen bg-slate-50 flex overflow-hidden">
 
       <style>{`
 
@@ -550,7 +551,7 @@ const Login = ({ onLogin }) => {
         "
       >
 
-        {/* GLOWING ORBS */}
+        {/* GLOW */}
 
         <div
           className="
@@ -610,9 +611,7 @@ const Login = ({ onLogin }) => {
           "
         >
 
-          {/* ==================================================
-              BRAND
-          ================================================== */}
+          {/* BRAND */}
 
           <div
             className="fade-up"
@@ -628,13 +627,14 @@ const Login = ({ onLogin }) => {
                 className="
                   w-11
                   h-11
-                  rounded-lg
-                  bg-slate-900
+                  rounded-xl
+                  bg-white/10
+                  border
+                  border-white/10
                   flex
                   items-center
                   justify-center
                   shadow-lg
-                  shadow-slate-600/30
                 "
               >
 
@@ -646,22 +646,22 @@ const Login = ({ onLogin }) => {
 
               <div>
 
-<h1
-  className="
-    text-lg
-    font-bold
-    tracking-wide
-  "
->
-  {storeName || "POS SYSTEM"}
-</h1>
+                <h1
+                  className="
+                    text-lg
+                    font-bold
+                    tracking-wide
+                  "
+                >
+                  {storeName || "POS SYSTEM"}
+                </h1>
 
-<p className="text-xs text-slate-400">
-  Powered by{" "}
-  <span className="font-semibold text-slate-300">
-    BILLQORA
-  </span>
-</p>
+                <p className="text-xs text-slate-400">
+                  Powered by{" "}
+                  <span className="font-semibold text-slate-300">
+                    BILLQORA
+                  </span>
+                </p>
 
               </div>
 
@@ -669,9 +669,7 @@ const Login = ({ onLogin }) => {
 
           </div>
 
-          {/* ==================================================
-              MAIN CONTENT
-          ================================================== */}
+          {/* MAIN CONTENT */}
 
           <div className="max-w-lg">
 
@@ -706,9 +704,7 @@ const Login = ({ onLogin }) => {
                   font-medium
                 "
               >
-
                 System Online
-
               </span>
 
             </div>
@@ -746,10 +742,10 @@ const Login = ({ onLogin }) => {
                   "0.35s",
               }}
             >
-
-Manage your entire store with BILLQORA — billing, cash registers, inventory, and daily operations, all in one powerful POS system.
-
-
+              Manage your entire store with BILLQORA —
+              billing, cash registers, inventory,
+              customers and daily operations,
+              all in one powerful POS system.
             </p>
 
             {/* FEATURES */}
@@ -815,10 +811,8 @@ Manage your entire store with BILLQORA — billing, cash registers, inventory, a
 
           <p className="text-xs text-slate-600">
 
-            © {new Date().getFullYear()}
-            {" "}
-            {storeName ||
-              "POS SYSTEM"}
+            © {new Date().getFullYear()}{" "}
+            {storeName || "POS SYSTEM"}
 
           </p>
 
@@ -837,15 +831,16 @@ Manage your entire store with BILLQORA — billing, cash registers, inventory, a
           flex
           items-center
           justify-center
-          px-6
-          sm:px-10
+          px-5
+          sm:px-8
+          py-10
         "
       >
 
         <div
           className="
             w-full
-            max-w-sm
+            max-w-md
             transition-all
             duration-700
             ease-out
@@ -861,11 +856,9 @@ Manage your entire store with BILLQORA — billing, cash registers, inventory, a
           }}
         >
 
-          {/* ==================================================
-              MOBILE BRAND
-          ================================================== */}
+          {/* MOBILE BRAND */}
 
-          <div className="lg:hidden mb-10">
+          <div className="lg:hidden mb-8">
 
             <div className="flex items-center gap-3">
 
@@ -873,7 +866,7 @@ Manage your entire store with BILLQORA — billing, cash registers, inventory, a
                 className="
                   w-11
                   h-11
-                  rounded-lg
+                  rounded-xl
                   bg-slate-900
                   text-white
                   flex
@@ -881,9 +874,7 @@ Manage your entire store with BILLQORA — billing, cash registers, inventory, a
                   justify-center
                 "
               >
-
                 🛒
-
               </div>
 
               <div>
@@ -894,546 +885,742 @@ Manage your entire store with BILLQORA — billing, cash registers, inventory, a
                     text-slate-800
                   "
                 >
-
-                  {storeName ||
-                    "POS SYSTEM"}
-
+                  {storeName || "POS SYSTEM"}
                 </h1>
 
-<p className="text-xs text-slate-400">
-  Powered by{" "}
-  <span className="font-semibold text-slate-300">
-    BILLQORA-ROGITH
-  </span>
-</p>
-
-              </div>
-
-            </div>
-
-          </div>
-
-          {/* ==================================================
-              LOGIN HEADER
-          ================================================== */}
-
-          <div className="mb-8">
-
-            <h2
-              className="
-                text-3xl
-                font-bold
-                text-slate-900
-              "
-            >
-
-              Welcome back
-
-            </h2>
-
-            <p
-              className="
-                text-sm
-                text-slate-500
-                mt-2
-              "
-            >
-
-              Sign in to access your POS dashboard.
-
-            </p>
-
-          </div>
-
-          {/* ==================================================
-              LOGIN FORM
-          ================================================== */}
-
-          <form
-            onSubmit={loginHandler}
-            className="space-y-5"
-          >
-
-            {/* ==================================================
-                STORE CODE
-            ================================================== */}
-
-            <div>
-
-              <label
-                className="
-                  block
-                  text-xs
-                  font-semibold
-                  text-slate-600
-                  mb-1.5
-                "
-              >
-
-                Store Code
-
-              </label>
-
-              <div className="relative group">
-
-                <div
-                  className="
-                    absolute
-                    left-3.5
-                    top-1/2
-                    -translate-y-1/2
-                    text-slate-400
-                    transition-colors
-                    duration-200
-                    group-focus-within:text-blue-600
-                  "
-                >
-
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="w-5 h-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                  >
-
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M3 7.5A2.5 2.5 0 015.5 5h13A2.5 2.5 0 0121 7.5v9a2.5 2.5 0 01-2.5 2.5h-13A2.5 2.5 0 013 16.5v-9z"
-                    />
-
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M7 9h10M7 13h6"
-                    />
-
-                  </svg>
-
-                </div>
-
-                <input
-                  type="text"
-                  value={storeCode}
-                  onChange={
-                    handleStoreCodeChange
-                  }
-                  onBlur={() =>
-                    findStore(
-                      storeCode
-                    )
-                  }
-                  placeholder="Enter store code"
-                  autoComplete="organization"
-                  className="
-                    w-full
-                    h-12
-                    pl-11
-                    pr-4
-                    rounded-xl
-                    border
-                    border-slate-200
-                    bg-slate-50
-                    text-slate-800
-                    text-sm
-                    placeholder:text-slate-400
-                    outline-none
-                    transition-all
-                    duration-200
-                    hover:border-slate-300
-                    focus:bg-white
-                    focus:border-blue-500
-                    focus:ring-4
-                    focus:ring-blue-500/10
-                    focus:scale-[1.01]
-                  "
-                />
-
-              </div>
-
-              {/* ==================================================
-                  STORE NAME
-              ================================================== */}
-
-              {storeLoading && (
-
-                <p className="mt-2 text-xs text-slate-400">
-
-                  Checking store...
-
+                <p className="text-xs text-slate-400">
+                  Powered by{" "}
+                  <span className="font-semibold text-slate-500">
+                    BILLQORA
+                  </span>
                 </p>
 
-              )}
-
-              {!storeLoading &&
-                storeName && (
-
-                  <div
-                    className="
-                      mt-2
-                      flex
-                      items-center
-                      gap-2
-                    "
-                  >
-
-                    <span
-                      className="
-                        w-1.5
-                        h-1.5
-                        rounded-full
-                        bg-emerald-500
-                      "
-                    />
-
-                    <span
-                      className="
-                        text-xs
-                        font-semibold
-                        text-emerald-600
-                      "
-                    >
-
-                      {storeName}
-
-                    </span>
-
-                  </div>
-
-                )}
-
-            </div>
-
-            {/* ==================================================
-                USERNAME
-            ================================================== */}
-
-            <div>
-
-              <label
-                className="
-                  block
-                  text-xs
-                  font-semibold
-                  text-slate-600
-                  mb-1.5
-                "
-              >
-
-                Username
-
-              </label>
-
-              <div className="relative group">
-
-                <div
-                  className="
-                    absolute
-                    left-3.5
-                    top-1/2
-                    -translate-y-1/2
-                    text-slate-400
-                    transition-colors
-                    duration-200
-                    group-focus-within:text-blue-600
-                  "
-                >
-
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="w-5 h-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                  >
-
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"
-                    />
-
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M4.5 20.25a7.5 7.5 0 0115 0"
-                    />
-
-                  </svg>
-
-                </div>
-
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) =>
-                    setUsername(
-                      e.target.value
-                    )
-                  }
-                  placeholder="Enter username"
-                  autoComplete="username"
-                  className="
-                    w-full
-                    h-12
-                    pl-11
-                    pr-4
-                    rounded-xl
-                    border
-                    border-slate-200
-                    bg-slate-50
-                    text-slate-800
-                    text-sm
-                    placeholder:text-slate-400
-                    outline-none
-                    transition-all
-                    duration-200
-                    hover:border-slate-300
-                    focus:bg-white
-                    focus:border-blue-500
-                    focus:ring-4
-                    focus:ring-blue-500/10
-                    focus:scale-[1.01]
-                  "
-                />
-
               </div>
 
             </div>
 
-            {/* ==================================================
-                PASSWORD
-            ================================================== */}
-
-            <div>
-
-              <label
-                className="
-                  block
-                  text-xs
-                  font-semibold
-                  text-slate-600
-                  mb-1.5
-                "
-              >
-
-                Password
-
-              </label>
-
-              <div className="relative group">
-
-                <div
-                  className="
-                    absolute
-                    left-3.5
-                    top-1/2
-                    -translate-y-1/2
-                    text-slate-400
-                    transition-colors
-                    duration-200
-                    group-focus-within:text-blue-600
-                  "
-                >
-
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="w-5 h-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                  >
-
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M16.5 10.5V7.75a4.5 4.5 0 00-9 0v2.75"
-                    />
-
-                    <rect
-                      x="4.5"
-                      y="10.5"
-                      width="15"
-                      height="10"
-                      rx="2"
-                    />
-
-                  </svg>
-
-                </div>
-
-                <input
-                  type={
-                    showPassword
-                      ? "text"
-                      : "password"
-                  }
-                  value={password}
-                  onChange={(e) =>
-                    setPassword(
-                      e.target.value
-                    )
-                  }
-                  placeholder="Enter password"
-                  autoComplete="current-password"
-                  className="
-                    w-full
-                    h-12
-                    pl-11
-                    pr-16
-                    rounded-xl
-                    border
-                    border-slate-200
-                    bg-slate-50
-                    text-slate-800
-                    text-sm
-                    placeholder:text-slate-400
-                    outline-none
-                    transition-all
-                    duration-200
-                    hover:border-slate-300
-                    focus:bg-white
-                    focus:border-blue-500
-                    focus:ring-4
-                    focus:ring-blue-500/10
-                    focus:scale-[1.01]
-                  "
-                />
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setShowPassword(
-                      (prev) =>
-                        !prev
-                    )
-                  }
-                  className="
-                    absolute
-                    right-2
-                    top-1/2
-                    -translate-y-1/2
-                    h-9
-                    px-3
-                    rounded-lg
-                    text-xs
-                    font-semibold
-                    text-slate-400
-                    hover:text-slate-600
-                    hover:bg-slate-50
-                    transition-all
-                    duration-200
-                  "
-                >
-
-                  {showPassword
-                    ? "Hide"
-                    : "Show"}
-
-                </button>
-
-              </div>
-
-            </div>
-
-            {/* ==================================================
-                SIGN IN
-            ================================================== */}
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="
-                btn-shine
-                relative
-                overflow-hidden
-                w-full
-                h-12
-                rounded-xl
-                bg-slate-900
-                hover:bg-slate-700
-                active:bg-slate-800
-                text-white
-                font-semibold
-                text-sm
-                shadow-sm
-                shadow-slate-600/20
-                transition-all
-                duration-200
-                flex
-                items-center
-                justify-center
-                gap-2
-                disabled:opacity-60
-                disabled:cursor-not-allowed
-                hover:-translate-y-0.5
-                active:translate-y-0
-              "
-            >
-
-              {isLoading ? (
-
-                <>
-
-                  <span
-                    className="
-                      w-4
-                      h-4
-                      border-2
-                      border-white/30
-                      border-t-white
-                      rounded-full
-                      animate-spin
-                    "
-                  />
-
-                  Signing in...
-
-                </>
-
-              ) : (
-
-                <>
-
-                  Sign In
-
-                  <span className="text-base">
-                    →
-                  </span>
-
-                </>
-
-              )}
-
-            </button>
-
-          </form>
+          </div>
 
           {/* ==================================================
-              SECURITY
+              LOGIN CARD
           ================================================== */}
 
           <div
             className="
-              mt-8
-              flex
-              items-center
-              justify-center
-              gap-2
-              text-xs
-              text-slate-400
+              bg-white
+              rounded-3xl
+              border
+              border-slate-200
+              shadow-xl
+              shadow-slate-200/60
+              overflow-hidden
             "
           >
 
-            <span>🔒</span>
+            {/* ==================================================
+                CARD HEADER
+            ================================================== */}
 
-            Secure POS Login
+            <div
+              className="
+                px-7
+                pt-7
+                pb-6
+                border-b
+                border-slate-100
+              "
+            >
+
+              <div className="flex items-center justify-between">
+
+                <div>
+
+                  <h2
+                    className="
+                      text-2xl
+                      font-bold
+                      text-slate-900
+                    "
+                  >
+                    Welcome back
+                  </h2>
+
+                  <p
+                    className="
+                      text-sm
+                      text-slate-500
+                      mt-1.5
+                    "
+                  >
+                    Sign in to your POS account
+                  </p>
+
+                </div>
+
+                <div
+                  className="
+                    w-10
+                    h-10
+                    rounded-xl
+                    bg-slate-100
+                    flex
+                    items-center
+                    justify-center
+                    text-lg
+                  "
+                >
+                  🔐
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* ==================================================
+                ROLE SELECTOR
+            ================================================== */}
+
+            <div
+              className="
+                px-7
+                pt-6
+              "
+            >
+
+              <p
+                className="
+                  text-xs
+                  font-semibold
+                  text-slate-500
+                  uppercase
+                  tracking-wider
+                  mb-3
+                "
+              >
+                Continue as
+              </p>
+
+            <div
+  className="
+    grid
+    grid-cols-2
+    rounded-xl
+    bg-slate-100
+    p-1
+    gap-1
+  "
+>
+  {/* ADMIN */}
+  <button
+    type="button"
+    onClick={() => setRole("admin")}
+    className={`
+      relative
+      h-10
+      rounded-lg
+      flex
+      items-center
+      justify-center
+      text-sm
+      font-semibold
+      transition-all
+      duration-200
+      ${
+        role === "admin"
+          ? `
+            bg-white
+            text-slate-900
+            shadow-sm
+          `
+          : `
+            text-slate-500
+            hover:text-slate-700
+          `
+      }
+    `}
+  >
+    Admin
+
+    {role === "admin" && (
+      <span
+        className="
+          absolute
+          right-2
+          top-1/2
+          -translate-y-1/2
+          w-1.5
+          h-1.5
+          rounded-full
+          bg-blue-500
+        "
+      />
+    )}
+  </button>
+
+  {/* CASHIER */}
+  <button
+    type="button"
+    onClick={() => setRole("cashier")}
+    className={`
+      relative
+      h-10
+      rounded-lg
+      flex
+      items-center
+      justify-center
+      text-sm
+      font-semibold
+      transition-all
+      duration-200
+      ${
+        role === "cashier"
+          ? `
+            bg-white
+            text-slate-900
+            shadow-sm
+          `
+          : `
+            text-slate-500
+            hover:text-slate-700
+          `
+      }
+    `}
+  >
+    Cashier
+
+    {role === "cashier" && (
+      <span
+        className="
+          absolute
+          right-2
+          top-1/2
+          -translate-y-1/2
+          w-1.5
+          h-1.5
+          rounded-full
+          bg-blue-500
+        "
+      />
+    )}
+  </button>
+</div>
+
+            </div>
+
+            {/* ==================================================
+                FORM
+            ================================================== */}
+
+            <form
+              onSubmit={loginHandler}
+              className="
+                px-7
+                pt-6
+                pb-7
+                space-y-5
+              "
+            >
+
+              {/* ==================================================
+                  STORE CODE
+              ================================================== */}
+
+              <div>
+
+                <label
+                  className="
+                    block
+                    text-xs
+                    font-semibold
+                    text-slate-600
+                    mb-1.5
+                  "
+                >
+                  Store Code
+                </label>
+
+                <div className="relative group">
+
+                  <div
+                    className="
+                      absolute
+                      left-3.5
+                      top-1/2
+                      -translate-y-1/2
+                      text-slate-400
+                      group-focus-within:text-blue-600
+                      transition-colors
+                    "
+                  >
+
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="w-5 h-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                    >
+
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M3 7.5A2.5 2.5 0 015.5 5h13A2.5 2.5 0 0121 7.5v9a2.5 2.5 0 01-2.5 2.5h-13A2.5 2.5 0 013 16.5v-9z"
+                      />
+
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M7 9h10M7 13h6"
+                      />
+
+                    </svg>
+
+                  </div>
+
+                  <input
+                    type="text"
+                    value={storeCode}
+                    onChange={
+                      handleStoreCodeChange
+                    }
+                    onBlur={() =>
+                      findStore(
+                        storeCode
+                      )
+                    }
+                    placeholder="Enter store code"
+                    autoComplete="organization"
+                    className="
+                      w-full
+                      h-12
+                      pl-11
+                      pr-4
+                      rounded-xl
+                      border
+                      border-slate-200
+                      bg-slate-50
+                      text-slate-800
+                      text-sm
+                      placeholder:text-slate-400
+                      outline-none
+                      transition-all
+                      duration-200
+                      hover:border-slate-300
+                      focus:bg-white
+                      focus:border-blue-500
+                      focus:ring-4
+                      focus:ring-blue-500/10
+                    "
+                  />
+
+                </div>
+
+                {/* STORE NAME */}
+
+                {storeLoading && (
+
+                  <p
+                    className="
+                      mt-2
+                      text-xs
+                      text-slate-400
+                    "
+                  >
+                    Checking store...
+                  </p>
+
+                )}
+
+                {!storeLoading &&
+                  storeName && (
+
+                    <div
+                      className="
+                        mt-2
+                        flex
+                        items-center
+                        gap-2
+                      "
+                    >
+
+                      <span
+                        className="
+                          w-1.5
+                          h-1.5
+                          rounded-full
+                          bg-emerald-500
+                        "
+                      />
+
+                      <span
+                        className="
+                          text-xs
+                          font-semibold
+                          text-emerald-600
+                        "
+                      >
+                        {storeName}
+                      </span>
+
+                    </div>
+
+                  )}
+
+              </div>
+
+              {/* ==================================================
+                  USERNAME
+              ================================================== */}
+
+              <div>
+
+                <label
+                  className="
+                    block
+                    text-xs
+                    font-semibold
+                    text-slate-600
+                    mb-1.5
+                  "
+                >
+                  Username
+                </label>
+
+                <div className="relative group">
+
+                  <div
+                    className="
+                      absolute
+                      left-3.5
+                      top-1/2
+                      -translate-y-1/2
+                      text-slate-400
+                      group-focus-within:text-blue-600
+                      transition-colors
+                    "
+                  >
+
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="w-5 h-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                    >
+
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"
+                      />
+
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M4.5 20.25a7.5 7.5 0 0115 0"
+                      />
+
+                    </svg>
+
+                  </div>
+
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) =>
+                      setUsername(
+                        e.target.value
+                      )
+                    }
+                    placeholder="Enter username"
+                    autoComplete="username"
+                    className="
+                      w-full
+                      h-12
+                      pl-11
+                      pr-4
+                      rounded-xl
+                      border
+                      border-slate-200
+                      bg-slate-50
+                      text-slate-800
+                      text-sm
+                      placeholder:text-slate-400
+                      outline-none
+                      transition-all
+                      duration-200
+                      hover:border-slate-300
+                      focus:bg-white
+                      focus:border-blue-500
+                      focus:ring-4
+                      focus:ring-blue-500/10
+                    "
+                  />
+
+                </div>
+
+              </div>
+
+              {/* ==================================================
+                  PASSWORD
+              ================================================== */}
+
+              <div>
+
+                <label
+                  className="
+                    block
+                    text-xs
+                    font-semibold
+                    text-slate-600
+                    mb-1.5
+                  "
+                >
+                  Password
+                </label>
+
+                <div className="relative group">
+
+                  <div
+                    className="
+                      absolute
+                      left-3.5
+                      top-1/2
+                      -translate-y-1/2
+                      text-slate-400
+                      group-focus-within:text-blue-600
+                      transition-colors
+                    "
+                  >
+
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="w-5 h-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                    >
+
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M16.5 10.5V7.75a4.5 4.5 0 00-9 0v2.75"
+                      />
+
+                      <rect
+                        x="4.5"
+                        y="10.5"
+                        width="15"
+                        height="10"
+                        rx="2"
+                      />
+
+                    </svg>
+
+                  </div>
+
+                  <input
+                    type={
+                      showPassword
+                        ? "text"
+                        : "password"
+                    }
+                    value={password}
+                    onChange={(e) =>
+                      setPassword(
+                        e.target.value
+                      )
+                    }
+                    placeholder="Enter password"
+                    autoComplete="current-password"
+                    className="
+                      w-full
+                      h-12
+                      pl-11
+                      pr-16
+                      rounded-xl
+                      border
+                      border-slate-200
+                      bg-slate-50
+                      text-slate-800
+                      text-sm
+                      placeholder:text-slate-400
+                      outline-none
+                      transition-all
+                      duration-200
+                      hover:border-slate-300
+                      focus:bg-white
+                      focus:border-blue-500
+                      focus:ring-4
+                      focus:ring-blue-500/10
+                    "
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setShowPassword(
+                        (prev) => !prev
+                      )
+                    }
+                    className="
+                      absolute
+                      right-2
+                      top-1/2
+                      -translate-y-1/2
+                      h-9
+                      px-3
+                      rounded-lg
+                      text-xs
+                      font-semibold
+                      text-slate-400
+                      hover:text-slate-600
+                      hover:bg-slate-100
+                      transition-all
+                    "
+                  >
+                    {showPassword
+                      ? "Hide"
+                      : "Show"}
+                  </button>
+
+                </div>
+
+              </div>
+
+              {/* ==================================================
+                  SIGN IN BUTTON
+              ================================================== */}
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="
+                  btn-shine
+                  relative
+                  overflow-hidden
+                  w-full
+                  h-12
+                  rounded-xl
+                  bg-slate-900
+                  hover:bg-slate-700
+                  active:bg-slate-800
+                  text-white
+                  font-semibold
+                  text-sm
+                  shadow-lg
+                  shadow-slate-900/10
+                  transition-all
+                  duration-200
+                  flex
+                  items-center
+                  justify-center
+                  gap-2
+                  disabled:opacity-60
+                  disabled:cursor-not-allowed
+                  hover:-translate-y-0.5
+                  active:translate-y-0
+                "
+              >
+
+                {isLoading ? (
+
+                  <>
+
+                    <span
+                      className="
+                        w-4
+                        h-4
+                        border-2
+                        border-white/30
+                        border-t-white
+                        rounded-full
+                        animate-spin
+                      "
+                    />
+
+                    Signing in...
+
+                  </>
+
+                ) : (
+
+                  <>
+
+                    Sign In as{" "}
+                    {role === "admin"
+                      ? "Admin"
+                      : "Cashier"}
+
+                    <span className="text-base">
+                      →
+                    </span>
+
+                  </>
+
+                )}
+
+              </button>
+
+            </form>
+
+            {/* ==================================================
+                CARD FOOTER
+            ================================================== */}
+
+            <div
+              className="
+                px-7
+                py-4
+                border-t
+                border-slate-100
+                bg-slate-50/70
+                flex
+                items-center
+                justify-center
+                gap-2
+                text-xs
+                text-slate-400
+              "
+            >
+
+              <span>
+                🔒
+              </span>
+
+              Secure POS Login
+
+            </div>
 
           </div>
+
+          {/* ==================================================
+              ROLE INFO
+          ================================================== */}
+
+          <p
+            className="
+              text-center
+              text-xs
+              text-slate-400
+              mt-5
+            "
+          >
+            Signing in as{" "}
+            <span
+              className="
+                font-semibold
+                text-slate-600
+              "
+            >
+              {role === "admin"
+                ? "Administrator"
+                : "Cashier"}
+            </span>
+          </p>
 
         </div>
 

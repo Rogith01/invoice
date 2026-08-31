@@ -4374,11 +4374,12 @@ app.post(
     "/api/login",
     (req, res) => {
 
-        const {
-            storeCode,
-            username,
-            password
-        } = req.body;
+const {
+    storeCode,
+    username,
+    password,
+    role
+} = req.body;
 
         // ======================================================
         // VALIDATE INPUT
@@ -4387,13 +4388,14 @@ app.post(
         if (
             !storeCode ||
             !username ||
-            !password
+            !password ||
+            !role
         ) {
 
             return res.status(400).json({
                 success: false,
                 message:
-                    "Store Code, Username and Password are required"
+                    "Store Code, Username and Password and Role are required"
             });
         }
 
@@ -4491,22 +4493,24 @@ app.post(
                 // STEP 3: CHECK USER IN STORE DATABASE
                 // ======================================================
 
-                const userSql = `
-                    SELECT
-                        id,
-                        username,
-                        role
-                    FROM users
-                    WHERE username = ?
-                    AND password = ?
-                    LIMIT 1
-                `;
+const userSql = `
+    SELECT
+        id,
+        username,
+        role
+    FROM users
+    WHERE username = ?
+    AND password = ?
+    AND role = ?
+    LIMIT 1
+`;
 
                 storeDb.query(
                     userSql,
                     [
                         username,
-                        password
+                        password,
+                        role
                     ],
                     (err, rows) => {
 
