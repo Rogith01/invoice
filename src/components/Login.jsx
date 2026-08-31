@@ -26,9 +26,11 @@ const Login = ({ onLogin }) => {
 
   // ==================================================
   // LOGIN ROLE
+  // IMPORTANT:
+  // Database uses Admin / Cashier
   // ==================================================
 
-  const [role, setRole] = useState("cashier");
+  const [role, setRole] = useState("Cashier");
 
   const [showPassword, setShowPassword] =
     useState(false);
@@ -53,6 +55,7 @@ const Login = ({ onLogin }) => {
   const errorSoundRef =
     useRef(null);
 
+
   // ==================================================
   // MOUNT ANIMATION
   // ==================================================
@@ -68,6 +71,7 @@ const Login = ({ onLogin }) => {
     };
 
   }, []);
+
 
   // ==================================================
   // SOUND
@@ -93,15 +97,13 @@ const Login = ({ onLogin }) => {
 
   }, []);
 
+
   // ==================================================
   // TOAST
   // ==================================================
 
   const showToast = useCallback(
-    (
-      message,
-      type = "success"
-    ) => {
+    (message, type = "success") => {
 
       if (type === "success") {
 
@@ -138,6 +140,7 @@ const Login = ({ onLogin }) => {
     []
   );
 
+
   const hideToast = useCallback(() => {
 
     setToast({
@@ -146,6 +149,7 @@ const Login = ({ onLogin }) => {
     });
 
   }, []);
+
 
   // ==================================================
   // FIND STORE
@@ -208,6 +212,7 @@ const Login = ({ onLogin }) => {
 
   };
 
+
   // ==================================================
   // STORE CODE CHANGE
   // ==================================================
@@ -222,6 +227,7 @@ const Login = ({ onLogin }) => {
     setStoreName("");
 
   };
+
 
   // ==================================================
   // LOGIN
@@ -271,12 +277,16 @@ const Login = ({ onLogin }) => {
 
             password,
 
+            // IMPORTANT:
+            // Sends Admin / Cashier
+            // exactly like MySQL ENUM
             role,
           }
         );
 
+
       // ==================================================
-      // SUCCESS
+      // LOGIN SUCCESS
       // ==================================================
 
       if (res.data.success) {
@@ -285,6 +295,7 @@ const Login = ({ onLogin }) => {
           "Login successful.",
           "success"
         );
+
 
         // ==================================================
         // SAVE USER
@@ -297,14 +308,16 @@ const Login = ({ onLogin }) => {
           )
         );
 
+
         // ==================================================
-        // SAVE TOKEN
+        // SAVE JWT TOKEN
         // ==================================================
 
         sessionStorage.setItem(
           "token",
           res.data.token
         );
+
 
         // ==================================================
         // SAVE STORE
@@ -316,6 +329,7 @@ const Login = ({ onLogin }) => {
             res.data.store
           )
         );
+
 
         // ==================================================
         // SAVE STORE NAME
@@ -332,8 +346,9 @@ const Login = ({ onLogin }) => {
 
         }
 
+
         // ==================================================
-        // CONTINUE
+        // CONTINUE LOGIN
         // ==================================================
 
         onLogin(
@@ -357,6 +372,7 @@ const Login = ({ onLogin }) => {
         err
       );
 
+
       // ==================================================
       // INVALID LOGIN
       // ==================================================
@@ -374,6 +390,7 @@ const Login = ({ onLogin }) => {
 
       }
 
+
       // ==================================================
       // SERVER ERROR
       // ==================================================
@@ -390,6 +407,7 @@ const Login = ({ onLogin }) => {
         );
 
       }
+
 
       // ==================================================
       // CONNECTION ERROR
@@ -411,6 +429,7 @@ const Login = ({ onLogin }) => {
     }
 
   };
+
 
   // ==================================================
   // UI
@@ -535,6 +554,7 @@ const Login = ({ onLogin }) => {
 
       `}</style>
 
+
       {/* ==================================================
           LEFT BRAND SECTION
       ================================================== */}
@@ -550,8 +570,6 @@ const Login = ({ onLogin }) => {
           overflow-hidden
         "
       >
-
-        {/* GLOW */}
 
         <div
           className="
@@ -583,7 +601,6 @@ const Login = ({ onLogin }) => {
           "
         />
 
-        {/* GRID */}
 
         <div
           className="
@@ -599,6 +616,7 @@ const Login = ({ onLogin }) => {
           }}
         />
 
+
         <div
           className="
             relative
@@ -613,13 +631,7 @@ const Login = ({ onLogin }) => {
 
           {/* BRAND */}
 
-          <div
-            className="fade-up"
-            style={{
-              animationDelay:
-                "0.05s",
-            }}
-          >
+          <div className="fade-up">
 
             <div className="flex items-center gap-3">
 
@@ -637,12 +649,11 @@ const Login = ({ onLogin }) => {
                   shadow-lg
                 "
               >
-
                 <span className="text-xl">
                   🛒
                 </span>
-
               </div>
+
 
               <div>
 
@@ -657,10 +668,13 @@ const Login = ({ onLogin }) => {
                 </h1>
 
                 <p className="text-xs text-slate-400">
+
                   Powered by{" "}
+
                   <span className="font-semibold text-slate-300">
                     BILLQORA
                   </span>
+
                 </p>
 
               </div>
@@ -668,6 +682,7 @@ const Login = ({ onLogin }) => {
             </div>
 
           </div>
+
 
           {/* MAIN CONTENT */}
 
@@ -681,10 +696,6 @@ const Login = ({ onLogin }) => {
                 mb-6
                 fade-up
               "
-              style={{
-                animationDelay:
-                  "0.15s",
-              }}
             >
 
               <span
@@ -709,6 +720,7 @@ const Login = ({ onLogin }) => {
 
             </div>
 
+
             <h2
               className="
                 text-4xl
@@ -717,17 +729,15 @@ const Login = ({ onLogin }) => {
                 leading-tight
                 fade-up
               "
-              style={{
-                animationDelay:
-                  "0.25s",
-              }}
             >
 
               Simple billing.
               <br />
+
               Smarter retail.
 
             </h2>
+
 
             <p
               className="
@@ -737,16 +747,13 @@ const Login = ({ onLogin }) => {
                 max-w-md
                 fade-up
               "
-              style={{
-                animationDelay:
-                  "0.35s",
-              }}
             >
               Manage your entire store with BILLQORA —
               billing, cash registers, inventory,
               customers and daily operations,
               all in one powerful POS system.
             </p>
+
 
             {/* FEATURES */}
 
@@ -757,10 +764,6 @@ const Login = ({ onLogin }) => {
                 mt-10
                 fade-up
               "
-              style={{
-                animationDelay:
-                  "0.45s",
-              }}
             >
 
               <div>
@@ -775,7 +778,9 @@ const Login = ({ onLogin }) => {
 
               </div>
 
+
               <div className="w-px bg-slate-700" />
+
 
               <div>
 
@@ -789,7 +794,9 @@ const Login = ({ onLogin }) => {
 
               </div>
 
+
               <div className="w-px bg-slate-700" />
+
 
               <div>
 
@@ -807,6 +814,7 @@ const Login = ({ onLogin }) => {
 
           </div>
 
+
           {/* FOOTER */}
 
           <p className="text-xs text-slate-600">
@@ -819,6 +827,7 @@ const Login = ({ onLogin }) => {
         </div>
 
       </div>
+
 
       {/* ==================================================
           RIGHT LOGIN SECTION
@@ -856,6 +865,7 @@ const Login = ({ onLogin }) => {
           }}
         >
 
+
           {/* MOBILE BRAND */}
 
           <div className="lg:hidden mb-8">
@@ -877,6 +887,7 @@ const Login = ({ onLogin }) => {
                 🛒
               </div>
 
+
               <div>
 
                 <h1
@@ -889,10 +900,13 @@ const Login = ({ onLogin }) => {
                 </h1>
 
                 <p className="text-xs text-slate-400">
+
                   Powered by{" "}
+
                   <span className="font-semibold text-slate-500">
                     BILLQORA
                   </span>
+
                 </p>
 
               </div>
@@ -900,6 +914,7 @@ const Login = ({ onLogin }) => {
             </div>
 
           </div>
+
 
           {/* ==================================================
               LOGIN CARD
@@ -917,9 +932,8 @@ const Login = ({ onLogin }) => {
             "
           >
 
-            {/* ==================================================
-                CARD HEADER
-            ================================================== */}
+
+            {/* CARD HEADER */}
 
             <div
               className="
@@ -957,6 +971,7 @@ const Login = ({ onLogin }) => {
 
                 </div>
 
+
                 <div
                   className="
                     w-10
@@ -975,6 +990,7 @@ const Login = ({ onLogin }) => {
               </div>
 
             </div>
+
 
             {/* ==================================================
                 ROLE SELECTOR
@@ -1000,112 +1016,131 @@ const Login = ({ onLogin }) => {
                 Continue as
               </p>
 
-            <div
-  className="
-    grid
-    grid-cols-2
-    rounded-xl
-    bg-slate-100
-    p-1
-    gap-1
-  "
->
-  {/* ADMIN */}
-  <button
-    type="button"
-    onClick={() => setRole("admin")}
-    className={`
-      relative
-      h-10
-      rounded-lg
-      flex
-      items-center
-      justify-center
-      text-sm
-      font-semibold
-      transition-all
-      duration-200
-      ${
-        role === "admin"
-          ? `
-            bg-white
-            text-slate-900
-            shadow-sm
-          `
-          : `
-            text-slate-500
-            hover:text-slate-700
-          `
-      }
-    `}
-  >
-    Admin
 
-    {role === "admin" && (
-      <span
-        className="
-          absolute
-          right-2
-          top-1/2
-          -translate-y-1/2
-          w-1.5
-          h-1.5
-          rounded-full
-          bg-blue-500
-        "
-      />
-    )}
-  </button>
+              <div
+                className="
+                  grid
+                  grid-cols-2
+                  rounded-xl
+                  bg-slate-100
+                  p-1
+                  gap-1
+                "
+              >
 
-  {/* CASHIER */}
-  <button
-    type="button"
-    onClick={() => setRole("cashier")}
-    className={`
-      relative
-      h-10
-      rounded-lg
-      flex
-      items-center
-      justify-center
-      text-sm
-      font-semibold
-      transition-all
-      duration-200
-      ${
-        role === "cashier"
-          ? `
-            bg-white
-            text-slate-900
-            shadow-sm
-          `
-          : `
-            text-slate-500
-            hover:text-slate-700
-          `
-      }
-    `}
-  >
-    Cashier
+                {/* ADMIN */}
 
-    {role === "cashier" && (
-      <span
-        className="
-          absolute
-          right-2
-          top-1/2
-          -translate-y-1/2
-          w-1.5
-          h-1.5
-          rounded-full
-          bg-blue-500
-        "
-      />
-    )}
-  </button>
-</div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setRole("Admin")
+                  }
+                  className={`
+                    relative
+                    h-10
+                    rounded-lg
+                    flex
+                    items-center
+                    justify-center
+                    text-sm
+                    font-semibold
+                    transition-all
+                    duration-200
+                    ${
+                      role === "Admin"
+                        ? `
+                          bg-white
+                          text-slate-900
+                          shadow-sm
+                        `
+                        : `
+                          text-slate-500
+                          hover:text-slate-700
+                        `
+                    }
+                  `}
+                >
+
+                  Admin
+
+                  {role === "Admin" && (
+
+                    <span
+                      className="
+                        absolute
+                        right-2
+                        top-1/2
+                        -translate-y-1/2
+                        w-1.5
+                        h-1.5
+                        rounded-full
+                        bg-blue-500
+                      "
+                    />
+
+                  )}
+
+                </button>
+
+
+                {/* CASHIER */}
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setRole("Cashier")
+                  }
+                  className={`
+                    relative
+                    h-10
+                    rounded-lg
+                    flex
+                    items-center
+                    justify-center
+                    text-sm
+                    font-semibold
+                    transition-all
+                    duration-200
+                    ${
+                      role === "Cashier"
+                        ? `
+                          bg-white
+                          text-slate-900
+                          shadow-sm
+                        `
+                        : `
+                          text-slate-500
+                          hover:text-slate-700
+                        `
+                    }
+                  `}
+                >
+
+                  Cashier
+
+                  {role === "Cashier" && (
+
+                    <span
+                      className="
+                        absolute
+                        right-2
+                        top-1/2
+                        -translate-y-1/2
+                        w-1.5
+                        h-1.5
+                        rounded-full
+                        bg-blue-500
+                      "
+                    />
+
+                  )}
+
+                </button>
+
+              </div>
 
             </div>
+
 
             {/* ==================================================
                 FORM
@@ -1121,9 +1156,8 @@ const Login = ({ onLogin }) => {
               "
             >
 
-              {/* ==================================================
-                  STORE CODE
-              ================================================== */}
+
+              {/* STORE CODE */}
 
               <div>
 
@@ -1138,6 +1172,7 @@ const Login = ({ onLogin }) => {
                 >
                   Store Code
                 </label>
+
 
                 <div className="relative group">
 
@@ -1178,6 +1213,7 @@ const Login = ({ onLogin }) => {
 
                   </div>
 
+
                   <input
                     type="text"
                     value={storeCode}
@@ -1185,9 +1221,7 @@ const Login = ({ onLogin }) => {
                       handleStoreCodeChange
                     }
                     onBlur={() =>
-                      findStore(
-                        storeCode
-                      )
+                      findStore(storeCode)
                     }
                     placeholder="Enter store code"
                     autoComplete="organization"
@@ -1216,7 +1250,6 @@ const Login = ({ onLogin }) => {
 
                 </div>
 
-                {/* STORE NAME */}
 
                 {storeLoading && (
 
@@ -1231,6 +1264,7 @@ const Login = ({ onLogin }) => {
                   </p>
 
                 )}
+
 
                 {!storeLoading &&
                   storeName && (
@@ -1269,9 +1303,8 @@ const Login = ({ onLogin }) => {
 
               </div>
 
-              {/* ==================================================
-                  USERNAME
-              ================================================== */}
+
+              {/* USERNAME */}
 
               <div>
 
@@ -1286,6 +1319,7 @@ const Login = ({ onLogin }) => {
                 >
                   Username
                 </label>
+
 
                 <div className="relative group">
 
@@ -1326,6 +1360,7 @@ const Login = ({ onLogin }) => {
 
                   </div>
 
+
                   <input
                     type="text"
                     value={username}
@@ -1363,9 +1398,8 @@ const Login = ({ onLogin }) => {
 
               </div>
 
-              {/* ==================================================
-                  PASSWORD
-              ================================================== */}
+
+              {/* PASSWORD */}
 
               <div>
 
@@ -1380,6 +1414,7 @@ const Login = ({ onLogin }) => {
                 >
                   Password
                 </label>
+
 
                 <div className="relative group">
 
@@ -1422,6 +1457,7 @@ const Login = ({ onLogin }) => {
 
                   </div>
 
+
                   <input
                     type={
                       showPassword
@@ -1459,6 +1495,7 @@ const Login = ({ onLogin }) => {
                     "
                   />
 
+
                   <button
                     type="button"
                     onClick={() =>
@@ -1482,14 +1519,17 @@ const Login = ({ onLogin }) => {
                       transition-all
                     "
                   >
+
                     {showPassword
                       ? "Hide"
                       : "Show"}
+
                   </button>
 
                 </div>
 
               </div>
+
 
               {/* ==================================================
                   SIGN IN BUTTON
@@ -1551,7 +1591,8 @@ const Login = ({ onLogin }) => {
                   <>
 
                     Sign In as{" "}
-                    {role === "admin"
+
+                    {role === "Admin"
                       ? "Admin"
                       : "Cashier"}
 
@@ -1567,9 +1608,8 @@ const Login = ({ onLogin }) => {
 
             </form>
 
-            {/* ==================================================
-                CARD FOOTER
-            ================================================== */}
+
+            {/* CARD FOOTER */}
 
             <div
               className="
@@ -1597,9 +1637,8 @@ const Login = ({ onLogin }) => {
 
           </div>
 
-          {/* ==================================================
-              ROLE INFO
-          ================================================== */}
+
+          {/* ROLE INFO */}
 
           <p
             className="
@@ -1609,22 +1648,28 @@ const Login = ({ onLogin }) => {
               mt-5
             "
           >
+
             Signing in as{" "}
+
             <span
               className="
                 font-semibold
                 text-slate-600
               "
             >
-              {role === "admin"
+
+              {role === "Admin"
                 ? "Administrator"
                 : "Cashier"}
+
             </span>
+
           </p>
 
         </div>
 
       </div>
+
 
       {/* ==================================================
           TOAST

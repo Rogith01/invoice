@@ -4501,7 +4501,7 @@ const userSql = `
     FROM users
     WHERE username = ?
     AND password = ?
-    AND role = ?
+    AND LOWER(TRIM(role)) = LOWER(TRIM(?))
     LIMIT 1
 `;
 
