@@ -1,6 +1,6 @@
 {
   "name": "billqora",
-  "version": "1.0.4",
+  "version": "1.0.6",
   "private": true,
   "homepage": ".",
   "main": "electron/main.js",
@@ -67,8 +67,8 @@
 "build": {
   "extends": null,
   "appId": "com.ak.supermarketpos",
-  "productName": "BILLQORA",
-  "artifactName": "${productName}-Setup-${version}.${ext}",
+  "productName": "BILLQORA POS",
+  "artifactName": "BILLQORA-POS-Setup.${ext}",
   "publish": {
     "provider": "github",
     "owner": "Rogith01",
