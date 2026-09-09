@@ -272,45 +272,45 @@ const InvoiceModal = ({
                                     }}
                                 >
 
-{/* ========================================== */}
-{/* STORE DETAILS */}
-{/* ========================================== */}
+                                    {/* ========================================== */}
+                                    {/* STORE DETAILS */}
+                                    {/* ========================================== */}
 
-<div className="text-center text-gray-900">
+                                    <div className="text-center text-gray-900">
 
-    {/* STORE NAME */}
+                                        {/* STORE NAME */}
 
-    <h1 className="text-lg font-bold">
+                                        <h1 className="text-lg font-bold">
 
-        {store?.storeName || "Supermarket"}
+                                            {store?.storeName || "Supermarket"}
 
-    </h1>
+                                        </h1>
 
-    {/* ADDRESS */}
+                                        {/* ADDRESS */}
 
-    {store?.address && (
+                                        {store?.address && (
 
-        <p className="mt-1 text-[11px] leading-4">
+                                            <p className="mt-1 text-[11px] leading-4">
 
-            {store.address}
+                                                {store.address}
 
-        </p>
+                                            </p>
 
-    )}
+                                        )}
 
-    {/* GSTIN */}
+                                        {/* GSTIN */}
 
-    {store?.gstin && (
+                                        {store?.gstin && (
 
-        <p className="mt-1 text-[11px] font-semibold">
+                                            <p className="mt-1 text-[11px] font-semibold">
 
-            GSTIN: {store.gstin}
+                                                GSTIN: {store.gstin}
 
-        </p>
+                                            </p>
 
-    )}
+                                        )}
 
-</div>
+                                    </div>
 
                                     {/* ========================================== */}
                                     {/* INVOICE INFO */}
@@ -318,7 +318,7 @@ const InvoiceModal = ({
 
                                     <div className="mt-6">
 
-                                        <div className="mb-4 grid grid-cols-2">
+                                        <div className="mb-4 grid grid-cols-2 text-xs">
 
                                             <span className="font-bold">
                                                 Date:
@@ -373,8 +373,29 @@ const InvoiceModal = ({
                                             </span>
 
                                             <span>
-                                                {invoiceInfo.paymentMethod}
+                                                {invoiceInfo.paymentMethod === "Split"
+                                                    ? "Split (Cash + Online)"
+                                                    : invoiceInfo.paymentMethod}
                                             </span>
+
+                                            {/* SPLIT BREAKDOWN IN HEADER IF APPLICABLE */}
+                                            {invoiceInfo.paymentMethod === "Split" && (
+                                                <>
+                                                    <span className="font-bold pl-2 text-gray-600">
+                                                        ↳ Cash:
+                                                    </span>
+                                                    <span className="text-gray-700">
+                                                        ₹{Number(invoiceInfo.cashAmount || 0).toFixed(2)}
+                                                    </span>
+
+                                                    <span className="font-bold pl-2 text-gray-600">
+                                                        ↳ Online:
+                                                    </span>
+                                                    <span className="text-gray-700">
+                                                        ₹{Number(invoiceInfo.onlineAmount || 0).toFixed(2)}
+                                                    </span>
+                                                </>
+                                            )}
 
                                         </div>
 
@@ -436,7 +457,7 @@ const InvoiceModal = ({
                                                                 key={
                                                                     item.id
                                                                 }
-                                                                className="border-b border-black/10"
+                                                                className="border-b border-black/10 text-xs"
                                                             >
 
                                                                 {/* ITEM */}
@@ -492,7 +513,7 @@ const InvoiceModal = ({
                                         {/* TOTALS */}
                                         {/* ========================================== */}
 
-                                        <div className="mt-4 flex flex-col items-end space-y-2">
+                                        <div className="mt-4 flex flex-col items-end space-y-1.5 text-xs">
 
                                             {/* SUBTOTAL */}
 
@@ -503,7 +524,7 @@ const InvoiceModal = ({
                                                 </span>
 
                                                 <span>
-                                                    {Number(
+                                                    ₹{Number(
                                                         invoiceInfo.subtotal ||
                                                             0
                                                     ).toFixed(
@@ -522,7 +543,7 @@ const InvoiceModal = ({
                                                 </span>
 
                                                 <span>
-                                                    {Number(
+                                                    - ₹{Number(
                                                         invoiceInfo.discountRate ||
                                                             0
                                                     ).toFixed(
@@ -541,7 +562,7 @@ const InvoiceModal = ({
                                                 </span>
 
                                                 <span>
-                                                    {Number(
+                                                    - ₹{Number(
                                                         invoiceInfo.loyaltyDiscount ||
                                                             0
                                                     ).toFixed(
@@ -560,7 +581,7 @@ const InvoiceModal = ({
                                                 </span>
 
                                                 <span>
-                                                    {Number(
+                                                    + ₹{Number(
                                                         invoiceInfo.taxRate ||
                                                             0
                                                     ).toFixed(
@@ -572,43 +593,61 @@ const InvoiceModal = ({
 
                                             {/* GRAND TOTAL */}
 
-<div className="flex w-full justify-between border-t border-black/10 py-2 text-[17px] font-bold">
+                                            <div className="flex w-full justify-between border-t border-black/10 py-2 text-[16px] font-bold">
 
-    <span>
-        Grand Total:
-    </span>
+                                                <span>
+                                                    Grand Total:
+                                                </span>
 
-    <span className="text-[18px]">
-        Rs:
-        {Number(
-            invoiceInfo.total || 0
-        ).toFixed(2)}
-    </span>
+                                                <span>
+                                                    ₹{Number(
+                                                        invoiceInfo.total || 0
+                                                    ).toFixed(2)}
+                                                </span>
 
-</div>
+                                            </div>
 
-{/* TOTAL PRODUCTS & QUANTITY */}
+                                            {/* PAYMENT BREAKDOWN SUMMARY */}
+                                            {invoiceInfo.paymentMethod === "Split" ? (
+                                                <div className="w-full border-t border-dashed border-gray-300 pt-1.5 pb-1 space-y-1 text-gray-700">
+                                                    <div className="flex justify-between">
+                                                        <span className="font-semibold">Paid via Cash:</span>
+                                                        <span>₹{Number(invoiceInfo.cashAmount || 0).toFixed(2)}</span>
+                                                    </div>
+                                                    <div className="flex justify-between">
+                                                        <span className="font-semibold">Paid via Online:</span>
+                                                        <span>₹{Number(invoiceInfo.onlineAmount || 0).toFixed(2)}</span>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="w-full border-t border-dashed border-gray-300 pt-1.5 pb-1 flex justify-between text-gray-700">
+                                                    <span className="font-semibold">Paid via {invoiceInfo.paymentMethod}:</span>
+                                                    <span>₹{Number(invoiceInfo.total || 0).toFixed(2)}</span>
+                                                </div>
+                                            )}
 
-<div className="w-full text-left text-[10px] text-gray-400 mt-1">
+                                            {/* TOTAL PRODUCTS & QUANTITY */}
 
-    Total Products:{" "}
-    {items.filter(
-        (item) => item.name
-    ).length}
+                                            <div className="w-full text-left text-[10px] text-gray-400 mt-1">
 
-    {"  |  "}
+                                                Total Products:{" "}
+                                                {items.filter(
+                                                    (item) => item.name
+                                                ).length}
 
-    Total Quantity:{" "}
-    {items.reduce(
-        (total, item) =>
-            total +
-            Math.floor(
-                Number(item.qty || 0)
-            ),
-        0
-    )}
+                                                {"  |  "}
 
-</div>
+                                                Total Quantity:{" "}
+                                                {items.reduce(
+                                                    (total, item) =>
+                                                        total +
+                                                        Math.floor(
+                                                            Number(item.qty || 0)
+                                                        ),
+                                                    0
+                                                )}
+
+                                            </div>
 
                                         </div>
 
@@ -618,11 +657,11 @@ const InvoiceModal = ({
 
                                         <div className="w-full text-center mt-4">
 
-                                            <h4 className="font-semibold text-[15px]">
+                                            <h4 className="font-semibold text-[14px]">
 
                                                 Thank you for shopping!
 
-                                                <p>
+                                                <p className="text-xs mt-0.5">
                                                     Visit us again!❤️
                                                 </p>
 
@@ -640,9 +679,7 @@ const InvoiceModal = ({
 
                                 <div className="flex gap-2 p-4">
 
-                                    {/* ========================================== */}
                                     {/* PRINT */}
-                                    {/* ========================================== */}
 
                                     <button
                                         type="button"
@@ -679,9 +716,7 @@ const InvoiceModal = ({
 
                                     </button>
 
-                                    {/* ========================================== */}
                                     {/* NEXT */}
-                                    {/* ========================================== */}
 
                                     <button
                                         type="button"

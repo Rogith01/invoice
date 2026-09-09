@@ -64,17 +64,17 @@
     "prettier-plugin-tailwindcss": "^0.1.8",
     "tailwindcss": "^3.0.23"
   },
-"build": {
-  "extends": null,
-  "appId": "com.ak.supermarketpos",
-  "productName": "BILLQORA POS",
-  "artifactName": "BILLQORA-POS-Setup.${ext}",
-  "publish": {
-    "provider": "github",
-    "owner": "Rogith01",
-    "repo": "invoice"
-  },
-  "icon": "assets/bill.ico",
+  "build": {
+    "extends": null,
+    "appId": "com.ak.supermarketpos",
+    "productName": "BILLQORA POS",
+    "artifactName": "BILLQORA-POS-Setup.${ext}",
+    "publish": {
+      "provider": "github",
+      "owner": "Rogith01",
+      "repo": "invoice"
+    },
+    "icon": "assets/bill.ico",
     "files": [
       "build/**/*",
       "electron/**/*",

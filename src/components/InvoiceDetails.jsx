@@ -1,4 +1,3 @@
-
 import React, {
     useEffect,
     useRef,
@@ -28,11 +27,9 @@ const InvoiceDetails = () => {
 
     const { id } = useParams();
 
-const store = JSON.parse(
-    sessionStorage.getItem("store")
-);
-
-
+    const store = JSON.parse(
+        sessionStorage.getItem("store")
+    );
 
     const [invoice, setInvoice] = useState(null);
 
@@ -112,10 +109,6 @@ const store = JSON.parse(
         type = "success"
     ) => {
 
-        // ==================================================
-        // SUCCESS SOUND
-        // ==================================================
-
         if (type === "success") {
 
             if (successSoundRef.current) {
@@ -136,10 +129,6 @@ const store = JSON.parse(
             }
 
         }
-
-        // ==================================================
-        // ERROR / WARNING SOUND
-        // ==================================================
 
         else if (
             type === "error" ||
@@ -164,11 +153,6 @@ const store = JSON.parse(
             }
 
         }
-
-
-        // ==================================================
-        // SET TOAST
-        // ==================================================
 
         setToast({
             message,
@@ -200,20 +184,9 @@ const store = JSON.parse(
 
         try {
 
-            // ==================================================
-            // CENTRALIZED API
-            // JWT TOKEN IS AUTOMATICALLY ATTACHED
-            // BY api.js INTERCEPTOR
-            // ==================================================
-
             const res = await api.get(
                 `/api/invoices/${id}`
             );
-
-
-            // ==================================================
-            // SUCCESS
-            // ==================================================
 
             if (res.data.success) {
 
@@ -227,10 +200,6 @@ const store = JSON.parse(
 
             }
 
-            // ==================================================
-            // FAILED
-            // ==================================================
-
             else {
 
                 showToast(
@@ -242,17 +211,12 @@ const store = JSON.parse(
 
         }
 
-        // ==================================================
-        // ERROR
-        // ==================================================
-
         catch (err) {
 
             console.log(
                 "Fetch Invoice Error:",
                 err
             );
-
 
             if (
                 err.response?.status === 401
@@ -322,10 +286,6 @@ const store = JSON.parse(
 
     const openReturnModal = (item) => {
 
-        // ==================================================
-        // FULLY RETURNED
-        // ==================================================
-
         if (
             Number(item.remaining_qty) <= 0
         ) {
@@ -339,19 +299,12 @@ const store = JSON.parse(
 
         }
 
-
-        // ==================================================
-        // OPEN MODAL
-        // ==================================================
-
         setReturnModal({
             show: true,
             item: item
         });
 
-
         setReturnQty("");
-
 
         setReturnReason(
             "Customer Return"
@@ -372,15 +325,12 @@ const store = JSON.parse(
 
         }
 
-
         setReturnModal({
             show: false,
             item: null
         });
 
-
         setReturnQty("");
-
 
         setReturnReason(
             "Customer Return"
@@ -397,11 +347,6 @@ const store = JSON.parse(
 
         const value = e.target.value;
 
-
-        // ==================================================
-        // EMPTY
-        // ==================================================
-
         if (value === "") {
 
             setReturnQty("");
@@ -410,14 +355,8 @@ const store = JSON.parse(
 
         }
 
-
         const number =
             Number(value);
-
-
-        // ==================================================
-        // ONLY POSITIVE INTEGER
-        // ==================================================
 
         if (
             Number.isInteger(number) &&
@@ -448,30 +387,19 @@ const store = JSON.parse(
 
     const handleReturn = async () => {
 
-        // ==================================================
-        // NO ITEM
-        // ==================================================
-
         if (!returnModal.item) {
 
             return;
 
         }
 
-
         const quantity =
             Number(returnQty);
-
 
         const remainingQty =
             Number(
                 returnModal.item.remaining_qty
             ) || 0;
-
-
-        // ==================================================
-        // VALIDATE QUANTITY
-        // ==================================================
 
         if (
             !Number.isInteger(quantity) ||
@@ -487,11 +415,6 @@ const store = JSON.parse(
 
         }
 
-
-        // ==================================================
-        // COMPARE WITH REMAINING QUANTITY
-        // ==================================================
-
         if (quantity > remainingQty) {
 
             showToast(
@@ -502,11 +425,6 @@ const store = JSON.parse(
             return;
 
         }
-
-
-        // ==================================================
-        // VALIDATE REASON
-        // ==================================================
 
         if (
             !returnReason ||
@@ -522,14 +440,8 @@ const store = JSON.parse(
 
         }
 
-
-        // ==================================================
-        // JWT TOKEN CHECK
-        // ==================================================
-
         const token =
             sessionStorage.getItem("token");
-
 
         if (!token) {
 
@@ -542,18 +454,9 @@ const store = JSON.parse(
 
         }
 
-
         try {
 
             setReturnLoading(true);
-
-
-            // ==================================================
-            // RETURN API
-            //
-            // api.js AUTOMATICALLY ATTACHES:
-            // Authorization: Bearer TOKEN
-            // ==================================================
 
             const res = await api.post(
 
@@ -572,11 +475,6 @@ const store = JSON.parse(
 
             );
 
-
-            // ==================================================
-            // SUCCESS
-            // ==================================================
-
             if (res.data.success) {
 
                 showToast(
@@ -586,36 +484,20 @@ const store = JSON.parse(
                     "success"
                 );
 
-
-                // ==================================================
-                // CLOSE MODAL
-                // ==================================================
-
                 setReturnModal({
                     show: false,
                     item: null
                 });
 
-
                 setReturnQty("");
-
 
                 setReturnReason(
                     "Customer Return"
                 );
 
-
-                // ==================================================
-                // REFRESH INVOICE
-                // ==================================================
-
                 await fetchInvoice();
 
             }
-
-            // ==================================================
-            // API FAILED
-            // ==================================================
 
             else {
 
@@ -629,17 +511,12 @@ const store = JSON.parse(
 
         }
 
-        // ==================================================
-        // ERROR
-        // ==================================================
-
         catch (err) {
 
             console.log(
                 "Return Error:",
                 err
             );
-
 
             if (
                 err.response?.status === 401
@@ -700,7 +577,6 @@ const store = JSON.parse(
                     onClose={hideToast}
                 />
 
-
                 <h2 className="text-center mt-10">
                     Loading...
                 </h2>
@@ -720,9 +596,7 @@ const store = JSON.parse(
 
         <>
 
-            {/* ==================================================
-                TOAST
-            ================================================== */}
+            {/* TOAST */}
 
             <Toast
                 message={toast.message}
@@ -731,9 +605,7 @@ const store = JSON.parse(
             />
 
 
-            {/* ==================================================
-                RETURN MODAL
-            ================================================== */}
+            {/* RETURN MODAL */}
 
             {returnModal.show && (
 
@@ -748,7 +620,6 @@ const store = JSON.parse(
                             <h2 className="text-xl font-bold text-gray-800">
                                 Return Product
                             </h2>
-
 
                             <button
                                 type="button"
@@ -841,11 +712,8 @@ const store = JSON.parse(
                         <div className="mb-4">
 
                             <label className="block text-sm font-semibold text-gray-700 mb-1">
-
                                 Return Quantity
-
                             </label>
-
 
                             <input
                                 type="number"
@@ -858,14 +726,8 @@ const store = JSON.parse(
                                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100"
                             />
 
-
                             <p className="text-xs text-gray-500 mt-1">
-
-                                Maximum:
-                                {" "}
-                                {returnModal.item?.remaining_qty}
-                                {" "}item(s)
-
+                                Maximum: {returnModal.item?.remaining_qty} item(s)
                             </p>
 
                         </div>
@@ -876,11 +738,8 @@ const store = JSON.parse(
                         <div className="mb-4">
 
                             <label className="block text-sm font-semibold text-gray-700 mb-1">
-
                                 Reason
-
                             </label>
-
 
                             <select
                                 value={returnReason}
@@ -893,29 +752,12 @@ const store = JSON.parse(
                                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100"
                             >
 
-                                <option value="Customer Return">
-                                    Customer Return
-                                </option>
-
-                                <option value="Damaged Product">
-                                    Damaged Product
-                                </option>
-
-                                <option value="Wrong Product">
-                                    Wrong Product
-                                </option>
-
-                                <option value="Defective Product">
-                                    Defective Product
-                                </option>
-
-                                <option value="Expired Product">
-                                    Expired Product
-                                </option>
-
-                                <option value="Other">
-                                    Other
-                                </option>
+                                <option value="Customer Return">Customer Return</option>
+                                <option value="Damaged Product">Damaged Product</option>
+                                <option value="Wrong Product">Wrong Product</option>
+                                <option value="Defective Product">Defective Product</option>
+                                <option value="Expired Product">Expired Product</option>
+                                <option value="Other">Other</option>
 
                             </select>
 
@@ -933,10 +775,7 @@ const store = JSON.parse(
                                 </span>
 
                                 <span className="text-xl font-bold text-green-600">
-
-                                    ₹
-                                    {refundAmount.toFixed(2)}
-
+                                    ₹{refundAmount.toFixed(2)}
                                 </span>
 
                             </div>
@@ -957,7 +796,6 @@ const store = JSON.parse(
                                 Cancel
                             </button>
 
-
                             <button
                                 type="button"
                                 onClick={handleReturn}
@@ -967,12 +805,10 @@ const store = JSON.parse(
                                 }
                                 className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 rounded-lg transition disabled:opacity-50"
                             >
-
                                 {returnLoading
                                     ? "Processing..."
                                     : "Confirm Return"
                                 }
-
                             </button>
 
                         </div>
@@ -984,16 +820,9 @@ const store = JSON.parse(
             )}
 
 
-            {/* ==================================================
-                PAGE
-            ================================================== */}
+            {/* PAGE CONTENT */}
 
             <div className="min-h-screen bg-gray-100 flex justify-center items-start py-10">
-
-
-                {/* ==================================================
-                    INVOICE
-                ================================================== */}
 
                 <div
                     ref={printRef}
@@ -1007,135 +836,89 @@ const store = JSON.parse(
                     }}
                 >
 
+                    {/* STORE DETAILS */}
 
-{/* ==================================================
-    STORE DETAILS
-================================================== */}
+                    <div className="text-center text-gray-900 mb-3">
 
-<div className="text-center text-gray-900 mb-3">
+                        <h1 className="text-xl font-bold tracking-wide">
+                            {store?.storeName || "Supermarket"}
+                        </h1>
 
-    {/* STORE NAME */}
+                        {store?.address && (
+                            <p className="mt-1 text-[12px] leading-4">
+                                {store.address}
+                            </p>
+                        )}
 
-    <h1 className="text-xl font-bold tracking-wide">
+                        {store?.gstin && (
+                            <p className="mt-1 text-[12px] font-semibold">
+                                GSTIN: {store.gstin}
+                            </p>
+                        )}
 
-        {store?.storeName || "Supermarket"}
-
-    </h1>
-
-
-    {/* ADDRESS */}
-
-    {store?.address && (
-
-        <p className="mt-1 text-[12px] leading-4">
-
-            {store.address}
-
-        </p>
-
-    )}
-
-
-    {/* GSTIN */}
-
-    {store?.gstin && (
-
-        <p className="mt-1 text-[12px] font-semibold">
-
-            GSTIN: {store.gstin}
-
-        </p>
-
-    )}
-
-</div>
-
+                    </div>
 
                     <hr className="border-gray-300 mb-4" />
 
 
-                    {/* ==================================================
-                        INVOICE INFORMATION
-                    ================================================== */}
+                    {/* INVOICE INFORMATION */}
 
                     <div className="mt-8">
 
                         <div className="mb-4 grid grid-cols-2 gap-y-1 text-base">
 
-                            <span className="font-bold text-[15px]">
-                                Date:
-                            </span>
-
+                            <span className="font-bold text-[15px]">Date:</span>
                             <span className="text-[15px]">
-                                {new Date(
-                                    invoice.invoice_date
-                                ).toLocaleDateString(
-                                    "en-GB"
-                                )}
+                                {new Date(invoice.invoice_date).toLocaleDateString("en-GB")}
                             </span>
 
+                            <span className="font-bold text-[15px]">Time:</span>
+                            <span className="text-[15px]">{invoice.invoice_time}</span>
 
-                            <span className="font-bold text-[15px]">
-                                Time:
-                            </span>
+                            <span className="font-bold text-[15px]">Invoice Number:</span>
+                            <span className="text-[15px]">{invoice.invoice_number}</span>
 
+                            <span className="font-bold text-[15px]">Cashier:</span>
+                            <span className="text-[15px]">{invoice.cashier_name}</span>
+
+                            <span className="font-bold text-[15px]">Customer:</span>
+                            <span className="text-[15px]">{invoice.customer_name}</span>
+
+                            <span className="font-bold text-[15px]">Phone:</span>
+                            <span className="text-[15px]">{invoice.phone_number}</span>
+
+                            <span className="font-bold text-[15px]">Payment:</span>
                             <span className="text-[15px]">
-                                {invoice.invoice_time}
+                                {invoice.payment_method === "Split"
+                                    ? "Split (Cash + Online)"
+                                    : invoice.payment_method}
                             </span>
 
+                            {/* SPLIT BREAKDOWN DETAILS */}
+                            {invoice.payment_method === "Split" && (
+                                <>
+                                    <span className="font-bold pl-2 text-gray-600 text-[14px]">
+                                        ↳ Cash:
+                                    </span>
+                                    <span className="text-[14px] text-gray-700">
+                                        ₹{Number(invoice.cash_amount || 0).toFixed(2)}
+                                    </span>
 
-                            <span className="font-bold text-[15px]">
-                                Invoice Number:
-                            </span>
-
-                            <span className="text-[15px]">
-                                {invoice.invoice_number}
-                            </span>
-
-
-                            <span className="font-bold text-[15px]">
-                                Cashier:
-                            </span>
-
-                            <span className="text-[15px]">
-                                {invoice.cashier_name}
-                            </span>
-
-
-                            <span className="font-bold text-[15px]">
-                                Customer:
-                            </span>
-
-                            <span className="text-[15px]">
-                                {invoice.customer_name}
-                            </span>
-
-
-                            <span className="font-bold text-[15px]">
-                                Phone:
-                            </span>
-
-                            <span className="text-[15px]">
-                                {invoice.phone_number}
-                            </span>
-
-
-                            <span className="font-bold text-[15px]">
-                                Payment:
-                            </span>
-
-                            <span className="text-[15px]">
-                                {invoice.payment_method}
-                            </span>
+                                    <span className="font-bold pl-2 text-gray-600 text-[14px]">
+                                        ↳ Online:
+                                    </span>
+                                    <span className="text-[14px] text-gray-700">
+                                        ₹{Number(invoice.online_amount || 0).toFixed(2)}
+                                    </span>
+                                </>
+                            )}
 
                         </div>
 
                     </div>
 
 
-                    {/* ==================================================
-                        ITEMS
-                    ================================================== */}
+                    {/* ITEMS TABLE */}
 
                     <table className="w-full text-left mt-2">
 
@@ -1143,90 +926,45 @@ const store = JSON.parse(
 
                             <tr className="border-y border-black/10 text-[15px]">
 
-                                <th className="text-left py-2">
-                                    ITEM
-                                </th>
-
-                                <th className="text-center py-2">
-                                    QTY
-                                </th>
-
-                                <th className="text-right py-2">
-                                    PRICE
-                                </th>
-
-                                <th className="text-right py-2">
-                                    AMOUNT
-                                </th>
+                                <th className="text-left py-2">ITEM</th>
+                                <th className="text-center py-2">QTY</th>
+                                <th className="text-right py-2">PRICE</th>
+                                <th className="text-right py-2">AMOUNT</th>
 
                             </tr>
 
                         </thead>
 
-
                         <tbody>
 
                             {items.map((item) => {
 
-                                const originalQty =
-                                    Number(item.qty) || 0;
-
-                                const returnedQty =
-                                    Number(item.returned_qty) || 0;
-
+                                const originalQty = Number(item.qty) || 0;
+                                const returnedQty = Number(item.returned_qty) || 0;
                                 const remainingQty =
                                     Number(item.remaining_qty) ||
-                                    Math.max(
-                                        originalQty -
-                                        returnedQty,
-                                        0
-                                    );
-
+                                    Math.max(originalQty - returnedQty, 0);
 
                                 return (
 
-                                    <React.Fragment
-                                        key={item.id}
-                                    >
-
-                                        {/* ORIGINAL ITEM */}
+                                    <React.Fragment key={item.id}>
 
                                         <tr className="border-b border-black/10">
 
-                                            <td className="w-full py-2">
-                                                {item.item_name}
-                                            </td>
-
-
-                                            <td className="min-w-[50px] text-center py-2">
-                                                {item.qty}
-                                            </td>
-
-
+                                            <td className="w-full py-2">{item.item_name}</td>
+                                            <td className="min-w-[50px] text-center py-2">{item.qty}</td>
                                             <td className="min-w-[80px] text-right py-2">
-                                                {Number(
-                                                    item.price
-                                                ).toFixed(2)}
+                                                {Number(item.price).toFixed(2)}
                                             </td>
-
-
                                             <td className="min-w-[90px] text-right py-2">
-                                                {Number(
-                                                    item.amount
-                                                ).toFixed(2)}
+                                                {Number(item.amount).toFixed(2)}
                                             </td>
 
                                         </tr>
 
-
-                                        {/* RETURN INFORMATION */}
-
                                         <tr className="print:hidden">
 
-                                            <td
-                                                colSpan="4"
-                                                className="py-2"
-                                            >
+                                            <td colSpan="4" className="py-2">
 
                                                 <div className="flex items-center justify-between bg-gray-50 rounded-md px-3 py-2">
 
@@ -1236,11 +974,9 @@ const store = JSON.parse(
                                                             {item.item_name} — Qty {originalQty}
                                                         </div>
 
-
                                                         <div className="text-red-600">
                                                             Returned: {returnedQty}
                                                         </div>
-
 
                                                         <div className="text-green-600">
                                                             Remaining: {remainingQty}
@@ -1248,16 +984,11 @@ const store = JSON.parse(
 
                                                     </div>
 
-
-                                                    {/* RETURN BUTTON */}
-
                                                     {remainingQty > 0 ? (
 
                                                         <button
                                                             type="button"
-                                                            onClick={() =>
-                                                                openReturnModal(item)
-                                                            }
+                                                            onClick={() => openReturnModal(item)}
                                                             className="ml-2 text-sm text-red-600 hover:text-red-800 font-semibold whitespace-nowrap"
                                                         >
                                                             ↩ Return
@@ -1288,146 +1019,94 @@ const store = JSON.parse(
                     </table>
 
 
-                    {/* ==================================================
-                        TOTALS
-                    ================================================== */}
+                    {/* TOTALS */}
 
                     <div className="mt-4 flex flex-col items-end space-y-2">
 
                         <div className="flex w-full justify-between border-black/10 pt-2 text-[15px]">
-
-                            <span className="font-bold">
-                                Subtotal:
-                            </span>
-
-                            <span>
-                                {Number(
-                                    invoice.subtotal
-                                ).toFixed(2)}
-                            </span>
-
+                            <span className="font-bold">Subtotal:</span>
+                            <span>₹{Number(invoice.subtotal).toFixed(2)}</span>
                         </div>
-
 
                         <div className="flex w-full justify-between text-[15px]">
-
-                            <span className="font-bold">
-                                Discount:
-                            </span>
-
-                            <span>
-                                {Number(
-                                    invoice.discount
-                                ).toFixed(2)}
-                            </span>
-
+                            <span className="font-bold">Discount:</span>
+                            <span>- ₹{Number(invoice.discount).toFixed(2)}</span>
                         </div>
-
 
                         <div className="flex w-full justify-between text-[15px]">
-
-                            <span className="font-bold">
-                                Loyalty Discount:
-                            </span>
-
-                            <span>
-                                {Number(
-                                    invoice.loyalty_discount
-                                ).toFixed(2)}
-                            </span>
-
+                            <span className="font-bold">Loyalty Discount:</span>
+                            <span>- ₹{Number(invoice.loyalty_discount).toFixed(2)}</span>
                         </div>
-
 
                         <div className="flex w-full justify-between text-[15px]">
-
-                            <span className="font-bold">
-                                Tax:
-                            </span>
-
-                            <span>
-                                {Number(
-                                    invoice.tax
-                                ).toFixed(2)}
-                            </span>
-
+                            <span className="font-bold">Tax:</span>
+                            <span>+ ₹{Number(invoice.tax).toFixed(2)}</span>
                         </div>
 
+                        <div className="flex w-full justify-between border-t border-black/10 py-2 text-[17px] font-bold">
+                            <span>Grand Total:</span>
+                            <span className="text-[18px]">
+                                Rs: {Number(invoice.total).toFixed(2)}
+                            </span>
+                        </div>
 
-                     <div className="flex w-full justify-between border-t border-black/10 py-2 text-[17px] font-bold">
+                        {/* PAYMENT BREAKDOWN SUMMARY */}
+                        {invoice.payment_method === "Split" ? (
+                            <div className="w-full border-t border-dashed border-gray-300 pt-2 pb-1 space-y-1 text-[14px] text-gray-700">
+                                <div className="flex justify-between">
+                                    <span className="font-semibold">Paid via Cash:</span>
+                                    <span>₹{Number(invoice.cash_amount || 0).toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="font-semibold">Paid via Online:</span>
+                                    <span>₹{Number(invoice.online_amount || 0).toFixed(2)}</span>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="w-full border-t border-dashed border-gray-300 pt-2 pb-1 flex justify-between text-[14px] text-gray-700">
+                                <span className="font-semibold">Paid via {invoice.payment_method}:</span>
+                                <span>₹{Number(invoice.total || 0).toFixed(2)}</span>
+                            </div>
+                        )}
 
-    <span>
-        Grand Total:
-    </span>
+                        <div className="w-full text-left text-[10px] text-gray-400 mt-1">
+                            Total Products: {items.length}
+                            {"  |  "}
+                            Total Quantity:{" "}
+                            {items.reduce(
+                                (total, item) =>
+                                    total +
+                                    Math.floor(
+                                        Number(item.qty || 0)
+                                    ),
+                                0
+                            )}
+                        </div>
 
-    <span className="text-[18px]">
-
-        Rs:
-        {Number(
-            invoice.total
-        ).toFixed(2)}
-
-    </span>
-
-</div>
-
-
-{/* TOTAL PRODUCTS & QUANTITY */}
-
-<div className="w-full text-left text-[10px] text-gray-400 mt-1">
-
-    Total Products:{" "}
-    {items.length}
-
-    {"  |  "}
-
-    Total Quantity:{" "}
-    {items.reduce(
-        (total, item) =>
-            total +
-            Math.floor(
-                Number(item.qty || 0)
-            ),
-        0
-    )}
-
-</div>
                     </div>
 
 
-                    {/* ==================================================
-                        THANK YOU
-                    ================================================== */}
+                    {/* THANK YOU */}
 
                     <div className="w-full text-center mt-4">
 
                         <h4 className="font-semibold text-[15px]">
 
-                            <p>
-                                Thank you for shopping!
-                            </p>
+                            <p>Thank you for shopping!</p>
 
-                            <p>
-                                Visit us again! ❤️
-                            </p>
+                            <p>Visit us again! ❤️</p>
 
                         </h4>
 
                     </div>
 
 
-                    {/* ==================================================
-                        BUTTONS
-                    ================================================== */}
+                    {/* BUTTONS */}
 
                     <div className="mt-6 flex gap-2 w-full print:hidden">
 
-                        {/* PRINT */}
-
                         <button
-                            onClick={
-                                printInvoiceHandler
-                            }
+                            onClick={printInvoiceHandler}
                             className="flex-1 flex items-center justify-center gap-2 rounded-md border border-red-500 py-2 text-sm text-red-500 shadow-sm hover:bg-green-500 hover:text-white transition"
                         >
 
@@ -1438,16 +1117,13 @@ const store = JSON.parse(
                                 viewBox="0 0 24 24"
                                 stroke="currentColor"
                             >
-
                                 <path
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
                                     strokeWidth={2}
                                     d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
                                 />
-
                             </svg>
-
 
                             <span className="whitespace-nowrap">
                                 Print Bill
@@ -1455,15 +1131,8 @@ const store = JSON.parse(
 
                         </button>
 
-
-                        {/* BACK */}
-
                         <button
-                            onClick={() =>
-                                navigate(
-                                    "/invoices"
-                                )
-                            }
+                            onClick={() => navigate("/invoices")}
                             className="flex-1 flex items-center justify-center gap-2 rounded-md bg-red-500 py-2 text-sm text-white shadow-sm hover:bg-green-600 transition"
                         >
 
@@ -1474,16 +1143,13 @@ const store = JSON.parse(
                                 viewBox="0 0 24 24"
                                 stroke="currentColor"
                             >
-
                                 <path
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
                                     strokeWidth={2}
                                     d="M15 19l-7-7 7-7"
                                 />
-
                             </svg>
-
 
                             <span className="whitespace-nowrap">
                                 Back
@@ -1492,7 +1158,6 @@ const store = JSON.parse(
                         </button>
 
                     </div>
-
 
                     <hr className="mt-5 border-gray-300" />
 
@@ -1505,6 +1170,5 @@ const store = JSON.parse(
     );
 
 };
-
 
 export default InvoiceDetails;
