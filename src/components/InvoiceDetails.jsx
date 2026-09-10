@@ -881,6 +881,10 @@ const InvoiceDetails = () => {
                             <span className="font-bold text-[15px]">Cashier:</span>
                             <span className="text-[15px]">{invoice.cashier_name}</span>
 
+                            {/* COUNTER */}
+                            <span className="font-bold text-[15px]">Counter:</span>
+                            <span className="text-[15px]">{invoice.counter_name || "Counter 1"}</span>
+
                             <span className="font-bold text-[15px]">Customer:</span>
                             <span className="text-[15px]">{invoice.customer_name}</span>
 

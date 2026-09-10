@@ -202,7 +202,8 @@ app.get("/api/customers/:id/purchases", authenticateToken, (req, res) => {
                 cash_amount,
                 online_amount,
                 payment_method,
-                cashier_name
+                cashier_name,
+                counter_name
             FROM invoices
             WHERE customer_id = ?
             ORDER BY id DESC
@@ -694,7 +695,7 @@ app.delete("/api/products/:id", (req, res) => {
 
 app.get("/api/users", authenticateToken, (req, res) => {
     const storeDb = req.storeDb;
-    const sql = `SELECT id, username, role FROM users ORDER BY id`;
+    const sql = `SELECT id, username, role, counter_name FROM users ORDER BY id`;
 
     storeDb.query(sql, (err, rows) => {
         if (err) {
@@ -724,7 +725,7 @@ app.post("/api/users", authenticateToken, (req, res) => {
     }
 
     const storeDb = req.storeDb;
-    const { username, password, role } = req.body;
+    const { username, password, role, counterName } = req.body;
 
     if (!username || !password || !role) {
         return res.status(400).json({
@@ -733,9 +734,9 @@ app.post("/api/users", authenticateToken, (req, res) => {
         });
     }
 
-    const sql = `INSERT INTO users (username, password, role) VALUES (?, ?, ?)`;
+    const sql = `INSERT INTO users (username, password, role, counter_name) VALUES (?, ?, ?, ?)`;
 
-    storeDb.query(sql, [username, password, role], (err) => {
+    storeDb.query(sql, [username, password, role, counterName || "Counter 1"], (err) => {
         if (err) {
             return res.status(500).json({
                 success: false,
@@ -763,12 +764,12 @@ app.put("/api/users/:id", authenticateToken, (req, res) => {
     }
 
     const storeDb = req.storeDb;
-    const { username, password, role } = req.body;
+    const { username, password, role, counterName } = req.body;
     const id = req.params.id;
 
-    const sql = `UPDATE users SET username = ?, password = ?, role = ? WHERE id = ?`;
+    const sql = `UPDATE users SET username = ?, password = ?, role = ?, counter_name = ? WHERE id = ?`;
 
-    storeDb.query(sql, [username, password, role, id], (err) => {
+    storeDb.query(sql, [username, password, role, counterName || "Counter 1", id], (err) => {
         if (err) {
             return res.status(500).json({
                 success: false,
@@ -1104,6 +1105,7 @@ app.get("/api/invoices", authenticateToken, (req, res) => {
             invoices.invoice_time,
             invoices.customer_name,
             invoices.cashier_name,
+            invoices.counter_name,
             customers.phone_number,
             invoices.total,
             invoices.cash_amount,
@@ -1143,6 +1145,7 @@ app.get("/api/invoices/:id", authenticateToken, (req, res) => {
             invoices.*,
             invoices.cash_amount,
             invoices.online_amount,
+            invoices.counter_name,
             customers.phone_number
         FROM invoices
         LEFT JOIN customers ON invoices.customer_id = customers.id
@@ -1220,6 +1223,7 @@ app.get("/api/refund-history", authenticateToken, (req, res) => {
             ir.created_at,
             i.customer_name,
             i.cashier_name,
+            i.counter_name,
             i.invoice_date,
             i.payment_method,
             c.phone_number
@@ -1246,7 +1250,7 @@ app.get("/api/refund-history", authenticateToken, (req, res) => {
 });
 
 // ======================================================
-// SAVE INVOICE (SUPPORTS ANY MANUAL SPLIT AMOUNT)
+// SAVE INVOICE (SUPPORTS ANY MANUAL SPLIT AMOUNT + COUNTER)
 // ======================================================
 
 app.post("/api/invoices", authenticateToken, (req, res) => {
@@ -1264,13 +1268,14 @@ app.post("/api/invoices", authenticateToken, (req, res) => {
         cashAmount,
         onlineAmount,
         cash_amount,
-        online_amount
+        online_amount,
+        counterName
     } = req.body;
 
     const cashierName = req.user.username;
+    const assignedCounter = req.user.counterName || counterName || "Counter 1";
     const invoiceTotal = parseFloat(Number(total).toFixed(2)) || 0;
 
-    // Read camelCase or snake_case
     const rawCash = cashAmount !== undefined ? cashAmount : cash_amount;
     const rawOnline = onlineAmount !== undefined ? onlineAmount : online_amount;
 
@@ -1283,7 +1288,6 @@ app.post("/api/invoices", authenticateToken, (req, res) => {
         calculatedCash = parseFloat(Number(rawCash).toFixed(2)) || 0;
         calculatedOnline = parseFloat(Number(rawOnline).toFixed(2)) || 0;
 
-        // Validation tolerance of 50 paise
         if (Math.abs((calculatedCash + calculatedOnline) - invoiceTotal) > 0.5) {
             return res.status(400).json({
                 success: false,
@@ -1297,14 +1301,6 @@ app.post("/api/invoices", authenticateToken, (req, res) => {
         calculatedCash = 0;
         calculatedOnline = invoiceTotal;
     }
-
-    console.log("==========================================");
-    console.log("EXECUTING DATABASE INSERT FOR INVOICE:");
-    console.log("Method:", method);
-    console.log("Total:", invoiceTotal);
-    console.log("Cash to DB Column:", calculatedCash);
-    console.log("Online to DB Column:", calculatedOnline);
-    console.log("==========================================");
 
     const validItems = (items || []).filter(item => item.name && item.name.trim() !== "");
 
@@ -1391,6 +1387,7 @@ app.post("/api/invoices", authenticateToken, (req, res) => {
                     invoice_time,
                     customer_id,
                     cashier_name,
+                    counter_name,
                     customer_name,
                     subtotal,
                     discount,
@@ -1416,6 +1413,7 @@ app.post("/api/invoices", authenticateToken, (req, res) => {
                     ?,
                     ?,
                     ?,
+                    ?,
                     ?
                 )
             `;
@@ -1426,6 +1424,7 @@ app.post("/api/invoices", authenticateToken, (req, res) => {
                     invoiceNumber,
                     customerId,
                     cashierName,
+                    assignedCounter,
                     customerName,
                     subtotal,
                     discountRate,
@@ -1856,7 +1855,7 @@ app.post("/api/login", (req, res) => {
         }
 
         const userSql = `
-            SELECT id, username, role
+            SELECT id, username, role, counter_name
             FROM users
             WHERE username = ?
             AND password = ?
@@ -1884,6 +1883,7 @@ app.post("/api/login", (req, res) => {
                     id: user.id,
                     username: user.username,
                     role: user.role,
+                    counterName: user.counter_name || "Counter 1",
                     storeId: store.id,
                     storeCode: store.store_code,
                     storeName: store.store_name,
@@ -1908,7 +1908,8 @@ app.post("/api/login", (req, res) => {
                 user: {
                     id: user.id,
                     username: user.username,
-                    role: user.role
+                    role: user.role,
+                    counterName: user.counter_name || "Counter 1"
                 }
             });
         });
@@ -2000,6 +2001,7 @@ app.get("/api/cash-register/current", authenticateToken, (req, res) => {
         SELECT
             id,
             cashier_name,
+            counter_name,
             opening_cash,
             opening_time,
             actual_cash,
@@ -2048,6 +2050,7 @@ app.get("/api/cash-register/history", authenticateToken, (req, res) => {
         SELECT
             id,
             cashier_name,
+            counter_name,
             opening_cash,
             opening_time,
             actual_cash,
@@ -2081,7 +2084,7 @@ app.get("/api/cash-register/history", authenticateToken, (req, res) => {
 
 app.post("/api/cash-register/open", authenticateToken, (req, res) => {
     const storeDb = req.storeDb;
-    const { openingCash } = req.body;
+    const { openingCash, counterName } = req.body;
     const amount = Number(openingCash);
 
     if (!Number.isFinite(amount) || amount < 0) {
@@ -2092,6 +2095,7 @@ app.post("/api/cash-register/open", authenticateToken, (req, res) => {
     }
 
     const cashierName = req.user.username;
+    const counter = req.user.counterName || counterName || "Counter 1";
 
     const checkSql = `SELECT * FROM cash_registers WHERE cashier_name = ? AND status = 'OPEN' LIMIT 1`;
 
@@ -2109,11 +2113,11 @@ app.post("/api/cash-register/open", authenticateToken, (req, res) => {
         }
 
         const insertSql = `
-            INSERT INTO cash_registers (cashier_name, opening_cash, opening_time, status)
-            VALUES (?, ?, NOW(), 'OPEN')
+            INSERT INTO cash_registers (cashier_name, counter_name, opening_cash, opening_time, status)
+            VALUES (?, ?, ?, NOW(), 'OPEN')
         `;
 
-        storeDb.query(insertSql, [cashierName, amount], (err, result) => {
+        storeDb.query(insertSql, [cashierName, counter, amount], (err, result) => {
             if (err) {
                 console.error("Cash Register Open Error:", err);
                 return res.status(500).json({ success: false, message: err.message });
@@ -2123,7 +2127,8 @@ app.post("/api/cash-register/open", authenticateToken, (req, res) => {
                 success: true,
                 message: "Cash register opened successfully",
                 registerId: result.insertId,
-                cashierName
+                cashierName,
+                counterName: counter
             });
         });
     });

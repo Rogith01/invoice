@@ -352,6 +352,15 @@ const InvoiceModal = ({
                                                 {invoiceInfo.cashierName}
                                             </span>
 
+                                            {/* COUNTER */}
+                                            <span className="font-bold">
+                                                Counter:
+                                            </span>
+
+                                            <span>
+                                                {invoiceInfo.counterName || "Counter 1"}
+                                            </span>
+
                                             <span className="font-bold">
                                                 Customer:
                                             </span>

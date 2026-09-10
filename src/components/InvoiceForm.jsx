@@ -42,6 +42,10 @@ const InvoiceForm = () => {
         user?.username || ""
     );
 
+    const [counterName, setCounterName] = useState(
+        user?.counterName || "Counter 1"
+    );
+
     const [customerName, setCustomerName] = useState("");
     const [phoneNumber, setPhoneNumber] = useState("");
     const [customerSuggestions, setCustomerSuggestions] = useState([]);
@@ -479,6 +483,7 @@ const InvoiceForm = () => {
             id: uid(8),
             invoiceNumber,
             cashierName,
+            counterName,
             customerName,
             phoneNumber,
             loyaltyPoints,
@@ -507,6 +512,7 @@ const InvoiceForm = () => {
         setCustomerName("");
         setLoyaltyPoints(0);
         setCashierName(user?.username || "");
+        setCounterName(user?.counterName || "Counter 1");
         setRedeemPoints(false);
         setAvailablePoints(0);
         setRedeemedAmount(0);
@@ -531,6 +537,7 @@ const InvoiceForm = () => {
     const resumeBillHandler = (bill) => {
         setInvoiceNumber(bill.invoiceNumber);
         setCashierName(bill.cashierName || user?.username || "");
+        setCounterName(bill.counterName || user?.counterName || "Counter 1");
         setCustomerName(bill.customerName || "");
         setPhoneNumber(bill.phoneNumber || "");
         setLoyaltyPoints(Number(bill.loyaltyPoints || 0));
@@ -668,6 +675,7 @@ const InvoiceForm = () => {
         const invoiceData = {
             phoneNumber,
             cashierName,
+            counterName,
             customerName,
             subtotal,
             discountRate,
@@ -675,6 +683,8 @@ const InvoiceForm = () => {
             total: invoiceTotal,
             cashAmount: finalCash,
             onlineAmount: finalOnline,
+            cash_amount: finalCash,
+            online_amount: finalOnline,
             items: invoiceItems,
             redeemPoints,
             paymentMethod,
@@ -714,6 +724,7 @@ const InvoiceForm = () => {
         setCustomerName("");
         setLoyaltyPoints(0);
         setCashierName(user?.username || "");
+        setCounterName(user?.counterName || "Counter 1");
         setRedeemPoints(false);
         setAvailablePoints(0);
         setRedeemedAmount(0);
@@ -855,7 +866,13 @@ const InvoiceForm = () => {
                         <div>
                             <div className="flex items-center gap-2">
                                 <h1 className="text-xl font-semibold text-slate-900">New Sale</h1>
-                                <span className="text-[10px] font-bold tracking-wide bg-blue-50 text-blue-700 border border-blue-100 px-2 py-1 rounded-md">BILLING</span>
+                                <span className="text-[10px] font-bold tracking-wide bg-blue-50 text-blue-700 border border-blue-100 px-2 py-1 rounded-md">
+                                    BILLING
+                                </span>
+                                {/* COUNTER INDICATOR BADGE */}
+                                <span className="text-[10px] font-bold tracking-wide bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-1 rounded-md">
+                                    📍 {counterName}
+                                </span>
                             </div>
                             <p className="text-xs text-slate-500 mt-0.5">Create and complete a customer sale</p>
                         </div>
@@ -1074,7 +1091,7 @@ const InvoiceForm = () => {
                                     </div>
                                 )}
 
-                                {/* SPLIT PAYMENT (PURE MANUAL INPUT - NO AUTO-DIVIDE) */}
+                                {/* SPLIT PAYMENT */}
                                 {paymentMethod === "Split" && (
                                     <div className="mt-4 p-4 border border-blue-200 bg-blue-50/50 rounded-xl space-y-3">
                                         <p className="text-xs font-bold text-blue-900">Enter Any Split Amounts</p>
@@ -1187,6 +1204,7 @@ const InvoiceForm = () => {
                 invoiceInfo={{
                     invoiceNumber,
                     cashierName,
+                    counterName,
                     customerName,
                     phoneNumber,
                     paymentMethod,
