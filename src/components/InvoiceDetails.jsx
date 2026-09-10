@@ -1055,23 +1055,7 @@ const InvoiceDetails = () => {
                         </div>
 
                         {/* PAYMENT BREAKDOWN SUMMARY */}
-                        {invoice.payment_method === "Split" ? (
-                            <div className="w-full border-t border-dashed border-gray-300 pt-2 pb-1 space-y-1 text-[14px] text-gray-700">
-                                <div className="flex justify-between">
-                                    <span className="font-semibold">Paid via Cash:</span>
-                                    <span>₹{Number(invoice.cash_amount || 0).toFixed(2)}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="font-semibold">Paid via Online:</span>
-                                    <span>₹{Number(invoice.online_amount || 0).toFixed(2)}</span>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="w-full border-t border-dashed border-gray-300 pt-2 pb-1 flex justify-between text-[14px] text-gray-700">
-                                <span className="font-semibold">Paid via {invoice.payment_method}:</span>
-                                <span>₹{Number(invoice.total || 0).toFixed(2)}</span>
-                            </div>
-                        )}
+
 
                         <div className="w-full text-left text-[10px] text-gray-400 mt-1">
                             Total Products: {items.length}

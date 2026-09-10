@@ -154,6 +154,14 @@ const CashRegisterHistory = () => {
                 ||
 
                 String(
+                    register.counter_name || ""
+                )
+                    .toLowerCase()
+                    .includes(searchValue)
+
+                ||
+
+                String(
                     register.status || ""
                 )
                     .toLowerCase()
@@ -235,7 +243,7 @@ const CashRegisterHistory = () => {
 
                                 <p className="text-sm text-slate-500 mt-0.5">
 
-                                    View and manage previous cash register sessions
+                                    View and audit previous cash register sessions by counter
 
                                 </p>
 
@@ -324,7 +332,7 @@ const CashRegisterHistory = () => {
 
                             <p className="text-xs text-slate-500 mt-1">
 
-                                Search and review previous cash register activity
+                                Search and review previous cash register activity by counter or cashier
 
                             </p>
 
@@ -360,7 +368,7 @@ const CashRegisterHistory = () => {
 
                                 <input
                                     type="text"
-                                    placeholder="Search cashier or status..."
+                                    placeholder="Search cashier, counter, status..."
                                     value={search}
                                     onChange={(e) =>
                                         setSearch(e.target.value)
@@ -494,9 +502,7 @@ const CashRegisterHistory = () => {
 
                     {loading ? (
 
-                        /* ==================================================
-                            LOADING
-                        ================================================== */
+                        /* LOADING */
 
                         <div className="px-5 py-14 text-center">
 
@@ -543,15 +549,11 @@ const CashRegisterHistory = () => {
 
                     ) : filteredHistory.length > 0 ? (
 
-                        /* ==================================================
-                            TABLE
-                        ================================================== */
+                        /* TABLE */
 
                         <div className="w-full overflow-x-auto rounded-xl border border-slate-200 bg-white">
 
-                            <table className="w-full min-w-[1100px] table-fixed">
-
-                                {/* TABLE HEADER */}
+                            <table className="w-full min-w-[1150px] table-fixed">
 
                                 <thead>
 
@@ -561,31 +563,35 @@ const CashRegisterHistory = () => {
                                             Date
                                         </th>
 
-                                        <th className="w-[14%] px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
+                                        <th className="w-[13%] px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
                                             Cashier
                                         </th>
 
-                                        <th className="w-[10%] px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
+                                        <th className="w-[11%] px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
+                                            Counter
+                                        </th>
+
+                                        <th className="w-[9%] px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
                                             Opening
                                         </th>
 
-                                        <th className="w-[11%] px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
+                                        <th className="w-[10%] px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
                                             Expected
                                         </th>
 
-                                        <th className="w-[10%] px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
+                                        <th className="w-[9%] px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
                                             Actual
                                         </th>
 
-                                        <th className="w-[12%] px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
+                                        <th className="w-[10%] px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
                                             Difference
                                         </th>
 
-                                        <th className="w-[13%] px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
+                                        <th className="w-[10%] px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
                                             Owner Taken
                                         </th>
 
-                                        <th className="w-[12%] px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
+                                        <th className="w-[10%] px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
                                             Status
                                         </th>
 
@@ -593,8 +599,6 @@ const CashRegisterHistory = () => {
 
                                 </thead>
 
-
-                                {/* TABLE BODY */}
 
                                 <tbody className="divide-y divide-slate-100">
 
@@ -699,7 +703,7 @@ const CashRegisterHistory = () => {
                                                                     strokeLinecap="round"
                                                                     strokeLinejoin="round"
                                                                     strokeWidth={2}
-                                                                    d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 004 4v2m7-10a4 4 0 100-8 4 4 0 000 8zm7 10v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"
+                                                                    d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2m7-10a4 4 0 100-8 4 4 0 000 8zm7 10v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"
                                                                 />
 
                                                             </svg>
@@ -714,6 +718,19 @@ const CashRegisterHistory = () => {
                                                         </span>
 
                                                     </div>
+
+                                                </td>
+
+
+                                                {/* COUNTER */}
+
+                                                <td className="px-5 py-4 text-center align-middle">
+
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold">
+
+                                                    {register.counter_name || "Counter 1"}
+
+                                                    </span>
 
                                                 </td>
 
@@ -881,9 +898,7 @@ const CashRegisterHistory = () => {
 
                     ) : (
 
-                        /* ==================================================
-                            EMPTY STATE
-                        ================================================== */
+                        /* EMPTY STATE */
 
                         <div className="px-5 py-14 text-center">
 
@@ -924,7 +939,7 @@ const CashRegisterHistory = () => {
                                 <p className="text-xs text-slate-400 mt-1">
 
                                     {search
-                                        ? "Try a different cashier name or status."
+                                        ? "Try a different cashier name, counter, or status."
                                         : "Closed register sessions will appear here."
                                     }
 

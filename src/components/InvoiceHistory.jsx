@@ -101,7 +101,7 @@ const InvoiceHistory = () => {
             console.log(err);
             showToast("Failed to load invoice history.", "error");
         }
-    }, []);
+    }, [showToast]);
 
     useEffect(() => {
         fetchInvoices();
@@ -141,7 +141,9 @@ const InvoiceHistory = () => {
         const searchValue = search.toLowerCase();
         return (
             String(invoice.invoice_number || "").toLowerCase().includes(searchValue) ||
-            String(invoice.customer_name || "").toLowerCase().includes(searchValue)
+            String(invoice.customer_name || "").toLowerCase().includes(searchValue) ||
+            String(invoice.counter_name || "").toLowerCase().includes(searchValue) ||
+            String(invoice.cashier_name || "").toLowerCase().includes(searchValue)
         );
     });
 
@@ -183,7 +185,7 @@ const InvoiceHistory = () => {
                     </div>
                     <div>
                         <h1 className="text-2xl font-bold text-slate-800">Invoice History</h1>
-                        <p className="text-sm text-slate-500 mt-0.5">View and manage all generated invoices</p>
+                        <p className="text-sm text-slate-500 mt-0.5">View and manage all generated invoices across counters</p>
                     </div>
                 </div>
 
@@ -208,7 +210,7 @@ const InvoiceHistory = () => {
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div>
                             <h2 className="text-base font-semibold text-slate-800">Invoice History</h2>
-                            <p className="text-xs text-slate-500 mt-1">Search and manage your generated invoices</p>
+                            <p className="text-xs text-slate-500 mt-1">Search by invoice number, customer, cashier, or counter</p>
                         </div>
                         <div className="relative w-full sm:w-80">
                             <svg xmlns="http://www.w3.org/2000/svg" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -216,7 +218,7 @@ const InvoiceHistory = () => {
                             </svg>
                             <input
                                 type="text"
-                                placeholder="Search invoice or customer..."
+                                placeholder="Search invoice, customer, counter..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 className="w-full h-10 pl-9 pr-9 border border-slate-300 rounded-lg bg-slate-50 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-slate-500 focus:ring-2 focus:ring-slate-200 transition"
@@ -231,17 +233,18 @@ const InvoiceHistory = () => {
                 {/* TABLE */}
                 <div className="px-4 sm:px-6 lg:px-8 py-5">
                     <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-                        <table className="w-full min-w-[1000px]">
+                        <table className="w-full min-w-[1100px]">
                             <thead>
                                 <tr className="bg-slate-50 border-b border-slate-200 text-[11px] uppercase tracking-wide font-bold text-slate-500">
-                                    <th className="px-5 py-4 text-center">Invoice</th>
-                                    <th className="px-5 py-4 text-center">Cashier</th>
-                                    <th className="px-5 py-4 text-center">Customer</th>
-                                    <th className="px-5 py-4 text-center">Phone</th>
-                                    <th className="px-5 py-4 text-center">Date</th>
-                                    <th className="px-5 py-4 text-center">Payment</th>
-                                    <th className="px-5 py-4 text-center">Total</th>
-                                    <th className="px-5 py-4 text-center">Action</th>
+                                    <th className="px-4 py-4 text-center">Invoice</th>
+                                    <th className="px-4 py-4 text-center">Cashier</th>
+                                    <th className="px-4 py-4 text-center">Counter</th>
+                                    <th className="px-4 py-4 text-center">Customer</th>
+                                    <th className="px-4 py-4 text-center">Phone</th>
+                                    <th className="px-4 py-4 text-center">Date</th>
+                                    <th className="px-4 py-4 text-center">Payment</th>
+                                    <th className="px-4 py-4 text-center">Total</th>
+                                    <th className="px-4 py-4 text-center">Action</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
@@ -253,18 +256,40 @@ const InvoiceHistory = () => {
 
                                         return (
                                             <tr key={invoice.id} className="bg-white hover:bg-slate-50/70 transition duration-150">
-                                                <td className="px-5 py-4 text-center">
+                                                {/* INVOICE NUMBER */}
+                                                <td className="px-4 py-4 text-center">
                                                     <span className="text-sm font-semibold text-slate-800">{invoice.invoice_number}</span>
                                                 </td>
-                                                <td className="px-5 py-4 text-center text-sm text-slate-600">{invoice.cashier_name || "—"}</td>
-                                                <td className="px-5 py-4 text-center text-sm font-medium text-slate-700">{invoice.customer_name || "—"}</td>
-                                                <td className="px-5 py-4 text-center text-sm text-slate-600">{invoice.phone_number || "—"}</td>
-                                                <td className="px-5 py-4 text-center text-sm text-slate-600">
+
+                                                {/* CASHIER */}
+                                                <td className="px-4 py-4 text-center text-sm font-medium text-slate-700">
+                                                    {invoice.cashier_name || "—"}
+                                                </td>
+
+                                                {/* SEPARATE COUNTER COLUMN */}
+                                                <td className="px-4 py-4 text-center">
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold whitespace-nowrap">
+                                                        {invoice.counter_name || "Counter 1"}
+                                                    </span>
+                                                </td>
+
+                                                {/* CUSTOMER */}
+                                                <td className="px-4 py-4 text-center text-sm font-medium text-slate-700">
+                                                    {invoice.customer_name || "—"}
+                                                </td>
+
+                                                {/* PHONE */}
+                                                <td className="px-4 py-4 text-center text-sm text-slate-600">
+                                                    {invoice.phone_number || "—"}
+                                                </td>
+
+                                                {/* DATE */}
+                                                <td className="px-4 py-4 text-center text-sm text-slate-600">
                                                     {invoice.invoice_date ? new Date(invoice.invoice_date).toLocaleDateString("en-GB") : "—"}
                                                 </td>
 
-                                                {/* PAYMENT COLUMN (FIXED) */}
-                                                <td className="px-5 py-4 text-center">
+                                                {/* PAYMENT */}
+                                                <td className="px-4 py-4 text-center">
                                                     {isSplit ? (
                                                         <div className="inline-flex flex-col items-center">
                                                             <span className="px-2.5 py-1 rounded-md bg-purple-50 border border-purple-200 text-purple-700 text-xs font-semibold">
@@ -285,10 +310,13 @@ const InvoiceHistory = () => {
                                                     )}
                                                 </td>
 
-                                                <td className="px-5 py-4 text-center text-sm font-semibold text-slate-800">
+                                                {/* TOTAL */}
+                                                <td className="px-4 py-4 text-center text-sm font-semibold text-slate-800">
                                                     ₹{Number(invoice.total).toFixed(2)}
                                                 </td>
-                                                <td className="px-5 py-4 text-center">
+
+                                                {/* ACTION */}
+                                                <td className="px-4 py-4 text-center">
                                                     <div className="flex justify-center items-center gap-2">
                                                         <button
                                                             type="button"
@@ -320,7 +348,7 @@ const InvoiceHistory = () => {
                                     })
                                 ) : (
                                     <tr>
-                                        <td colSpan="8" className="px-5 py-14 text-center">
+                                        <td colSpan="9" className="px-5 py-14 text-center">
                                             <p className="text-sm font-semibold text-slate-600">No invoices found.</p>
                                         </td>
                                     </tr>

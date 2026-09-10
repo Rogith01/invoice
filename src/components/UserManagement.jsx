@@ -23,6 +23,7 @@ const UserManagement = () => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [role, setRole] = useState("Cashier");
+    const [counterName, setCounterName] = useState("Counter 1");
 
     const [editingId, setEditingId] = useState(null);
 
@@ -158,6 +159,7 @@ const UserManagement = () => {
         setUsername("");
         setPassword("");
         setRole("Cashier");
+        setCounterName("Counter 1");
 
     }, []);
 
@@ -236,6 +238,10 @@ const UserManagement = () => {
 
         setRole(
             user.role
+        );
+
+        setCounterName(
+            user.counter_name || "Counter 1"
         );
 
         showToast(
@@ -406,6 +412,10 @@ const UserManagement = () => {
                     username:
                         trimmedUsername,
                     role,
+                    counterName:
+                        role === "Cashier"
+                            ? counterName.trim() || "Counter 1"
+                            : "Counter 1",
                 };
 
                 if (
@@ -482,6 +492,10 @@ const UserManagement = () => {
                             trimmedUsername,
                         password,
                         role,
+                        counterName:
+                            role === "Cashier"
+                                ? counterName.trim() || "Counter 1"
+                                : "Counter 1",
                     }
                 );
 
@@ -555,9 +569,7 @@ const UserManagement = () => {
 
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
-            {/* ==========================================
-                TOAST
-            ========================================== */}
+            {/* TOAST */}
 
             <Toast
                 message={toast.message}
@@ -565,9 +577,7 @@ const UserManagement = () => {
                 onClose={closeToast}
             />
 
-            {/* ==========================================
-                PAGE HEADER
-            ========================================== */}
+            {/* PAGE HEADER */}
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
 
@@ -601,7 +611,7 @@ const UserManagement = () => {
                         </h1>
 
                         <p className="text-sm text-slate-500 mt-0.5">
-                            Manage supermarket administrators and cashiers
+                            Manage supermarket administrators, cashiers, and assigned billing counters
                         </p>
 
                     </div>
@@ -610,15 +620,11 @@ const UserManagement = () => {
 
             </div>
 
-            {/* ==========================================
-                MAIN CARD
-            ========================================== */}
+            {/* MAIN CARD */}
 
             <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
 
-                {/* ==========================================
-                    FORM HEADER
-                ========================================== */}
+                {/* FORM HEADER */}
 
                 <div className="px-5 sm:px-6 py-5 border-b border-slate-200">
 
@@ -678,8 +684,8 @@ const UserManagement = () => {
 
                             <p className="text-xs text-slate-500 mt-1">
                                 {editingId
-                                    ? "Update the selected user's details"
-                                    : "Create a new supermarket user"}
+                                    ? "Update user details and assigned billing counter"
+                                    : "Create a new user with role and designated terminal"}
                             </p>
 
                         </div>
@@ -688,13 +694,11 @@ const UserManagement = () => {
 
                 </div>
 
-                {/* ==========================================
-                    FORM
-                ========================================== */}
+                {/* FORM */}
 
                 <div className="p-5 sm:p-6 bg-slate-50/70 border-b border-slate-200">
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
 
                         {/* USERNAME */}
 
@@ -740,7 +744,7 @@ const UserManagement = () => {
                                 data-form-type="other"
                                 placeholder={
                                     editingId
-                                        ? "New password (optional)"
+                                        ? "New password"
                                         : "Enter password"
                                 }
                                 value={password}
@@ -779,6 +783,36 @@ const UserManagement = () => {
                                 <option value="Cashier">
                                     Cashier
                                 </option>
+
+                            </select>
+
+                        </div>
+
+                        {/* COUNTER */}
+
+                        <div>
+
+                            <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+                                Assigned Counter
+                            </label>
+
+                            <select
+                                value={counterName}
+                                disabled={role === "Admin"}
+                                onChange={(e) =>
+                                    setCounterName(
+                                        e.target.value
+                                    )
+                                }
+                                className="w-full h-10 px-3 border border-slate-300 rounded-lg bg-white text-sm text-slate-800 focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200 transition disabled:bg-slate-100 disabled:text-slate-400"
+                            >
+
+                                <option value="Counter 1">Counter 1</option>
+                                <option value="Counter 2">Counter 2</option>
+                                <option value="Counter 3">Counter 3</option>
+                                <option value="Counter 4">Counter 4</option>
+                                <option value="Counter 5">Counter 5</option>
+                                <option value="Express Counter">Express Counter</option>
 
                             </select>
 
@@ -898,9 +932,7 @@ const UserManagement = () => {
 
                 </div>
 
-                {/* ==========================================
-                    SUMMARY CARDS
-                ========================================== */}
+                {/* SUMMARY CARDS */}
 
                 <div className="p-5 sm:p-6 bg-slate-50/70 border-b border-slate-200">
 
@@ -1051,9 +1083,7 @@ const UserManagement = () => {
 
                 </div>
 
-                {/* ==========================================
-                    USER LIST HEADER
-                ========================================== */}
+                {/* USER LIST HEADER */}
 
                 <div className="px-5 sm:px-6 py-5 border-b border-slate-200">
 
@@ -1064,20 +1094,18 @@ const UserManagement = () => {
                         </h2>
 
                         <p className="text-xs text-slate-500 mt-1">
-                            View and manage registered supermarket users
+                            View and manage registered supermarket users and their terminals
                         </p>
 
                     </div>
 
                 </div>
 
-                {/* ==========================================
-                    TABLE
-                ========================================== */}
+                {/* TABLE */}
 
                 <div className="overflow-x-auto">
 
-                    <table className="w-full min-w-[750px]">
+                    <table className="w-full min-w-[850px]">
 
                         <thead>
 
@@ -1096,6 +1124,10 @@ const UserManagement = () => {
                                 </th>
 
                                 <th className="px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
+                                    Assigned Counter
+                                </th>
+
+                                <th className="px-5 py-3.5 text-center text-[11px] uppercase tracking-wide font-bold text-slate-500">
                                     Actions
                                 </th>
 
@@ -1110,7 +1142,7 @@ const UserManagement = () => {
                                 <tr>
 
                                     <td
-                                        colSpan="4"
+                                        colSpan="5"
                                         className="px-5 py-14 text-center"
                                     >
 
@@ -1232,6 +1264,18 @@ const UserManagement = () => {
 
                                             </td>
 
+                                            {/* ASSIGNED COUNTER */}
+
+                                            <td className="px-5 py-4 text-center">
+
+                                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold">
+
+                                                    📍 {user.counter_name || "Counter 1"}
+
+                                                </span>
+
+                                            </td>
+
                                             {/* ACTIONS */}
 
                                             <td className="px-5 py-4 text-center">
@@ -1324,9 +1368,7 @@ const UserManagement = () => {
 
                 </div>
 
-                {/* ==========================================
-                    FOOTER
-                ========================================== */}
+                {/* FOOTER */}
 
                 {users.length > 0 && (
 
@@ -1354,9 +1396,7 @@ const UserManagement = () => {
 
             </div>
 
-            {/* ==========================================
-                DELETE CONFIRMATION MODAL
-            ========================================== */}
+            {/* DELETE CONFIRMATION MODAL */}
 
             {deleteConfirm.show && (
 

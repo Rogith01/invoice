@@ -77,7 +77,7 @@ const InvoiceForm = () => {
     const [paymentMethod, setPaymentMethod] = useState("Cash");
     const [cashReceived, setCashReceived] = useState("");
 
-    // Split Payment States (100% MANUAL ENTRY)
+    // Split Payment States
     const [splitCash, setSplitCash] = useState("");
     const [splitOnline, setSplitOnline] = useState("");
 
@@ -88,11 +88,15 @@ const InvoiceForm = () => {
     const [itemOptions, setItemOptions] = useState([]);
 
     // ==========================================
-    // BARCODE INPUT
+    // REFS
     // ==========================================
 
     const [barcode, setBarcode] = useState("");
     const barcodeInputRef = useRef(null);
+    const paymentMethodSelectRef = useRef(null);
+    const cashReceivedInputRef = useRef(null);
+    const phoneInputRef = useRef(null);
+    const reviewBtnRef = useRef(null);
 
     // ==========================================
     // SOUNDS
@@ -136,8 +140,6 @@ const InvoiceForm = () => {
     const scannerSessionRef = useRef(0);
     const scannerStartingRef = useRef(false);
     const barcodeScanLockRef = useRef(true);
-
-    const reviewBtnRef = useRef(null);
 
     const [currentTime, setCurrentTime] = useState(
         new Date().toLocaleTimeString("en-GB", {
@@ -236,6 +238,7 @@ const InvoiceForm = () => {
         if (phone.length < 2) {
             setCustomerSuggestions([]);
             setShowCustomerSuggestions(false);
+            setSelectedCustomerIndex(-1);
             return;
         }
 
@@ -243,11 +246,13 @@ const InvoiceForm = () => {
             const res = await api.get(`/api/customers/search/${phone}`);
             if (res.data.success) {
                 setCustomerSuggestions(res.data.customers || []);
-                setShowCustomerSuggestions(res.data.customers.length > 0);
+                setShowCustomerSuggestions((res.data.customers || []).length > 0);
+                setSelectedCustomerIndex(-1);
             }
         } catch (err) {
             setCustomerSuggestions([]);
             setShowCustomerSuggestions(false);
+            setSelectedCustomerIndex(-1);
         }
     };
 
@@ -263,6 +268,47 @@ const InvoiceForm = () => {
         setShowCustomerSuggestions(false);
         setSelectedCustomerIndex(-1);
         showToast(`Customer "${customer.customer_name}" selected.`, "success");
+        setTimeout(() => barcodeInputRef.current?.focus(), 50);
+    };
+
+    // Keyboard navigation inside Customer Phone suggestions
+    const handlePhoneKeyDown = (e) => {
+        if (!showCustomerSuggestions || customerSuggestions.length === 0) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                barcodeInputRef.current?.focus();
+            }
+            return;
+        }
+
+        if (e.key === "ArrowDown") {
+            e.preventDefault();
+            setSelectedCustomerIndex((prev) => {
+                const nextIndex = prev < customerSuggestions.length - 1 ? prev + 1 : 0;
+                customerSuggestionRefs.current[nextIndex]?.scrollIntoView({ block: "nearest" });
+                return nextIndex;
+            });
+        } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            setSelectedCustomerIndex((prev) => {
+                const nextIndex = prev > 0 ? prev - 1 : customerSuggestions.length - 1;
+                customerSuggestionRefs.current[nextIndex]?.scrollIntoView({ block: "nearest" });
+                return nextIndex;
+            });
+        } else if (e.key === "Enter") {
+            e.preventDefault();
+            if (selectedCustomerIndex >= 0 && selectedCustomerIndex < customerSuggestions.length) {
+                selectCustomerSuggestion(customerSuggestions[selectedCustomerIndex]);
+            } else if (customerSuggestions.length > 0) {
+                selectCustomerSuggestion(customerSuggestions[0]);
+            } else {
+                setShowCustomerSuggestions(false);
+                barcodeInputRef.current?.focus();
+            }
+        } else if (e.key === "Escape") {
+            setShowCustomerSuggestions(false);
+            setSelectedCustomerIndex(-1);
+        }
     };
 
     // ==========================================
@@ -319,19 +365,35 @@ const InvoiceForm = () => {
                     lastQuantityInput.focus();
                     lastQuantityInput.select();
                 }
+            } else if (event.key === "F4") {
+                event.preventDefault();
+                if (paymentMethodSelectRef.current) {
+                    paymentMethodSelectRef.current.focus();
+                }
             } else if (event.key === "F5") {
                 event.preventDefault();
                 reviewBtnRef.current?.click();
-            } else if (event.key === "F4") {
-                event.preventDefault();
-                const paymentSelect = document.getElementById("paymentMethod");
-                if (paymentSelect) paymentSelect.focus();
             }
         };
 
         window.addEventListener("keydown", handleShortcut);
         return () => window.removeEventListener("keydown", handleShortcut);
     }, [fetchInvoiceNumber, fetchProducts]);
+
+    // Keyboard support on the Payment Method Dropdown
+    const handlePaymentKeyDown = (e) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            if (paymentMethod === "Cash") {
+                cashReceivedInputRef.current?.focus();
+            } else if (paymentMethod === "Split") {
+                const splitInput = document.getElementById("splitCashInput");
+                splitInput?.focus();
+            } else {
+                barcodeInputRef.current?.focus();
+            }
+        }
+    };
 
     // ==========================================
     // CAMERA SCANNER
@@ -443,7 +505,7 @@ const InvoiceForm = () => {
     }, []);
 
     // ==========================================
-    // CALCULATIONS
+    // CALCULATIONS (WHOLE NUMBERS FOR DISCOUNT & TAX)
     // ==========================================
 
     const subtotal = items.reduce((prev, curr) => {
@@ -453,12 +515,12 @@ const InvoiceForm = () => {
         return prev;
     }, 0);
 
-    const taxRate = (Number(tax || 0) * subtotal) / 100;
-    const discountRate = (Number(discount || 0) * subtotal) / 100;
+    const taxRate = Math.round((Number(tax || 0) * subtotal) / 100);
+    const discountRate = Math.round((Number(discount || 0) * subtotal) / 100);
     const loyaltyDiscount = redeemPoints ? Number(availablePoints || 0) : 0;
     const total = Math.max(0, subtotal - discountRate - loyaltyDiscount + taxRate);
 
-    // Split Payment calculations (Manual)
+    // Split Payment calculations
     const splitCashNum = Number(splitCash || 0);
     const splitOnlineNum = Number(splitOnline || 0);
     const splitSum = Number((splitCashNum + splitOnlineNum).toFixed(2));
@@ -467,6 +529,29 @@ const InvoiceForm = () => {
 
     const changeAmount = paymentMethod === "Cash" ? Math.max(0, Number(cashReceived || 0) - total) : 0;
     const insufficientCash = paymentMethod === "Cash" && cashReceived !== "" && Number(cashReceived) < total;
+
+    // Auto-balance split fields
+    const handleSplitCashChange = (value) => {
+        setSplitCash(value);
+        if (value === "") {
+            setSplitOnline("");
+            return;
+        }
+        const entered = parseFloat(value) || 0;
+        const remaining = Math.max(0, total - entered);
+        setSplitOnline(remaining > 0 ? remaining.toString() : "0");
+    };
+
+    const handleSplitOnlineChange = (value) => {
+        setSplitOnline(value);
+        if (value === "") {
+            setSplitCash("");
+            return;
+        }
+        const entered = parseFloat(value) || 0;
+        const remaining = Math.max(0, total - entered);
+        setSplitCash(remaining > 0 ? remaining.toString() : "0");
+    };
 
     // ==========================================
     // HOLD BILL
@@ -646,7 +731,6 @@ const InvoiceForm = () => {
         const invoiceLoyaltyDiscount = redeemPoints ? Number(availablePoints || 0) : 0;
         const invoiceTotal = Number(total.toFixed(2));
 
-        // Exact Manual Allocation
         let finalCash = 0;
         let finalOnline = 0;
 
@@ -869,7 +953,6 @@ const InvoiceForm = () => {
                                 <span className="text-[10px] font-bold tracking-wide bg-blue-50 text-blue-700 border border-blue-100 px-2 py-1 rounded-md">
                                     BILLING
                                 </span>
-                                {/* COUNTER INDICATOR BADGE */}
                                 <span className="text-[10px] font-bold tracking-wide bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-1 rounded-md">
                                     📍 {counterName}
                                 </span>
@@ -917,10 +1000,12 @@ const InvoiceForm = () => {
                                     <label className="block text-[11px] font-semibold text-slate-600 mb-1.5">Phone Number</label>
                                     <div className="relative">
                                         <input
+                                            ref={phoneInputRef}
                                             type="text"
                                             maxLength={10}
                                             value={phoneNumber}
                                             placeholder="10 digit number"
+                                            onKeyDown={handlePhoneKeyDown}
                                             onChange={(e) => {
                                                 const val = e.target.value.replace(/\D/g, "");
                                                 setPhoneNumber(val);
@@ -932,9 +1017,19 @@ const InvoiceForm = () => {
                                         />
                                         {showCustomerSuggestions && (
                                             <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                                                {customerSuggestions.map((c) => (
-                                                    <button key={c.id} type="button" onMouseDown={() => selectCustomerSuggestion(c)} className="w-full text-left px-3 py-2.5 border-b border-slate-100 hover:bg-slate-50">
-                                                        <div className="text-sm font-medium text-slate-800">{c.phone_number}</div>
+                                                {customerSuggestions.map((c, idx) => (
+                                                    <button
+                                                        key={c.id}
+                                                        ref={(el) => (customerSuggestionRefs.current[idx] = el)}
+                                                        type="button"
+                                                        onMouseDown={() => selectCustomerSuggestion(c)}
+                                                        className={`w-full text-left px-3 py-2.5 border-b border-slate-100 transition ${
+                                                            selectedCustomerIndex === idx
+                                                                ? "bg-blue-100 text-blue-900 font-semibold"
+                                                                : "hover:bg-slate-50 text-slate-800"
+                                                        }`}
+                                                    >
+                                                        <div className="text-sm font-medium">{c.phone_number}</div>
                                                         <div className="text-xs text-slate-500">{c.customer_name}</div>
                                                     </button>
                                                 ))}
@@ -989,7 +1084,7 @@ const InvoiceForm = () => {
                             <table className="w-full">
                                 <thead>
                                     <tr className="bg-slate-50 border-b border-slate-200 text-[10px] uppercase font-bold text-slate-500">
-                                        <th className="px-5 py-3 text-left">Item</th>
+                                        <th className="px-5 py-3 text-center">Item</th>
                                         <th className="px-3 py-3 text-center">Qty</th>
                                         <th className="px-3 py-3 text-center">Price</th>
                                         <th className="px-3 py-3 text-center">Amount</th>
@@ -1045,17 +1140,19 @@ const InvoiceForm = () => {
                             {/* SUMMARY */}
                             <div className="space-y-2 text-xs border-t border-b border-slate-100 py-3 mb-4">
                                 <div className="flex justify-between"><span>Subtotal</span><span>₹{subtotal.toFixed(2)}</span></div>
-                                <div className="flex justify-between text-red-500"><span>Discount</span><span>- ₹{discountRate.toFixed(2)}</span></div>
+                                <div className="flex justify-between text-red-500"><span>Discount</span><span>- ₹{discountRate}</span></div>
                                 <div className="flex justify-between text-purple-600"><span>Loyalty Discount</span><span>- ₹{loyaltyDiscount.toFixed(2)}</span></div>
-                                <div className="flex justify-between"><span>Tax</span><span>+ ₹{taxRate.toFixed(2)}</span></div>
+                                <div className="flex justify-between"><span>Tax</span><span>+ ₹{taxRate}</span></div>
                             </div>
 
                             {/* PAYMENT METHOD */}
                             <div>
                                 <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1.5">Payment Method</label>
                                 <select
+                                    ref={paymentMethodSelectRef}
                                     id="paymentMethod"
                                     value={paymentMethod}
+                                    onKeyDown={handlePaymentKeyDown}
                                     onChange={(e) => {
                                         const method = e.target.value;
                                         setPaymentMethod(method);
@@ -1063,7 +1160,7 @@ const InvoiceForm = () => {
                                         setSplitCash("");
                                         setSplitOnline("");
                                     }}
-                                    className="w-full h-10 border border-slate-200 rounded-lg px-3 text-sm font-semibold outline-none bg-white focus:border-blue-500"
+                                    className="w-full h-10 border border-slate-200 rounded-lg px-3 text-sm font-semibold outline-none bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                 >
                                     <option value="Cash">Cash Only</option>
                                     <option value="Online">Online Only</option>
@@ -1075,11 +1172,18 @@ const InvoiceForm = () => {
                                     <div className="mt-4">
                                         <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">Cash Received</label>
                                         <input
+                                            ref={cashReceivedInputRef}
                                             type="number"
                                             min="0"
                                             step="0.01"
                                             value={cashReceived}
                                             onChange={(e) => setCashReceived(e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === "Enter") {
+                                                    e.preventDefault();
+                                                    reviewBtnRef.current?.click();
+                                                }
+                                            }}
                                             placeholder="Enter amount"
                                             className="w-full h-10 border border-slate-200 rounded-lg px-3 text-sm"
                                         />
@@ -1091,21 +1195,28 @@ const InvoiceForm = () => {
                                     </div>
                                 )}
 
-                                {/* SPLIT PAYMENT */}
+                                {/* AUTO-BALANCING SPLIT PAYMENT */}
                                 {paymentMethod === "Split" && (
                                     <div className="mt-4 p-4 border border-blue-200 bg-blue-50/50 rounded-xl space-y-3">
-                                        <p className="text-xs font-bold text-blue-900">Enter Any Split Amounts</p>
+                                        <p className="text-xs font-bold text-blue-900">Enter Cash or Online Amount</p>
                                         
                                         <div>
                                             <label className="block text-[11px] font-bold text-slate-700 mb-1">Cash Portion (₹)</label>
                                             <input
+                                                id="splitCashInput"
                                                 type="number"
                                                 min="0"
                                                 step="any"
                                                 value={splitCash}
-                                                onChange={(e) => setSplitCash(e.target.value)}
+                                                onChange={(e) => handleSplitCashChange(e.target.value)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Enter") {
+                                                        e.preventDefault();
+                                                        reviewBtnRef.current?.click();
+                                                    }
+                                                }}
                                                 className="w-full h-9 border border-slate-300 rounded-lg px-3 text-sm bg-white font-semibold text-slate-800 outline-none focus:border-blue-500"
-                                                placeholder="Enter cash amount"
+                                                placeholder="Enter cash portion"
                                             />
                                         </div>
 
@@ -1116,16 +1227,22 @@ const InvoiceForm = () => {
                                                 min="0"
                                                 step="any"
                                                 value={splitOnline}
-                                                onChange={(e) => setSplitOnline(e.target.value)}
+                                                onChange={(e) => handleSplitOnlineChange(e.target.value)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Enter") {
+                                                        e.preventDefault();
+                                                        reviewBtnRef.current?.click();
+                                                    }
+                                                }}
                                                 className="w-full h-9 border border-slate-300 rounded-lg px-3 text-sm bg-white font-semibold text-slate-800 outline-none focus:border-blue-500"
-                                                placeholder="Enter online amount"
+                                                placeholder="Enter online portion"
                                             />
                                         </div>
 
                                         <div className="pt-2 border-t border-blue-200 flex justify-between text-xs font-bold">
                                             <span className={Math.abs(splitDifference) <= 0.05 ? "text-emerald-700 font-bold" : "text-amber-700 font-semibold"}>
                                                 {Math.abs(splitDifference) <= 0.05
-                                                    ? "✓ Ready to Bill"
+                                                    ? "✓ Balanced"
                                                     : splitDifference > 0
                                                     ? `Need ₹${splitDifference.toFixed(2)} more`
                                                     : `Exceeds by ₹${Math.abs(splitDifference).toFixed(2)}`

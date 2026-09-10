@@ -11,6 +11,12 @@ const CashRegister = () => {
 
     const navigate = useNavigate();
 
+    const user = JSON.parse(
+        sessionStorage.getItem("user") || "null"
+    );
+
+    const userCounter = user?.counterName || "Counter 1";
+
 
     // ==========================================
     // STATES
@@ -36,6 +42,9 @@ const CashRegister = () => {
 
     const [registerOpen, setRegisterOpen] =
         useState(false);
+
+    const [activeCounter, setActiveCounter] =
+        useState(userCounter);
 
     const [loading, setLoading] =
         useState(false);
@@ -153,6 +162,9 @@ const CashRegister = () => {
 
                         setRegisterOpen(true);
 
+                        setActiveCounter(
+                            register.counter_name || userCounter
+                        );
 
                         setOpeningCash(
                             Number(
@@ -163,6 +175,8 @@ const CashRegister = () => {
                     } else {
 
                         setRegisterOpen(false);
+
+                        setActiveCounter(userCounter);
 
                         setOpeningCash("");
 
@@ -272,7 +286,9 @@ const CashRegister = () => {
                         "/api/cash-register/open",
                         {
                             openingCash:
-                                amount
+                                amount,
+                            counterName:
+                                activeCounter
                         }
                     );
 
@@ -418,6 +434,9 @@ const CashRegister = () => {
                 ) {
 
                     const summary = {
+
+                        counterName:
+                            activeCounter,
 
                         expectedCash:
                             Number(
@@ -608,15 +627,25 @@ const CashRegister = () => {
 
                         <div>
 
-                            <h1 className="text-2xl font-bold text-slate-800">
+                            <div className="flex items-center gap-2">
 
-                                Cash Register
+                                <h1 className="text-2xl font-bold text-slate-800">
 
-                            </h1>
+                                    Cash Register
+
+                                </h1>
+
+                                <span className="text-xs font-bold tracking-wide bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-1 rounded-md">
+
+                                    📍 {activeCounter}
+
+                                </span>
+
+                            </div>
 
                             <p className="text-sm text-slate-500 mt-0.5">
 
-                                Manage your daily cash drawer
+                                Manage your daily cash drawer for this counter
 
                             </p>
 
@@ -678,15 +707,25 @@ const CashRegister = () => {
 
                         <div>
 
-                            <h2 className="text-base font-semibold text-slate-800">
+                            <div className="flex items-center gap-2">
 
-                                Register Overview
+                                <h2 className="text-base font-semibold text-slate-800">
 
-                            </h2>
+                                    Register Overview
+
+                                </h2>
+
+                                <span className="text-[11px] font-semibold bg-slate-100 border border-slate-200 text-slate-600 px-2 py-0.5 rounded">
+
+                                    {activeCounter}
+
+                                </span>
+
+                            </div>
 
                             <p className="text-xs text-slate-500 mt-1">
 
-                                Monitor the current register status and daily sales.
+                                Monitor the current register status and daily counter sales.
 
                             </p>
 
@@ -843,7 +882,7 @@ const CashRegister = () => {
 
                                         <p className="text-xs text-slate-500 mt-1">
 
-                                            Set the starting cash amount for this register.
+                                            Set the starting cash amount for {activeCounter}.
 
                                         </p>
 
@@ -858,7 +897,7 @@ const CashRegister = () => {
 
                                 <span className="inline-flex items-center self-start px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold">
 
-                                    Register Active
+                                    {activeCounter} Active
 
                                 </span>
 
@@ -921,7 +960,7 @@ const CashRegister = () => {
 
                                     {loading
                                         ? "Processing..."
-                                        : "Open Register"
+                                        : `Open Register (${activeCounter})`
                                     }
 
                                 </button>
@@ -949,7 +988,7 @@ const CashRegister = () => {
 
                             <p className="text-xs text-slate-500 mt-1">
 
-                                Current sales and refund summary
+                                Current sales and refund summary for {activeCounter}
 
                             </p>
 
@@ -1163,7 +1202,7 @@ const CashRegister = () => {
 
                             <p className="text-xs text-slate-500 mt-1">
 
-                                Current cash position for this register
+                                Current cash position for {activeCounter}
 
                             </p>
 
@@ -1368,7 +1407,7 @@ const CashRegister = () => {
 
                                         <p className="text-xs text-slate-500 mt-1">
 
-                                            Count the physical cash before closing the register.
+                                            Count physical cash for {activeCounter} before closing.
 
                                         </p>
 
@@ -1452,7 +1491,7 @@ const CashRegister = () => {
                                             strokeLinecap="round"
                                             strokeLinejoin="round"
                                             strokeWidth={2}
-                                            d="M12 15v2m-6 4h12a2 2 0 002-2v-7a2 2 0 00-2-2H6a2 2 0 00-2 2v7a2 2 0 002-2zm10-11V7a4 4 0 00-8 0v3h8z"
+                                            d="M12 15v2m-6 4h12a2 2 0 002-2v-7a2 2 0 00-2-2H6a2 2 0 00-2 2v7a2 2 0 002 2zm10-11V7a4 4 0 00-8 0v3h8z"
                                         />
 
                                     </svg>
@@ -1462,15 +1501,25 @@ const CashRegister = () => {
 
                                 <div>
 
-                                    <h2 className="text-base font-bold text-slate-800">
+                                    <div className="flex items-center gap-2">
 
-                                        Close Cash Register
+                                        <h2 className="text-base font-bold text-slate-800">
 
-                                    </h2>
+                                            Close Cash Register
+
+                                        </h2>
+
+                                        <span className="text-[11px] font-bold bg-amber-50 border border-amber-200 text-amber-800 px-2 py-0.5 rounded">
+
+                                            📍 {activeCounter}
+
+                                        </span>
+
+                                    </div>
 
                                     <p className="text-xs text-slate-500 mt-0.5">
 
-                                        Complete the cash closing details.
+                                        Complete the cash closing details for this terminal.
 
                                     </p>
 
@@ -1514,7 +1563,7 @@ const CashRegister = () => {
 
                                     <h3 className="text-[11px] uppercase tracking-wide font-bold text-slate-500">
 
-                                        Today's Sales
+                                        Today's Sales ({activeCounter})
 
                                     </h3>
 
@@ -1917,10 +1966,16 @@ const CashRegister = () => {
 
                                 </h2>
 
+                                <span className="mt-1 text-xs font-bold bg-amber-50 border border-amber-200 text-amber-800 px-2.5 py-0.5 rounded">
+
+                                    📍 {closeSummary.counterName || activeCounter}
+
+                                </span>
+
 
                                 <p className="text-xs text-slate-500 mt-1">
 
-                                    Today's cash register has been closed.
+                                    Today's cash register has been closed for this terminal.
 
                                 </p>
 
@@ -1940,7 +1995,7 @@ const CashRegister = () => {
 
                                     <h3 className="text-[11px] uppercase tracking-wide font-bold text-slate-500">
 
-                                        Closing Summary
+                                        Closing Summary ({closeSummary.counterName || activeCounter})
 
                                     </h3>
 

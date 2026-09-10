@@ -616,24 +616,6 @@ const InvoiceModal = ({
 
                                             </div>
 
-                                            {/* PAYMENT BREAKDOWN SUMMARY */}
-                                            {invoiceInfo.paymentMethod === "Split" ? (
-                                                <div className="w-full border-t border-dashed border-gray-300 pt-1.5 pb-1 space-y-1 text-gray-700">
-                                                    <div className="flex justify-between">
-                                                        <span className="font-semibold">Paid via Cash:</span>
-                                                        <span>₹{Number(invoiceInfo.cashAmount || 0).toFixed(2)}</span>
-                                                    </div>
-                                                    <div className="flex justify-between">
-                                                        <span className="font-semibold">Paid via Online:</span>
-                                                        <span>₹{Number(invoiceInfo.onlineAmount || 0).toFixed(2)}</span>
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <div className="w-full border-t border-dashed border-gray-300 pt-1.5 pb-1 flex justify-between text-gray-700">
-                                                    <span className="font-semibold">Paid via {invoiceInfo.paymentMethod}:</span>
-                                                    <span>₹{Number(invoiceInfo.total || 0).toFixed(2)}</span>
-                                                </div>
-                                            )}
 
                                             {/* TOTAL PRODUCTS & QUANTITY */}
 
