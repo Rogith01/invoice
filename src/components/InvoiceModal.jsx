@@ -112,6 +112,30 @@ const InvoiceModal = ({
         });
 
     // ==========================================
+    // WHATSAPP SEND BILL
+    // ==========================================
+
+    const sendWhatsAppHandler = () => {
+        const currentStore = JSON.parse(sessionStorage.getItem("store")) || {};
+        const storeName = currentStore.storeName || currentStore.store_name || "Supermarket";
+        
+        const customerPhone = invoiceInfo.phoneNumber || "";
+        const invoiceNo = invoiceInfo.invoiceNumber;
+        const totalAmount = Number(invoiceInfo.total || 0).toFixed(2);
+
+        const messageText = encodeURIComponent(
+            `Hello! Thank you for shopping at *${storeName}*.\n\n` +
+            `Your bill *${invoiceNo}* amounting to *₹${totalAmount}* has been successfully generated.\n\n` +
+            `We look forward to seeing you again! ❤️`
+        );
+
+        const cleanPhone = customerPhone.replace(/\D/g, "");
+        const targetNumber = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
+
+        window.open(`https://wa.me/${targetNumber}?text=${messageText}`, "_blank");
+    };
+
+    // ==========================================
     // KEYBOARD SHORTCUTS
     // ==========================================
 
@@ -668,80 +692,93 @@ const InvoiceModal = ({
                                 {/* BUTTONS */}
                                 {/* ========================================== */}
 
-                                <div className="flex gap-2 p-4">
+                                <div className="p-4 bg-gray-50 border-t border-gray-100 flex flex-col gap-2">
 
-                                    {/* PRINT */}
+                                    <div className="flex gap-2">
 
-                                    <button
-                                        type="button"
-                                        onClick={
-                                            printInvoiceHandler
-                                        }
-                                        className="flex flex-1 items-center justify-center space-x-1 rounded-md border border-red-500 py-2 text-sm text-red-500 shadow-sm transition hover:bg-green-500 hover:text-white"
-                                    >
+                                        {/* PRINT */}
 
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            className="h-4 w-4"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
+                                        <button
+                                            type="button"
+                                            onClick={
+                                                printInvoiceHandler
+                                            }
+                                            className="flex flex-1 items-center justify-center space-x-1 rounded-md border border-red-500 py-2 text-sm text-red-500 shadow-sm transition hover:bg-green-500 hover:text-white"
                                         >
 
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                                            />
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                className="h-4 w-4"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                            >
 
-                                        </svg>
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                                                />
 
-                                        <span>
-                                            Print Bill
-                                        </span>
+                                            </svg>
 
-                                        <span className="ml-1 rounded bg-red-50 px-1.5 py-0.5 text-[10px] font-bold text-red-600">
-                                            F6
-                                        </span>
+                                            <span>
+                                                Print Bill
+                                            </span>
 
-                                    </button>
+                                            <span className="ml-1 rounded bg-red-50 px-1.5 py-0.5 text-[10px] font-bold text-red-600">
+                                                F6
+                                            </span>
 
-                                    {/* NEXT */}
+                                        </button>
 
-                                    <button
-                                        type="button"
-                                        onClick={
-                                            addNextInvoiceHandler
-                                        }
-                                        className="flex flex-1 items-center justify-center space-x-1 rounded-md bg-red-500 py-2 text-sm text-white shadow-sm hover:bg-green-600"
-                                    >
+                                        {/* NEXT */}
 
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            className="h-4 w-4"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
+                                        <button
+                                            type="button"
+                                            onClick={
+                                                addNextInvoiceHandler
+                                            }
+                                            className="flex flex-1 items-center justify-center space-x-1 rounded-md bg-red-500 py-2 text-sm text-white shadow-sm hover:bg-green-600"
                                         >
 
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M13 5l7 7-7 7M5 5l7 7-7 7"
-                                            />
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                className="h-4 w-4"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                            >
 
-                                        </svg>
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M13 5l7 7-7 7M5 5l7 7-7 7"
+                                                />
 
-                                        <span>
-                                            Next
-                                        </span>
+                                            </svg>
 
-                                        <span className="ml-1 rounded bg-white/20 px-1.5 py-0.5 text-[10px] font-bold text-white">
-                                            F7
-                                        </span>
+                                            <span>
+                                                Next
+                                            </span>
 
+                                            <span className="ml-1 rounded bg-white/20 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                                                F7
+                                            </span>
+
+                                        </button>
+
+                                    </div>
+
+                                    {/* WHATSAPP SEND BUTTON */}
+                                    <button
+                                        type="button"
+                                        onClick={sendWhatsAppHandler}
+                                        className="w-full flex items-center justify-center space-x-1 rounded-md bg-emerald-600 py-2 text-sm text-white shadow-sm hover:bg-emerald-700 transition"
+                                    >
+                                        <span>📲 Send Bill via WhatsApp</span>
                                     </button>
 
                                 </div>
