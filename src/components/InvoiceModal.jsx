@@ -97,22 +97,33 @@ const InvoiceModal = ({
     };
 
     // ==========================================
-    // PRINT
+    // PRINT (React Hook called at top level)
     // ==========================================
 
-    const printInvoiceHandler =
-        useReactToPrint({
+    const handleBrowserPrint = useReactToPrint({
+        contentRef: printRef,
+        documentTitle: `Invoice-${invoiceInfo.invoiceNumber}`,
+    });
 
-            contentRef:
-                printRef,
-
-            documentTitle:
-                `Invoice-${invoiceInfo.invoiceNumber}`,
-
-        });
+    const printInvoiceHandler = () => {
+        if (window.electronAPI) {
+            window.electronAPI.send('print-receipt-silent', {
+                storeName: store?.storeName || "Supermarket",
+                storeAddress: store?.address,
+                invoiceNumber: invoiceInfo.invoiceNumber,
+                date: today,
+                time: currentTime,
+                cashierName: invoiceInfo.cashierName,
+                items: items,
+                total: invoiceInfo.total
+            });
+        } else {
+            handleBrowserPrint();
+        }
+    };
 
     // ==========================================
-    // WHATSAPP SEND BILL
+    // WHATSAPP SEND BILL (100% Free, Multi-Tenant Safe)
     // ==========================================
 
     const sendWhatsAppHandler = () => {
@@ -772,7 +783,7 @@ const InvoiceModal = ({
 
                                     </div>
 
-                                    {/* WHATSAPP SEND BUTTON */}
+                                    {/* WHATSAPP SEND BILL BUTTON */}
                                     <button
                                         type="button"
                                         onClick={sendWhatsAppHandler}

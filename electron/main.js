@@ -1,7 +1,9 @@
-const { app, BrowserWindow } = require("electron");
+const { app, BrowserWindow, ipcMain } = require("electron");
 const path = require("path");
 const express = require("express");
 const { autoUpdater } = require("electron-updater");
+const thermalPrinter = require("node-thermal-printer").printer;
+const PrinterTypes = require("node-thermal-printer").types;
 
 let server;
 let mainWindow;
@@ -72,6 +74,8 @@ async function createWindow() {
             webPreferences: {
                 nodeIntegration: false,
                 contextIsolation: true,
+                // LINKED PRELOAD SCRIPT HERE
+                preload: path.join(__dirname, "preload.js"),
             },
         });
 
@@ -82,6 +86,64 @@ async function createWindow() {
     // Keep this commented for now.
     // mainWindow.webContents.openDevTools();
 }
+
+
+// ======================================================
+// SILENT THERMAL PRINT HANDLER (80mm)
+// ======================================================
+
+ipcMain.on('print-receipt-silent', async (event, invoiceData) => {
+    try {
+        let printer = new thermalPrinter({
+            type: PrinterTypes.EPSON,
+            interface: 'printer:auto',
+            characterSet: 'SLOVENIA',
+            removeSpecialCharacters: false
+        });
+
+        let isConnected = await printer.isPrinterConnected();
+        if (!isConnected) {
+            console.log("Thermal printer not connected.");
+            return;
+        }
+
+        printer.alignCenter();
+        printer.println(invoiceData.storeName);
+        if (invoiceData.storeAddress) {
+            printer.println(invoiceData.storeAddress);
+        }
+        printer.drawLine();
+        
+        printer.alignLeft();
+        printer.println(`Inv: ${invoiceData.invoiceNumber}`);
+        printer.println(`Date: ${invoiceData.date} Time: ${invoiceData.time}`);
+        printer.println(`Cashier: ${invoiceData.cashierName}`);
+        printer.drawLine();
+
+        invoiceData.items.forEach(item => {
+            printer.table([
+                item.name,
+                String(item.qty),
+                `Rs.${Number(item.amount || item.price * item.qty).toFixed(2)}`
+            ]);
+        });
+
+        printer.drawLine();
+        printer.alignRight();
+        printer.bold(true);
+        printer.println(`TOTAL: Rs.${Number(invoiceData.total).toFixed(2)}`);
+        printer.bold(false);
+        
+        printer.alignCenter();
+        printer.println("Thank you for shopping!");
+        printer.cut();
+
+        await printer.execute();
+        console.log("Silent thermal print executed successfully.");
+    } catch (error) {
+        console.error("Silent print failed: ", error);
+    }
+});
 
 
 // ======================================================
