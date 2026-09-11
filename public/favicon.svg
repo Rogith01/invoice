@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Background Rounded Shield -->
+  <rect width="64" height="64" rx="16" fill="#1e1b4b"/>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="#312e81" stroke-width="2"/>
+  
+  <!-- Dynamic 'B' & Invoice Fold Monogram -->
+  <path d="M20 16h12a7 7 0 0 1 7 7 7 7 0 0 1-7 7h-12v-14z" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M20 30h14a7 7 0 0 1 7 7 7 7 0 0 1-7 7h-14v-14z" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Success / Growth Accent Dot -->
+  <circle cx="45" cy="45" r="5" fill="#059669"/>
+  <circle cx="45" cy="45" r="2" fill="#ffffff"/>
+</svg>

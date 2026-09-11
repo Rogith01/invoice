@@ -269,7 +269,7 @@ const InvoiceHistory = () => {
                                                 {/* SEPARATE COUNTER COLUMN */}
                                                 <td className="px-4 py-4 text-center">
                                                     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold whitespace-nowrap">
-                                                        {invoice.counter_name || "Counter 1"}
+                                                        📍 {invoice.counter_name || "Counter 1"}
                                                     </span>
                                                 </td>
 
