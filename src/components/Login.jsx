@@ -920,6 +920,62 @@ return (
               </p>
             </div>
           </div>
+
+          {/* BILLQORA ACTION BUTTONS */}
+          <div className="mt-8 flex flex-wrap items-center gap-3 fade-up fade-delay-4">
+            <a
+              href="https://github.com/Rogith01/invoice/releases/latest/download/BILLQORA-POS-Setup.exe"
+              className="group inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-white to-slate-100 px-5 py-3 text-sm font-bold text-slate-900 shadow-lg shadow-black/20 ring-1 ring-white/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/25 focus:outline-none focus:ring-4 focus:ring-white/20"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="1.8"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v12m0 0 4-4m-4 4-4-4M5 17v3h14v-3" />
+              </svg>
+              Download BILLQORA
+              
+            </a>
+
+            <a
+              href="mailto:akrogith777@gmail.com?subject=BILLQORA%20Store%20Activation"
+               className="group inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-white to-slate-100 px-5 py-3 text-sm font-bold text-slate-900 shadow-lg shadow-black/20 ring-1 ring-white/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/25 focus:outline-none focus:ring-4 focus:ring-white/20"
+            >
+            
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="1.8"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 7.5 12 13l9-5.5M5 5h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" />
+              </svg>
+              Request Store ID
+              
+            </a>
+          </div>
+
+          <p className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-medium tracking-wide text-slate-400 fade-up fade-delay-4">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-3.5 w-3.5 text-emerald-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="1.8"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+            Windows desktop application
+            <span className="text-slate-600">•</span>
+            Automatic updates
+          </p>
         </div>
 
         {/* FOOTER */}
